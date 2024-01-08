@@ -3,4 +3,3 @@ files:
     translation: /%original_path%/%file_name%_%locale_with_underscore%.%file_extension%
   - source: /src/main/resources/net/rptools/maptool/language/i18n_Test.properties
     translation: /%original_path%/%file_name%_%locale_with_underscore%.js
-    type: i18Next
