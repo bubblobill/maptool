@@ -1,5 +1,6 @@
 files:
-  - "src/resources/net/rptools/maptool/language/i18n_Test.properties"
+  - source: src/resources/net/rptools/maptool/language/i18n_Test.properties
+    translation: %original_path%%original_file_name%_%locale_with_underscore%.%file_extension%
 bundles:
   - 4
   - 6
