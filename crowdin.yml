@@ -1,4 +1,5 @@
-files: src/resources/net/rptools/maptool/language/i18n_Test.properties
+files:
+  - src/resources/net/rptools/maptool/language/i18n_Test.properties
 bundles:
   - 4
   - 6
