@@ -57,6 +57,9 @@ public class JSONMacroFunctions extends AbstractFunction {
   /** Class used for Json Object related functions */
   private final JsonObjectFunctions jsonObjectFunctions;
 
+  /** Class used for Json Html related functions */
+  private final JsonHtmlFunctions jsonHtmlFunctions;
+
   /** The default delimiter to use for MT String lists. */
   private static final String DEFAULT_STRING_LIST_DELIM = ",";
 
@@ -134,11 +137,13 @@ public class JSONMacroFunctions extends AbstractFunction {
         "json.isSubset",
         "json.removeFirst",
         "json.rolls",
-        "json.objrolls");
+        "json.objrolls",
+        "json.toHtmlTable");
 
     typeConversion = new JsonMTSTypeConversion();
     jsonArrayFunctions = new JsonArrayFunctions(typeConversion);
     jsonObjectFunctions = new JsonObjectFunctions(typeConversion);
+    jsonHtmlFunctions = new JsonHtmlFunctions(typeConversion);
   }
 
   @Override
@@ -527,6 +532,24 @@ public class JSONMacroFunctions extends AbstractFunction {
           } else {
             return jsonObjRolls(names, stats, rollString);
           }
+        }
+      case "json.toHtmlTable":
+        {
+          FunctionUtil.experimentalWarning(parser, resolver, functionName);
+          FunctionUtil.checkNumberParam(functionName, args, 1, 2);
+
+          FunctionUtil.blockUntrustedMacro(functionName);
+          JsonElement json = FunctionUtil.paramConvertedToJson(functionName, args, 0);
+
+          // 2nd arg options, 3rd arg options delimiter
+          JsonObject options = new JsonObject();
+          if (args.size() > 1) {
+            options =
+                FunctionUtil.jsonWithLowerCaseKeys(
+                    FunctionUtil.paramAsJsonObject(functionName, args, 1));
+          }
+
+          return jsonHtmlFunctions.jsonToHtmlTable(json, options);
         }
     }
     throw new ParserException(I18N.getText("macro.function.general.unknownFunction", functionName));
