@@ -82,32 +82,27 @@ public class TokenImage extends AbstractFunction {
         "getTokenOpacity",
         "createAsset");
   }
+
   private static boolean isPNG(byte[] b) {
-    return b.length >= 8
-            && (b[0] & 0xFF) == 0x89
-            && b[1] == 0x50
-            && b[2] == 0x4E
-            && b[3] == 0x47;
+    return b.length >= 8 && (b[0] & 0xFF) == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47;
   }
 
   private static boolean isJPG(byte[] b) {
-    return b.length >= 3
-            && (b[0] & 0xFF) == 0xFF
-            && (b[1] & 0xFF) == 0xD8
-            && (b[2] & 0xFF) == 0xFF;
+    return b.length >= 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF;
   }
 
   private static boolean isWEBP(byte[] b) {
     return b.length >= 12
-            && b[0] == 'R'
-            && b[1] == 'I'
-            && b[2] == 'F'
-            && b[3] == 'F'
-            && b[8] == 'W'
-            && b[9] == 'E'
-            && b[10] == 'B'
-            && b[11] == 'P';
+        && b[0] == 'R'
+        && b[1] == 'I'
+        && b[2] == 'F'
+        && b[3] == 'F'
+        && b[8] == 'W'
+        && b[9] == 'E'
+        && b[10] == 'B'
+        && b[11] == 'P';
   }
+
   /**
    * Gets the TokenImage instance.
    *
@@ -213,11 +208,11 @@ public class TokenImage extends AbstractFunction {
       String imageString = args.get(1).toString();
       if (imageName.isEmpty() || imageString.isEmpty()) {
         throw new ParserException(
-                I18N.getText("macro.function.general.paramCannotBeEmpty", functionName));
+            I18N.getText("macro.function.general.paramCannotBeEmpty", functionName));
       }
       if (imageString.length() <= 8) {
         throw new ParserException(
-                I18N.getText("macro.function.general.wrongParamType", functionName));
+            I18N.getText("macro.function.general.wrongParamType", functionName));
       }
       Asset asset;
       boolean isBase64Image = false;
@@ -241,29 +236,25 @@ public class TokenImage extends AbstractFunction {
         }
       }
       if (uri != null
-              && uri.getScheme() != null
-              && isValidAssetScheme(uri)
-              && isValidAssetExtension(uri)) {
+          && uri.getScheme() != null
+          && isValidAssetScheme(uri)
+          && isValidAssetExtension(uri)) {
         try {
           URL url = uri.toURL();
           BufferedImage imageRAW = ImageIO.read(url);
           asset = Asset.createImageAsset(imageName, imageRAW);
         } catch (MalformedURLException | IllegalArgumentException e) {
           throw new ParserException(
-                  I18N.getText("macro.function.input.illegalArgumentType", imageString));
+              I18N.getText("macro.function.input.illegalArgumentType", imageString));
         } catch (IOException e) {
-          throw new ParserException(
-                  I18N.getText("macro.function.html5.invalidURI", imageString));
+          throw new ParserException(I18N.getText("macro.function.html5.invalidURI", imageString));
         }
       } else {
-        byte[] imageBytes = isBase64Image
-                ? base64Bytes
-                : Base64.decode(imageString);
+        byte[] imageBytes = isBase64Image ? base64Bytes : Base64.decode(imageString);
         if (isPNG(imageBytes) || isJPG(imageBytes) || isWEBP(imageBytes)) {
           asset = Asset.createImageAsset(imageName, imageBytes);
         } else {
-          throw new ParserException(
-                  I18N.getText("dragdrop.unsupportedType", functionName));
+          throw new ParserException(I18N.getText("dragdrop.unsupportedType", functionName));
         }
       }
       AssetManager.putAsset(asset);
@@ -428,8 +419,8 @@ public class TokenImage extends AbstractFunction {
       return false;
     }
     return uri.getScheme().equalsIgnoreCase("http")
-            || uri.getScheme().equalsIgnoreCase("https")
-            || uri.getScheme().equalsIgnoreCase("asset");
+        || uri.getScheme().equalsIgnoreCase("https")
+        || uri.getScheme().equalsIgnoreCase("asset");
   }
 
   /**
