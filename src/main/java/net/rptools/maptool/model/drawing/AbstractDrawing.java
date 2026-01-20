@@ -15,6 +15,8 @@
 package net.rptools.maptool.model.drawing;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import java.awt.*;
 import java.awt.image.ImageObserver;
 import net.rptools.maptool.client.MapTool;
@@ -150,6 +152,14 @@ public abstract class AbstractDrawing implements Drawable, ImageObserver {
 
   public String toNonLocalisedString() {
     return "name=" + getName() + ";" + "layer=" + getLayer().name() + ";" + "id=" + getId() + ";";
+  }
+
+  public JsonObject toJson() {
+    JsonObject jo = new JsonObject();
+    jo.add("name", new JsonPrimitive(getName()));
+    jo.add("layer", new JsonPrimitive(getLayer().name()));
+    jo.add("id", new JsonPrimitive(getId().toString()));
+    return jo;
   }
 
   ////

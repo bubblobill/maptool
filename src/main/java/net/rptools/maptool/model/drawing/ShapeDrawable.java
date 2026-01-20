@@ -14,6 +14,8 @@
  */
 package net.rptools.maptool.model.drawing;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.protobuf.StringValue;
 import java.awt.*;
 import java.awt.Rectangle;
@@ -185,7 +187,6 @@ public class ShapeDrawable extends AbstractDrawing {
         + "shapeType="
         + getShapeTypeName()
         + ";"
-        + "bounds=\""
         + "x="
         + getBounds().x
         + ";"
@@ -196,8 +197,7 @@ public class ShapeDrawable extends AbstractDrawing {
         + getBounds().width
         + ";"
         + "height="
-        + getBounds().height
-        + "\";";
+        + getBounds().height;
   }
 
   public String toNonLocalisedString() {
@@ -208,7 +208,6 @@ public class ShapeDrawable extends AbstractDrawing {
         + "shapeType="
         + getShapeTypeName()
         + ";"
-        + "bounds=\""
         + "x="
         + getBounds().x
         + ";"
@@ -219,8 +218,19 @@ public class ShapeDrawable extends AbstractDrawing {
         + getBounds().width
         + ";"
         + "height="
-        + getBounds().height
-        + "\";";
+        + getBounds().height;
+  }
+
+  @Override
+  public JsonObject toJson() {
+    JsonObject jo = super.toJson();
+    jo.add("antiAliasing", new JsonPrimitive(getName()));
+    jo.add("shapeType", new JsonPrimitive(getLayer().name()));
+    jo.add("x", new JsonPrimitive(getBounds().x));
+    jo.add("y", new JsonPrimitive(getBounds().y));
+    jo.add("width", new JsonPrimitive(getBounds().width));
+    jo.add("height", new JsonPrimitive(getBounds().height));
+    return jo;
   }
 
   private void restoreAA(Graphics2D g, Object oldAA) {
