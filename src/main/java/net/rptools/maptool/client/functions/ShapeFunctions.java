@@ -576,7 +576,7 @@ public class ShapeFunctions extends AbstractFunction {
         pen.setEraser(penObject.get("eraser").getAsBoolean());
       }
     }
-    DrawnElement drawnElement = new DrawnElement(CACHED_SHAPES.get(shapeName), pen);
+    DrawnElement drawnElement = new DrawnElement(shapeDrawable.copy(), pen);
     drawnElement.setPen(pen);
 
     MapTool.serverCommand()
@@ -614,7 +614,7 @@ public class ShapeFunctions extends AbstractFunction {
               seg, coords[0], coords[1], coords[2], coords[3], coords[4], coords[5], coords[6]));
       pi.next();
     }
-    StringBuilder stringBuilder = new StringBuilder(sd.toString(false));
+    StringBuilder stringBuilder = new StringBuilder(sd.toNonLocalisedString());
     stringBuilder.append("segments=").append(String.join(",", segments)).append(";");
 
     if (delimiter.equalsIgnoreCase("json")) {
