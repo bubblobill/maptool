@@ -83,26 +83,6 @@ public class TokenImage extends AbstractFunction {
         "createAsset");
   }
 
-  private static boolean isPNG(byte[] b) {
-    return b.length >= 8 && (b[0] & 0xFF) == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47;
-  }
-
-  private static boolean isJPG(byte[] b) {
-    return b.length >= 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF;
-  }
-
-  private static boolean isWEBP(byte[] b) {
-    return b.length >= 12
-        && b[0] == 'R'
-        && b[1] == 'I'
-        && b[2] == 'F'
-        && b[3] == 'F'
-        && b[8] == 'W'
-        && b[9] == 'E'
-        && b[10] == 'B'
-        && b[11] == 'P';
-  }
-
   /**
    * Gets the TokenImage instance.
    *
@@ -206,59 +186,42 @@ public class TokenImage extends AbstractFunction {
       FunctionUtil.checkNumberParam(functionName, args, 2, 2);
       String imageName = args.get(0).toString();
       String imageString = args.get(1).toString();
+      Asset asset = null;
       if (imageName.isEmpty() || imageString.isEmpty()) {
         throw new ParserException(
-            I18N.getText("macro.function.general.paramCannotBeEmpty", functionName));
-      }
-      if (imageString.length() <= 8) {
-        throw new ParserException(
-            I18N.getText("macro.function.general.wrongParamType", functionName));
-      }
-      Asset asset;
-      boolean isBase64Image = false;
-      byte[] base64Bytes = null;
-      try {
-        base64Bytes = Base64.decode(imageString);
-        if (isPNG(base64Bytes) || isJPG(base64Bytes) || isWEBP(base64Bytes)) {
-          isBase64Image = true;
-        }
-      } catch (Exception ignore) {
-      }
-      URI uri = null;
-      if (!isBase64Image) {
+                I18N.getText("macro.function.general.paramCannotBeEmpty", functionName));
+      } else if (imageString.length() > 8) {
+        byte[] imageBytes = Base64.decode(imageString);
         try {
-          uri = new URI(imageString);
-          if (uri.getScheme() == null) {
+          asset = Asset.createAssetDetectType(imageName,imageBytes);
+        } catch (Exception e) {
+          URI uri;
+          try {
+            uri = new URI(imageString);
+          } catch (URISyntaxException e1) {
             uri = null;
           }
-        } catch (URISyntaxException e) {
-          uri = null;
+          if (uri != null && isValidAssetScheme(uri) && isValidAssetExtension(uri)) {
+            try {
+              URL url = uri.toURL();
+              BufferedImage imageRAW = ImageIO.read(url);
+              asset = Asset.createImageAsset(imageName, imageRAW);
+            } catch (MalformedURLException | IllegalArgumentException e2) {
+              throw new ParserException(
+                      I18N.getText("macro.function.input.illegalArgumentType", imageString));
+            } catch (IOException e3) {
+              throw new ParserException(I18N.getText("macro.function.html5.invalidURI", imageString));
+            }
+          }
         }
-      }
-      if (uri != null
-          && uri.getScheme() != null
-          && isValidAssetScheme(uri)
-          && isValidAssetExtension(uri)) {
-        try {
-          URL url = uri.toURL();
-          BufferedImage imageRAW = ImageIO.read(url);
-          asset = Asset.createImageAsset(imageName, imageRAW);
-        } catch (MalformedURLException | IllegalArgumentException e) {
-          throw new ParserException(
-              I18N.getText("macro.function.input.illegalArgumentType", imageString));
-        } catch (IOException e) {
-          throw new ParserException(I18N.getText("macro.function.html5.invalidURI", imageString));
+        if(asset!=null){
+          AssetManager.putAsset(asset);
+          return "asset://" + asset.getMD5Key().toString();
         }
       } else {
-        byte[] imageBytes = isBase64Image ? base64Bytes : Base64.decode(imageString);
-        if (isPNG(imageBytes) || isJPG(imageBytes) || isWEBP(imageBytes)) {
-          asset = Asset.createImageAsset(imageName, imageBytes);
-        } else {
-          throw new ParserException(I18N.getText("dragdrop.unsupportedType", functionName));
-        }
+        throw new ParserException(
+                I18N.getText("macro.function.general.wrongParamType", functionName));
       }
-      AssetManager.putAsset(asset);
-      return "asset://" + asset.getMD5Key().toString();
     }
 
     /* getImage, getTokenImage, getTokenPortrait, or getTokenHandout */
@@ -420,7 +383,8 @@ public class TokenImage extends AbstractFunction {
     }
     return uri.getScheme().equalsIgnoreCase("http")
         || uri.getScheme().equalsIgnoreCase("https")
-        || uri.getScheme().equalsIgnoreCase("asset");
+        || uri.getScheme().equalsIgnoreCase("asset")
+        || uri.getScheme().equalsIgnoreCase("lib");
   }
 
   /**
