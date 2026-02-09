@@ -189,11 +189,11 @@ public class TokenImage extends AbstractFunction {
       Asset asset = null;
       if (imageName.isEmpty() || imageString.isEmpty()) {
         throw new ParserException(
-                I18N.getText("macro.function.general.paramCannotBeEmpty", functionName));
+            I18N.getText("macro.function.general.paramCannotBeEmpty", functionName));
       } else if (imageString.length() > 8) {
         byte[] imageBytes = Base64.decode(imageString);
         try {
-          asset = Asset.createAssetDetectType(imageName,imageBytes);
+          asset = Asset.createAssetDetectType(imageName, imageBytes);
         } catch (Exception e) {
           URI uri;
           try {
@@ -208,19 +208,20 @@ public class TokenImage extends AbstractFunction {
               asset = Asset.createImageAsset(imageName, imageRAW);
             } catch (MalformedURLException | IllegalArgumentException e2) {
               throw new ParserException(
-                      I18N.getText("macro.function.input.illegalArgumentType", imageString));
+                  I18N.getText("macro.function.input.illegalArgumentType", imageString));
             } catch (IOException e3) {
-              throw new ParserException(I18N.getText("macro.function.html5.invalidURI", imageString));
+              throw new ParserException(
+                  I18N.getText("macro.function.html5.invalidURI", imageString));
             }
           }
         }
-        if(asset!=null){
+        if (asset != null) {
           AssetManager.putAsset(asset);
           return "asset://" + asset.getMD5Key().toString();
         }
       } else {
         throw new ParserException(
-                I18N.getText("macro.function.general.wrongParamType", functionName));
+            I18N.getText("macro.function.general.wrongParamType", functionName));
       }
     }
 
