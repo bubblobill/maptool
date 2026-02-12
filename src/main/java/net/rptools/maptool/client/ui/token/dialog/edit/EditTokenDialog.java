@@ -672,7 +672,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   }
 
   private void updateImageTableCombo() {
-    List<String> typeList = new ArrayList<String>(MapTool.getCampaign().getLookupTables());
+    List<String> typeList =
+        new ArrayList<String>(MapTool.getCampaign().getLookupTableMap().keySet());
     Collections.sort(typeList);
 
     DefaultComboBoxModel model = new DefaultComboBoxModel(typeList.toArray());
@@ -907,12 +908,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     if (ss == null || (ss.name() == null && ss.namespace() == null)) {
       token.useDefaultStatSheet();
     } else {
-      var ssManager = new StatSheetManager();
       var location = (StatSheetLocation) getStatSheetLocationCombo().getSelectedItem();
-      if (location == null) {
-        location = StatSheetLocation.BOTTOM_LEFT;
-      }
-      token.setStatSheet(new StatSheetProperties(ssManager.getId(ss), location));
+      token.setStatSheet(new StatSheetProperties(ss.id(), location));
     }
 
     /* Macros */
@@ -954,7 +951,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
     token.setSnapToGrid(getSnapToGrid().isSelected());
 
-    /* TOPOLOGY */
+    /* OUTLINE */
     for (final var type : Zone.TopologyType.values()) {
       token.setMaskTopology(type, getTokenTopologyPanel().getTopology(type));
     }
