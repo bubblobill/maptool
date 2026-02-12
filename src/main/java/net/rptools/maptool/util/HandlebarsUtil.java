@@ -21,7 +21,6 @@ import com.github.jknack.handlebars.io.AbstractTemplateLoader;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -33,7 +32,6 @@ import java.nio.file.Path;
 import java.util.concurrent.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.library.Library;
 import net.rptools.maptool.model.library.LibraryManager;
@@ -46,16 +44,17 @@ import org.apache.logging.log4j.Logger;
  * @param <T> The type of the bean to apply the template to.
  */
 public class HandlebarsUtil<T> {
-  private static final HighConcurrencyTemplateCache HIGH_CONCURRENCY_TEMPLATE_CACHE = new HighConcurrencyTemplateCache();
+  private static final HighConcurrencyTemplateCache HIGH_CONCURRENCY_TEMPLATE_CACHE =
+      new HighConcurrencyTemplateCache();
 
   static Handlebars getHandlebarsInstance(@Nullable TemplateLoader loader) {
-    return HandlebarsHelpers.registerHelpers(new Handlebars()
+    return HandlebarsHelpers.registerHelpers(
+        new Handlebars()
             .with(loader)
             .with(HIGH_CONCURRENCY_TEMPLATE_CACHE)
             .preEvaluatePartialBlocks(true)
             .parentScopeResolution(false)
-            .setCharset(StandardCharsets.UTF_8)
-    );
+            .setCharset(StandardCharsets.UTF_8));
   }
 
   public static boolean isAssetFileHandlebars(String filename) {
@@ -65,21 +64,15 @@ public class HandlebarsUtil<T> {
     return filename.toLowerCase().endsWith(".hbs");
   }
 
-  /**
-   * The compiled template.
-   */
+  /** The compiled template. */
   private final Template template;
 
-  /**
-   * Logging class instance.
-   */
+  /** Logging class instance. */
   private static final Logger log = LogManager.getLogger(Token.class);
 
-  /**
-   * Handlebars partial template source that uses Add-On files
-   */
+  /** Handlebars partial template source that uses Add-On files */
   private static record LibraryTemplateSource(@Nonnull Library library, @Nonnull String filename)
-          implements TemplateSource {
+      implements TemplateSource {
     @Override
     public long lastModified() {
       // No modification time is available.
@@ -101,18 +94,12 @@ public class HandlebarsUtil<T> {
     }
   }
 
-  /**
-   * Handlebars partial template loader that uses Add-On Library URIs
-   */
+  /** Handlebars partial template loader that uses Add-On Library URIs */
   private static class LibraryTemplateLoader extends AbstractTemplateLoader {
-    /**
-     * Path to template being resolved, relative paths are resolved relative to its parent.
-     */
-    @Nonnull
-    final Path current;
+    /** Path to template being resolved, relative paths are resolved relative to its parent. */
+    @Nonnull final Path current;
 
-    @Nonnull
-    final Library library;
+    @Nonnull final Library library;
 
     private LibraryTemplateLoader(@Nonnull String current, @Nonnull Library library) {
       current = current.replace('\\', '/');
@@ -125,9 +112,7 @@ public class HandlebarsUtil<T> {
       setSuffix(TemplateLoader.DEFAULT_SUFFIX);
     }
 
-    /**
-     * Resolve possibly relative uri to a new location relative to current rooted below prefix
-     */
+    /** Resolve possibly relative uri to a new location relative to current rooted below prefix */
     @Override
     @Nonnull
     public String resolve(@Nonnull final String path) {
@@ -149,7 +134,7 @@ public class HandlebarsUtil<T> {
    * Creates a new instance of the utility class.
    *
    * @param stringTemplate The template to compile.
-   * @param loader         The template loader for loading included partial templates
+   * @param loader The template loader for loading included partial templates
    * @throws IOException If there is an error compiling the template.
    */
   private HandlebarsUtil(String stringTemplate, TemplateLoader loader) throws IOException {
@@ -166,16 +151,16 @@ public class HandlebarsUtil<T> {
    * Creates a new instance of the utility class.
    *
    * @param stringTemplate The template to compile.
-   * @param entry          The lib:// URL of the template to load partial templates relative to
+   * @param entry The lib:// URL of the template to load partial templates relative to
    * @throws IOException If there is an error compiling the template.
    */
   public HandlebarsUtil(String stringTemplate, URL entry) throws IOException {
     this(
-            stringTemplate,
-            new LibraryTemplateLoader(
-                    entry.getPath(),
-                    // Template is defined by AddOn so library should always be present.
-                    new LibraryManager().getLibrary(entry).join().orElseThrow()));
+        stringTemplate,
+        new LibraryTemplateLoader(
+            entry.getPath(),
+            // Template is defined by AddOn so library should always be present.
+            new LibraryManager().getLibrary(entry).join().orElseThrow()));
   }
 
   /**
