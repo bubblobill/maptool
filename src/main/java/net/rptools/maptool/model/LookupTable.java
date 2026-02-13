@@ -60,7 +60,7 @@ public class LookupTable {
     return defaultRoll;
   }
 
-  public void setRoll(String roll) {
+  public void setRoll(@Nullable String roll) {
     defaultRoll = roll;
   }
 
@@ -68,8 +68,10 @@ public class LookupTable {
     entryList.clear();
   }
 
-  public void addEntry(int min, int max, String result, MD5Key imageId) {
-    entryList.add(new LookupEntry(min, max, result, imageId));
+  public LookupEntry addEntry(int min, int max, String result, MD5Key imageId) {
+    var newEntry = new LookupEntry(min, max, result, imageId);
+    entryList.add(newEntry);
+    return newEntry;
   }
 
   public String calculateRoll() {
@@ -104,7 +106,7 @@ public class LookupTable {
   public @Nullable LookupEntry getEntryByRollResult(int rollResult) {
     // For now this is a linear scan. In the future hopefully we can use some kind of accelerated
     // search.
-    for (var entry : entryList) {
+    for (var entry : entryList.reversed()) {
       if (entry.min <= rollResult && rollResult <= entry.max) {
         return entry;
       }

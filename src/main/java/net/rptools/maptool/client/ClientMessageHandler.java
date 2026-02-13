@@ -673,10 +673,11 @@ public class ClientMessageHandler implements MessageHandler {
         () -> {
           var zoneGUID = GUID.valueOf(msg.getZoneGuid());
           var zone = client.getCampaign().getZone(zoneGUID);
-
-          Point boardXY = Mapper.map(msg.getPoint());
-          var assetId = new MD5Key(msg.getAssetId());
-          zone.setBoard(boardXY, assetId);
+          if (zone != null) {
+            Point boardXY = Mapper.map(msg.getPoint());
+            var assetId = new MD5Key(msg.getAssetId());
+            zone.setBoard(assetId, boardXY, (float) msg.getScaleX(), (float) msg.getScaleY());
+          }
         });
   }
 
@@ -923,8 +924,12 @@ public class ClientMessageHandler implements MessageHandler {
           if (AppPreferences.fitGmView.get()) {
             renderer.enforceView(x, y, scale, gmWidth, gmHeight);
           } else {
-            renderer.setScale(scale);
-            renderer.centerOn(new ZonePoint(x, y));
+            var viewModel = renderer.getViewModel();
+            viewModel.setZoneScale(
+                viewModel
+                    .getZoneScale()
+                    .withCenteredScale(scale, renderer.getSize())
+                    .centeredOn(x, y, renderer.getSize()));
           }
         });
   }
