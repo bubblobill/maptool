@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.client;
 
-import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.plaf.UIDefaultsLookup;
 import com.jidesoft.plaf.basic.ThemePainter;
 import io.sentry.EventProcessor;
@@ -44,6 +43,9 @@ import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,6 +65,7 @@ import net.rptools.lib.image.ThumbnailManager;
 import net.rptools.lib.net.RPTURLStreamHandlerFactory;
 import net.rptools.lib.net.SyrinscapeURLStreamHandler;
 import net.rptools.lib.sound.SoundManager;
+import net.rptools.maptool.client.AppUpdate.ReleaseInfo;
 import net.rptools.maptool.client.MapToolConnection.HandshakeCompletionObserver;
 import net.rptools.maptool.client.events.ChatMessageAdded;
 import net.rptools.maptool.client.events.ServerDisconnected;
@@ -1262,72 +1265,63 @@ public class MapTool {
     return clientFrame;
   }
 
-  private static void configureJide() {
-    LookAndFeelFactory.UIDefaultsCustomizer uiDefaultsCustomizer =
-        defaults -> {
-          ThemePainter painter = (ThemePainter) UIDefaultsLookup.get("Theme.painter");
-          defaults.put("OptionPaneUI", "com.jidesoft.plaf.basic.BasicJideOptionPaneUI");
+  private static void configureLaf() {
+    final var defaults = UIManager.getDefaults();
 
-          defaults.put("OptionPane.showBanner", Boolean.TRUE); // show banner or not. default
-          // is true
-          defaults.put("OptionPane.bannerIcon", RessourceManager.getSmallIcon(Icons.MAPTOOL));
-          defaults.put("OptionPane.bannerFontSize", 13);
-          defaults.put("OptionPane.bannerFontStyle", Font.BOLD);
-          defaults.put("OptionPane.bannerMaxCharsPerLine", 60);
-          defaults.put(
-              "OptionPane.bannerForeground",
-              painter != null ? painter.getOptionPaneBannerForeground() : null); // you
-          // should
-          // adjust
-          // this
-          // if
-          // banner
-          // background
-          // is
-          // not
-          // the
-          // default
-          // gradient paint
-          defaults.put("OptionPane.bannerBorder", null); // use default border
+    // region JIDE LAF
+    ThemePainter painter = (ThemePainter) UIDefaultsLookup.get("Theme.painter");
+    defaults.put("OptionPaneUI", "com.jidesoft.plaf.basic.BasicJideOptionPaneUI");
 
-          // set both bannerBackgroundDk and bannerBackgroundLt to null if you don't want
-          // gradient
-          defaults.put(
-              "OptionPane.bannerBackgroundDk",
-              painter != null ? painter.getOptionPaneBannerDk() : null);
-          defaults.put(
-              "OptionPane.bannerBackgroundLt",
-              painter != null ? painter.getOptionPaneBannerLt() : null);
-          defaults.put("OptionPane.bannerBackgroundDirection", Boolean.TRUE); // default is
-          // true
+    // show banner or not. default is true
+    defaults.put("OptionPane.showBanner", Boolean.FALSE);
+    defaults.put("OptionPane.bannerIcon", RessourceManager.getSmallIcon(Icons.MAPTOOL));
+    defaults.put("OptionPane.bannerFontSize", 13);
+    defaults.put("OptionPane.bannerFontStyle", Font.BOLD);
+    defaults.put("OptionPane.bannerMaxCharsPerLine", 60);
+    // you should adjust this if banner background is not the default gradient paint
+    defaults.put(
+        "OptionPane.bannerForeground",
+        painter != null ? painter.getOptionPaneBannerForeground() : null);
+    defaults.put("OptionPane.bannerBorder", null); // use default border
 
-          // optionally, you can set a Paint object for BannerPanel. If so, the three
-          // UIDefaults
-          // related to banner background above will be ignored.
-          defaults.put("OptionPane.bannerBackgroundPaint", null);
+    // set both bannerBackgroundDk and bannerBackgroundLt to null if you don't want
+    // gradient
+    defaults.put(
+        "OptionPane.bannerBackgroundDk", painter != null ? painter.getOptionPaneBannerDk() : null);
+    defaults.put(
+        "OptionPane.bannerBackgroundLt", painter != null ? painter.getOptionPaneBannerLt() : null);
+    // default is true
+    defaults.put("OptionPane.bannerBackgroundDirection", Boolean.TRUE);
 
-          defaults.put("OptionPane.buttonAreaBorder", BorderFactory.createEmptyBorder(6, 6, 6, 6));
-          defaults.put("OptionPane.buttonOrientation", SwingConstants.RIGHT);
+    // optionally, you can set a Paint object for BannerPanel. If so, the three
+    // UIDefaults
+    // related to banner background above will be ignored.
+    defaults.put("OptionPane.bannerBackgroundPaint", null);
 
-          defaults.put(
-              "DockableFrame.inactiveTitleBackground",
-              UIManager.getColor("InternalFrame.inactiveTitleBackground"));
-          defaults.put(
-              "DockableFrame.inactiveTitleForeground",
-              UIManager.getColor("InternalFrame.inactiveTitleForeground"));
-          defaults.put(
-              "DockableFrame.activeTitleBackground",
-              UIManager.getColor("InternalFrame.activeTitleBackground"));
-          defaults.put(
-              "DockableFrame.activeTitleForeground",
-              UIManager.getColor("InternalFrame.activeTitleForeground"));
-          defaults.put("DockableFrame.background", UIManager.getColor("Panel.background"));
-          defaults.put(
-              "DockableFrame.border",
-              BorderFactory.createLineBorder(UIManager.getColor("Panel.background")));
-          defaults.put("DockableFrameTitlePane.showIcon", true);
-        };
-    uiDefaultsCustomizer.customize(UIManager.getDefaults());
+    defaults.put("OptionPane.buttonAreaBorder", BorderFactory.createEmptyBorder(6, 6, 6, 6));
+    defaults.put("OptionPane.buttonOrientation", SwingConstants.RIGHT);
+
+    defaults.put(
+        "DockableFrame.inactiveTitleBackground",
+        UIManager.getColor("InternalFrame.inactiveTitleBackground"));
+    defaults.put(
+        "DockableFrame.inactiveTitleForeground",
+        UIManager.getColor("InternalFrame.inactiveTitleForeground"));
+    defaults.put(
+        "DockableFrame.activeTitleBackground",
+        UIManager.getColor("InternalFrame.activeTitleBackground"));
+    defaults.put(
+        "DockableFrame.activeTitleForeground",
+        UIManager.getColor("InternalFrame.activeTitleForeground"));
+    defaults.put("DockableFrame.background", UIManager.getColor("Panel.background"));
+    defaults.put(
+        "DockableFrame.border",
+        BorderFactory.createLineBorder(UIManager.getColor("Panel.background")));
+    defaults.put("DockableFrameTitlePane.showIcon", true);
+    // endregion
+
+    defaults.put("Table.showHorizontalLines", Boolean.TRUE);
+    defaults.put("Table.showVerticalLines", Boolean.TRUE);
   }
 
   private static void postInitialize() {
@@ -1527,6 +1521,19 @@ public class MapTool {
     }
   }
 
+  private static Optional<ReleaseInfo> waitForUpdateInfo(
+      CompletionStage<Optional<ReleaseInfo>> updateFuture) {
+    try {
+      return updateFuture.toCompletableFuture().get();
+    } catch (CancellationException | InterruptedException e) {
+      log.info("Cancelled update check", e);
+      return Optional.empty();
+    } catch (ExecutionException e) {
+      log.warn("Failed to find latest release", e);
+      return Optional.empty();
+    }
+  }
+
   public static void main(String[] args) {
     log.info("********************************************************************************");
     log.info("**                                                                            **");
@@ -1534,6 +1541,9 @@ public class MapTool {
     log.info("**                                                                            **");
     log.info("********************************************************************************");
     log.info("Logging to: " + getLoggerFileName());
+
+    // Start the update check early. Will be handled after the splash screen goes away.
+    var updateFuture = AppUpdate.autoUpdateCheck();
 
     String versionImplementation = version;
     String versionOverride = version;
@@ -1721,7 +1731,7 @@ public class MapTool {
       com.jidesoft.utils.Lm.verifyLicense(
           "Trevor Croft", "rptools", "5MfIVe:WXJBDrToeLWPhMv3kI2s3VFo");
 
-      configureJide();
+      configureLaf();
     } catch (Exception e) {
       MapTool.showError("msg.error.lafSetup", e);
       System.exit(1);
@@ -1785,10 +1795,24 @@ public class MapTool {
 
           EventQueue.invokeLater(
               () -> {
+                // Wait for the release information before transitioning away from the splash.
+                final Optional<ReleaseInfo> release = waitForUpdateInfo(updateFuture);
+
                 clientFrame.setVisible(true);
                 splash.setVisible(false);
                 splash.dispose();
-                EventQueue.invokeLater(MapTool::postInitialize);
+
+                EventQueue.invokeLater(
+                    () -> {
+                      release.ifPresent(
+                          r -> {
+                            if (AppUpdate.confirmUpdate(r, true)) {
+                              AppUpdate.downloadFile(r.assetUrl(), r.assetSize());
+                            }
+                          });
+
+                      MapTool.postInitialize();
+                    });
               });
         });
   }
