@@ -15,6 +15,7 @@
 package net.rptools.maptool.client.functions.json;
 
 import com.google.gson.*;
+import java.math.BigDecimal;
 import java.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -109,7 +110,7 @@ public class JsonHtmlFunctions {
    */
   public String jsonToHtmlTable(JsonElement jsonElement, JsonObject options) {
 
-    // set variables from provided options in a JsonObject
+    // set variables from provided options
     processJsonToHtmlTableOptions(options);
 
     // region create the root html table and process the json
@@ -182,37 +183,52 @@ public class JsonHtmlFunctions {
 
     // region boolean options which default to true
     optionTitles =
-        !options.has("titles") || Boolean.parseBoolean(options.get("titles").getAsString());
+        options.has("titles")
+            ? !options.get("titles").getAsBigDecimal().equals(BigDecimal.ZERO)
+            : true;
     optionCollapsible =
-        !options.has("collapsible")
-            || Boolean.parseBoolean(options.get("collapsible").getAsString());
+        options.has("collapsible")
+            ? !options.get("collapsible").getAsBigDecimal().equals(BigDecimal.ZERO)
+            : true;
     optionArrayOfObjects =
-        !options.has("arrayofobjects")
-            || Boolean.parseBoolean(options.get("arrayofobjects").getAsString());
+        options.has("arrayofobjects")
+            ? !options.get("arrayofobjects").getAsBigDecimal().equals(BigDecimal.ZERO)
+            : true;
     optionObjectOfObjects =
-        !options.has("objectofobjects")
-            || Boolean.parseBoolean(options.get("objectofobjects").getAsString());
+        options.has("objectofobjects")
+            ? !options.get("objectofobjects").getAsBigDecimal().equals(BigDecimal.ZERO)
+            : true;
     optionAssetImage =
-        !options.has("assetimage") || Boolean.parseBoolean(options.get("assetimage").getAsString());
+        options.has("assetimage")
+            ? !options.get("assetimage").getAsBigDecimal().equals(BigDecimal.ZERO)
+            : true;
     optionEscapeHtml =
-        !options.has("escapehtml") || Boolean.parseBoolean(options.get("escapehtml").getAsString());
+        options.has("escapehtml")
+            ? !options.get("escapehtml").getAsBigDecimal().equals(BigDecimal.ZERO)
+            : true;
     optionSanitizeHtml =
-        !options.has("sanitizehtml")
-            || Boolean.parseBoolean(options.get("sanitizehtml").getAsString());
+        options.has("sanitizehtml")
+            ? !options.get("sanitizehtml").getAsBigDecimal().equals(BigDecimal.ZERO)
+            : true;
     // endregion
 
     // region boolean options which default to false
-    optionInput = options.has("input") && Boolean.parseBoolean(options.get("input").getAsString());
+    optionInput =
+        options.has("input")
+            ? !options.get("input").getAsBigDecimal().equals(BigDecimal.ZERO)
+            : false;
     // endregion
 
   }
 
   /**
    * Convert json into nested html tables, by recursively looping through the json elements and
-   * building the html string for the objects, array, and values. It assesses what type of {@link
-   * JsonElement} is at the current json path location, then will either output the value stored at
-   * the specific json path, or if another json element recursively call another method to convert
-   * the json type found into a table with constituent rows and cells.
+   * building the html string for the objects, array, and values.
+   *
+   * <p>It assesses what type of {@link JsonElement} is at the current iteration json path location,
+   * then will either output the value stored at the specific json path, or if another json element
+   * recursively call another method to convert the json type found into a table with constituent
+   * rows and cells.
    *
    * <ul>
    *   <li>{@link #tabularizeJsonArray(JsonArray, String)}
@@ -250,7 +266,7 @@ public class JsonHtmlFunctions {
         html.append("<span")
             .append(htmlAttr("class", "json-null"))
             .append(">")
-            .append(jn.toString())
+            .append(jn)
             .append("</span>");
       }
       case null -> {
@@ -261,20 +277,24 @@ public class JsonHtmlFunctions {
       default -> {
         String jsonValue = typeConversion.jsonToScriptString(jsonElement);
         if (optionInput) {
+          // return values as a html text input
           html.append("<input")
               .append(htmlAttr("type", "text"))
               .append(htmlAttr("value", jsonValue))
               .append(htmlAttr("data-json-path", jsonPath))
               .append(">");
         } else {
-          if (optionEscapeHtml) {
-            html.append(escapeHtmlEntities(jsonValue));
-          } else if (optionAssetImage && jsonValue.trim().toLowerCase().matches("^asset://.*")) {
+          if (optionAssetImage && jsonValue.trim().toLowerCase().matches("^asset://.*")) {
+            // return asset values as a html img
             html.append("<img")
                 .append(htmlAttr("class", "asset"))
-                .append(htmlAttr("src", jsonValue))
+                .append(htmlAttr("src", escapeHtmlEntities(jsonValue)))
                 .append(">");
+          } else if (optionEscapeHtml) {
+            // return values as html escaped
+            html.append(escapeHtmlEntities(jsonValue));
           } else {
+            // otherwise just return the value
             html.append(jsonValue);
           }
         }
@@ -285,7 +305,7 @@ public class JsonHtmlFunctions {
   }
 
   /**
-   * Convert a json array into an html table.
+   * Convert a json array into a html table.
    *
    * @param jsonArray the json array
    * @param jsonPath the current json path which is being processed
@@ -296,37 +316,52 @@ public class JsonHtmlFunctions {
     jsonPathDepth++;
     StringBuilder html = new StringBuilder();
 
+    // add html details/summary if wanted
     if (optionCollapsible) {
-      html.append(
-          generateHtmlSummaryDetails(
-              jsonArray.isEmpty(), "json-array", String.format("Array [%s]", jsonArray.size())));
+      html.append("<details")
+          .append(htmlAttr("class", "json-array"))
+          .append(htmlAttr("data-json-path-depth", jsonPathDepth));
+      if (!jsonArray.isEmpty() && jsonPathDepth <= optionCollapsibleOpenDepth
+          || optionCollapsibleOpenDepth == -1) {
+        html.append(" open");
+      }
+      html.append(">");
+      html.append("<summary>");
+      html.append("<span")
+          .append(htmlAttr("class", "json-array"))
+          .append(">")
+          .append(String.format("Array [%s]", jsonArray.size()))
+          .append("</span>");
+      html.append("</summary>");
     }
 
     // add a table to hold the array data
-    html.append("<table").append(htmlAttr("class", "json-array")).append(">");
-
+    html.append("<table>");
+    html.append("<tbody>");
     // loop through each item in the array
     for (int i = 0; i < jsonArray.size(); i++) {
       String currentJsonPath = String.format("%s[%s]", jsonPath, i);
 
       // add a row for each item
       html.append("<tr>");
-      // add a row header
 
+      // add a row header
       html.append("<th")
-          .append(htmlAttrStandard("json-array-header", currentJsonPath, null, i))
+          .append(htmlAttrStandard("json-array", currentJsonPath, null, i))
           .append(">")
           .append(i)
           .append("</th>");
 
       // add the contents
       html.append("<td")
-          .append(htmlAttrStandard("json-array", currentJsonPath, null, i))
+          .append(htmlAttrStandard("json-value", currentJsonPath, null, i))
           .append(">")
           .append(tabularizeJsonElement(jsonArray.get(i), currentJsonPath))
           .append("</td>");
       html.append("</tr>");
     }
+    html.append("</tbody>");
+
     html.append("</table>");
     if (optionCollapsible) {
       html.append("</details>");
@@ -348,15 +383,15 @@ public class JsonHtmlFunctions {
     jsonPathDepth++;
     StringBuilder html = new StringBuilder();
 
-    // compile a set of unique keys across all objects in the array - these will be the table column
-    // headers.  If the objects within the array have a vastly different structure, then displaying
-    // a pivoted array of objects may actually not be not appropriate.
-    HashSet<String> jsonKeys = new HashSet<>();
+    // compile a set of unique keys across all child objects - these will be the table column
+    // headers.  If the child objects have a vastly different structure, then maybe
+    // pivoting is not appropriate.
+    HashSet<String> childKeys = new HashSet<>();
     int joKeysMin = 0;
     int joKeysMax = 0;
     for (int i = 0; i < jsonArray.size(); i++) {
       if (jsonArray.get(i) instanceof JsonObject jo) {
-        jsonKeys.addAll(jo.keySet());
+        childKeys.addAll(jo.keySet());
         if (i == 0) {
           joKeysMin = jo.size();
           joKeysMax = jo.size();
@@ -366,75 +401,98 @@ public class JsonHtmlFunctions {
         }
       }
     }
-    LinkedHashSet<String> orderedObjectKeys = orderKeys(jsonKeys);
+
+    // order child object keys
+    LinkedHashSet<String> orderedChildKeys = orderKeys(childKeys);
+
+    // add html details/summary if wanted
     if (optionCollapsible) {
-      String summaryText =
-          (joKeysMin == joKeysMax && joKeysMin == jsonKeys.size())
-              ? String.format("Array [%s] of Objects {%s}", jsonArray.size(), jsonKeys.size())
-              : String.format(
-                  "Array [%s] of Objects {%s (%s-%s)}",
-                  jsonArray.size(), jsonKeys.size(), joKeysMin, joKeysMax);
-      html.append(
-          generateHtmlSummaryDetails(jsonArray.isEmpty(), "json-array-of-objects", summaryText));
+      html.append("<details")
+          .append(htmlAttr("class", "json-array-of-objects"))
+          .append(htmlAttr("data-json-path-depth", jsonPathDepth));
+      if (!jsonArray.isEmpty() && jsonPathDepth <= optionCollapsibleOpenDepth
+          || optionCollapsibleOpenDepth == -1) {
+        html.append(" open");
+      }
+      html.append(">");
+      html.append("<summary>");
+      html.append("<span")
+          .append(htmlAttr("class", "json-array"))
+          .append(">")
+          .append(String.format("Array [%s]", jsonArray.size()))
+          .append("</span>");
+      html.append(" of ");
+      String summaryTextObjects =
+          (joKeysMin == joKeysMax && joKeysMin == childKeys.size())
+              ? String.format("Objects {%s}", childKeys.size())
+              : String.format("Objects {%s (%s-%s)}", childKeys.size(), joKeysMin, joKeysMax);
+      html.append("<span")
+          .append(htmlAttr("class", "json-object"))
+          .append(">")
+          .append(summaryTextObjects)
+          .append("</span>");
+      html.append("</summary>");
     }
 
     // add the table
-    html.append("<table").append(htmlAttr("class", "json-array-of-objects")).append(">");
+    html.append("<table>");
+    html.append("<thead>");
 
     // add the table header row for the array index and for each unique object key
-
     html.append("<tr>");
 
-    // array index column header
+    // parent array index column header
     String jsonPathArrayHeader = String.format("%s[%s]", jsonPath, "*");
     html.append("<th")
-        .append(htmlAttrStandard("json-array-header", jsonPathArrayHeader, null, null))
+        .append(htmlAttrStandard("json-array-of-objects", jsonPathArrayHeader, null, "*"))
         .append(">")
-        .append("#")
+        .append("*")
         .append("</th>");
 
-    // object key column headers
-    for (String key : orderedObjectKeys) {
-      String jsonPathObjectHeader = String.format("%s['%s']", jsonPathArrayHeader, key);
+    // child object key column headers
+    for (String childKey : orderedChildKeys) {
+      String jsonPathObjectHeader = String.format("%s['%s']", jsonPathArrayHeader, childKey);
       html.append("<th")
-          .append(htmlAttrStandard("json-object-header", jsonPathObjectHeader, key, null))
+          .append(htmlAttrStandard("json-object", jsonPathObjectHeader, childKey, null))
           .append(">")
-          .append(optionEscapeHtml ? escapeHtmlEntities(key) : key)
+          .append(optionEscapeHtml ? escapeHtmlEntities(childKey) : childKey)
           .append("</th>");
     }
     html.append("</tr>");
-    jsonPathDepth++;
+    html.append("</thead>");
 
+    html.append("<tbody>");
+    jsonPathDepth++;
     // add a row for every item in the array, adding a column for the array index and for the
     // content of each object key
     for (int i = 0; i < jsonArray.size(); i++) {
 
       html.append("<tr>");
-      // array index row header
+
+      // parent array index row header
       String jsonPathArray = String.format("%s[%s]", jsonPath, i);
       html.append("<th")
-          .append(htmlAttrStandard("json-array-header", jsonPathArray, null, "i"))
+          .append(htmlAttrStandard("json-array-of-objects", jsonPathArray, null, i))
           .append(">")
           .append(i)
           .append("</th>");
 
-      // get the json object for this array item
+      // get the child json object for this parent array item
       JsonObject jo = (JsonObject) jsonArray.get(i);
 
-      // loop through each key in the list of object keys
-      for (String key : orderedObjectKeys) {
-        String jsonPathObject = String.format("%s['%s']", jsonPathArray, key);
-        if (jo.get(key) != null) {
+      // loop through each key in the list of child object keys
+      for (String childKey : orderedChildKeys) {
+        String jsonPathChildObject = String.format("%s['%s']", jsonPathArray, childKey);
+        if (jo.get(childKey) != null) {
           html.append("<td")
-              .append(htmlAttrStandard("json-object", jsonPathObject, key, null))
+              .append(htmlAttrStandard("json-object", jsonPathChildObject, childKey, i))
               .append(">")
-              .append(tabularizeJsonElement(jo.get(key), jsonPathObject))
+              .append(tabularizeJsonElement(jo.get(childKey), jsonPathChildObject))
               .append("</td>");
         } else {
-
-          // some objects may not have a key in the compiled list of keys from all objects
+          // some child objects may not have a key in the compiled list of keys from all objects
           html.append("<td")
-              .append(htmlAttrStandard("json-path-leaf-missing", jsonPathObject, key, null))
+              .append(htmlAttrStandard("json-path-leaf-missing", jsonPathChildObject, childKey, i))
               .append(">")
               .append("</td>");
         }
@@ -442,7 +500,9 @@ public class JsonHtmlFunctions {
       html.append("</tr>");
     }
     jsonPathDepth--;
+    html.append("</tbody>");
     html.append("</table>");
+
     if (optionCollapsible) {
       html.append("</details>");
     }
@@ -462,16 +522,28 @@ public class JsonHtmlFunctions {
     jsonPathDepth++;
     StringBuilder html = new StringBuilder();
 
+    // add html details/summary if wanted
     if (optionCollapsible) {
-      html.append(
-          generateHtmlSummaryDetails(
-              jsonObject.isEmpty(),
-              "json-object",
-              String.format("Object {%s}", jsonObject.size())));
+      html.append("<details")
+          .append(htmlAttr("class", "json-object"))
+          .append(htmlAttr("data-json-path-depth", jsonPathDepth));
+      if (!jsonObject.isEmpty() && jsonPathDepth <= optionCollapsibleOpenDepth
+          || optionCollapsibleOpenDepth == -1) {
+        html.append(" open");
+      }
+      html.append(">");
+      html.append("<summary>");
+      html.append("<span")
+          .append(htmlAttr("class", "json-object"))
+          .append(">")
+          .append(String.format("Object {%s}", jsonObject.size()))
+          .append("</span>");
+      html.append("</summary>");
     }
 
     // add a table to hold the object data
-    html.append("<table").append(htmlAttr("class", "json-object")).append(">");
+    html.append("<table>");
+    html.append("<tbody>");
     LinkedHashSet<String> orderedObjectKeys = orderKeys(jsonObject.keySet());
 
     // loop through each key in the list of object keys
@@ -483,19 +555,21 @@ public class JsonHtmlFunctions {
 
       // add a row header
       html.append("<th")
-          .append(htmlAttrStandard("json-object-header", currentJsonPath, key, null))
+          .append(htmlAttrStandard("json-object row-header", currentJsonPath, key, null))
           .append(">")
           .append(optionEscapeHtml ? escapeHtmlEntities(key) : key)
           .append("</th>");
 
       // add the contents
       html.append("<td")
-          .append(htmlAttrStandard("json-object", currentJsonPath, key, null))
+          .append(htmlAttrStandard("json-object json-value", currentJsonPath, key, null))
           .append(">")
           .append(tabularizeJsonElement(jsonObject.get(key), currentJsonPath))
           .append("</td>");
       html.append("</tr>");
     }
+    html.append("</tbody>");
+
     html.append("</table>");
     if (optionCollapsible) {
       html.append("</details>");
@@ -513,71 +587,116 @@ public class JsonHtmlFunctions {
    * @return an html table
    */
   private String tabularizeJsonObjectOfObjects(JsonObject jsonObject, String jsonPath) {
+
     jsonPathDepth++;
     StringBuilder html = new StringBuilder();
 
-    // compile a set of unique keys across all objects in the array - these will be the table column
-    // headers.  If the objects within the array have a vastly different structure, then maybe
-    // pivoting into an array of objects is not appropriate.
-    HashSet<String> jsonKeys = new HashSet<>();
+    // compile a set of unique keys across all child objects - these will be the table column
+    // headers.  If the child objects have a vastly different structure, then maybe
+    // pivoting is not appropriate.
+    HashSet<String> childKeys = new HashSet<>();
+    int joKeysMin = 0;
+    int joKeysMax = 0;
+    int i = 0;
     for (String key : jsonObject.keySet()) {
       if (jsonObject.get(key) instanceof JsonObject jo) {
-        jsonKeys.addAll(jo.keySet());
+        childKeys.addAll(jo.keySet());
+        if (i == 0) {
+          joKeysMin = jo.size();
+          joKeysMax = jo.size();
+        } else {
+          joKeysMin = Math.min(joKeysMin, jo.size());
+          joKeysMax = Math.max(joKeysMax, jo.size());
+        }
       }
+      i++;
     }
-    LinkedHashSet<String> orderedObjectKeys = orderKeys(jsonKeys);
+
+    // order child object keys
+    LinkedHashSet<String> orderedChildKeys = orderKeys(childKeys);
+
+    // add html details/summary if wanted
     if (optionCollapsible) {
-      html.append(
-          generateHtmlSummaryDetails(
-              jsonObject.isEmpty(),
-              "json-object-of-objects",
-              String.format("Object {%s} of Objects {%s}", jsonObject.size(), jsonKeys.size())));
+      html.append("<details")
+          .append(htmlAttr("class", "json-object-of-objects"))
+          .append(htmlAttr("data-json-path-depth", jsonPathDepth));
+      if (!jsonObject.isEmpty() && jsonPathDepth <= optionCollapsibleOpenDepth
+          || optionCollapsibleOpenDepth == -1) {
+        html.append(" open");
+      }
+      html.append(">");
+      html.append("<summary>");
+      html.append("<span")
+          .append(htmlAttr("class", "json-object"))
+          .append(">")
+          .append(String.format("Object {%s}", jsonObject.size()))
+          .append("</span>");
+      html.append(" of ");
+      String summaryTextObjects =
+          (joKeysMin == joKeysMax && joKeysMin == childKeys.size())
+              ? String.format("Objects {%s}", childKeys.size())
+              : String.format("Objects {%s (%s-%s)}", childKeys.size(), joKeysMin, joKeysMax);
+      html.append("<span")
+          .append(htmlAttr("class", "json-object"))
+          .append(">")
+          .append(summaryTextObjects)
+          .append("</span>");
+      html.append("</summary>");
     }
 
     // add the table
-    html.append("<table").append(htmlAttr("class", "json-object-of-objects")).append(">");
+    html.append("<table>");
+    html.append("<thead>");
 
     // add the table header row for the parent object and for each unique child object key
     html.append("<tr>");
 
-    // parent object column header
+    // parent object key column header
     String jsonPathParentObjectHeader = String.format("%s[%s]", jsonPath, "*");
     html.append("<th")
-        .append(htmlAttrStandard("json-object-header", jsonPathParentObjectHeader, "*", null))
+        .append(htmlAttrStandard("json-object-of-objects", jsonPathParentObjectHeader, "*", null))
         .append(">")
         .append("*")
         .append("</th>");
 
     // child object key column headers
-    for (String key : orderedObjectKeys) {
-      String jsonPathChildObjectHeader = String.format("%s['%s']", jsonPathParentObjectHeader, key);
+    for (String childKey : orderedChildKeys) {
+      String jsonPathChildObjectHeader =
+          String.format("%s['%s']", jsonPathParentObjectHeader, childKey);
       html.append("<th")
-          .append(htmlAttrStandard("json-object-header", jsonPathChildObjectHeader, key, null))
+          .append(htmlAttrStandard("json-object", jsonPathChildObjectHeader, childKey, null))
           .append(">")
-          .append(optionEscapeHtml ? escapeHtmlEntities(key) : key)
+          .append(optionEscapeHtml ? escapeHtmlEntities(childKey) : childKey)
           .append("</th>");
     }
     html.append("</tr>");
+    html.append("</thead>");
+
+    html.append("<tbody>");
     jsonPathDepth++;
+
+    // order parent object keys
+    HashSet<String> parentKeys = new HashSet<>(jsonObject.keySet());
+    LinkedHashSet<String> orderedParentKeys = orderKeys(parentKeys);
 
     // add a row for every key in the parent object
     // add a column for the parent key and for the content of each object key
-    for (String key : jsonObject.keySet()) {
+    for (String parentKey : orderedParentKeys) {
       html.append("<tr>");
 
-      // object key row header
-      String jsonPathParentObject = String.format("%s['%s']", jsonPath, key);
+      // parent object key row header
+      String jsonPathParentObject = String.format("%s['%s']", jsonPath, parentKey);
       html.append("<th")
-          .append(htmlAttrStandard("json-object-header", jsonPathParentObject, key, null))
+          .append(htmlAttrStandard("json-object-of-objects", jsonPathParentObject, parentKey, null))
           .append(">")
-          .append(optionEscapeHtml ? escapeHtmlEntities(key) : key)
+          .append(optionEscapeHtml ? escapeHtmlEntities(parentKey) : parentKey)
           .append("</th>");
 
-      // get the child json object for this object key
-      JsonObject jo = (JsonObject) jsonObject.get(key);
+      // get the child json object for this parent object key
+      JsonObject jo = (JsonObject) jsonObject.get(parentKey);
 
-      // loop through each key in the list of object keys
-      for (String childKey : orderedObjectKeys) {
+      // loop through each key in the list of child object keys
+      for (String childKey : orderedChildKeys) {
         String jsonPathChildObject = String.format("%s['%s']", jsonPathParentObject, childKey);
         if (jo.get(childKey) != null) {
           html.append("<td")
@@ -586,8 +705,7 @@ public class JsonHtmlFunctions {
               .append(tabularizeJsonElement(jo.get(childKey), jsonPathChildObject))
               .append("</td>");
         } else {
-
-          // some objects may not have a key in the compiled list of keys from all objects
+          // some child objects may not have a key in the compiled list of keys from all objects
           html.append("<td")
               .append(
                   htmlAttrStandard("json-path-leaf-missing", jsonPathChildObject, childKey, null))
@@ -598,6 +716,8 @@ public class JsonHtmlFunctions {
       html.append("</tr>");
     }
     jsonPathDepth--;
+    html.append("</tbody>");
+
     html.append("</table>");
     if (optionCollapsible) {
       html.append("</details>");
@@ -607,20 +727,17 @@ public class JsonHtmlFunctions {
   }
 
   /**
-   * Standardize html attribute additions for given data type as they require a leading space
+   * Standardize html attribute additions for given data type as they require a leading space.
+   *
+   * <p>Note that the {@link #sanitizeHtml(String)} will quote any unquoted html attribute values
+   * anyway, so no point handling different data type separately (e.g. json-array-index=1 despite
+   * being HTML5 compliant gets converted by jsoup clean to json-array-index="1" and jsoup does not
+   * offer a way of preventing this).
    *
    * @param attribute the html attribute
    * @param value the html attribute's value
    * @return a formatted string representing the html attribute and value
    */
-  private String htmlAttr(String attribute, Integer value) {
-    return String.format(" %s=%s", attribute, value);
-  }
-
-  private String htmlAttr(String attribute, String value) {
-    return String.format(" %s=\"%s\"", attribute, value);
-  }
-
   private String htmlAttr(String attribute, Object value) {
     return String.format(" %s=\"%s\"", attribute, value.toString());
   }
@@ -641,34 +758,6 @@ public class JsonHtmlFunctions {
         + (jsonPath != null ? htmlAttr("data-json-path", jsonPath) : "")
         + (jsonKey != null ? htmlAttr("data-json-key", jsonKey) : "")
         + (jsonIndex != null ? htmlAttr("data-json-index", jsonIndex) : "");
-  }
-
-  /**
-   * Standardizes the creation of html collapsibles using {@code <details>} and {@code <summary>}
-   * html elements (N.B. supported in HTML5).
-   *
-   * @param isEmpty whether there is any detail
-   * @param classAttr the class name attribute
-   * @param summaryText the summary text
-   * @return the opening details element and entire summary element
-   */
-  private String generateHtmlSummaryDetails(boolean isEmpty, String classAttr, String summaryText) {
-
-    StringBuilder html = new StringBuilder();
-
-    html.append("<details").append(htmlAttr("data-json-path-depth", jsonPathDepth));
-    if (!isEmpty && jsonPathDepth <= optionCollapsibleOpenDepth
-        || optionCollapsibleOpenDepth == -1) {
-      html.append(" open");
-    }
-    html.append(">");
-    html.append("<summary")
-        .append(htmlAttr("class", classAttr))
-        .append(">")
-        .append(summaryText)
-        .append("</summary>");
-
-    return html.toString();
   }
 
   /**
@@ -695,7 +784,9 @@ public class JsonHtmlFunctions {
   private String sanitizeHtml(String html) {
     Safelist safelist =
         Safelist.basic()
-            .addTags("table", "caption", "th", "tr", "td", "input", "details", "summary", "img")
+            .addTags(
+                "table", "caption", "thead", "tbody", "tfoot", "tr", "th", "td", "details",
+                "summary", "img", "input")
             .addAttributes(
                 ":all",
                 "id",
@@ -707,7 +798,7 @@ public class JsonHtmlFunctions {
                 "data-json-path-depth")
             .addAttributes("details", "open")
             .addAttributes("img", "src")
-            .addAttributes("input", "type", "value")
+            .addAttributes("input", "type", "value", "min", "max", "step")
             .addProtocols("img", "src", "asset");
     return Jsoup.clean(html, safelist);
   }
