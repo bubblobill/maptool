@@ -60,41 +60,42 @@ public class JsonHtmlFunctions {
   /** Adds a caption element to the root table */
   private String optionCaption;
 
-  /** whether to output html tables with a detail/summary wrapper */
+  /** Whether to output html tables with a detail/summary wrapper */
   private boolean optionCollapsible;
 
-  /** whether a detail/summary wrapper is open by default */
+  /** Whether a detail/summary wrapper is open by default */
   private Integer optionCollapsibleOpenDepth;
 
-  /** whether to output the json path as html title attributes */
+  /** Whether to output the json path as html title attributes */
   private boolean optionTitles;
 
-  /** whether to pivot json objects within a json array */
+  /** Whether to pivot json objects within a json array */
   private boolean optionArrayOfObjects;
 
-  /** whether to pivot json objects within a json object */
+  /** Whether to pivot json objects within a json object */
   private boolean optionObjectOfObjects;
 
   /**
-   * whether json values starting with "assetid://" should returned as an html {@code <img>} element
+   * whether json values starting with "assetid://" should be returned as a html {@code <img>}
+   * element
    */
   private boolean optionAssetImage;
 
   /**
    * Whether json values containing certain html characters in should be escaped.
    *
-   * <p>See {@link JsonHtmlFunctions#escapeHtmlEntities(String)} for list html characters
+   * <p>See {@link JsonHtmlFunctions#escapeHtmlEntities(String)} for a list of html characters
    */
   private boolean optionEscapeHtml;
 
   /**
-   * Whether to sanitize the html returned from jsonToHtmlTable.
+   * Whether to sanitize the html returned from jsonToHtmlTable to only things on a safelist.
    *
    * <p>See {@link JsonHtmlFunctions#sanitizeHtml(String)} for the safelist.
    */
   private boolean optionSanitizeHtml;
 
-  /** whether json values should be converted to input elements for use in a form */
+  /** Whether json values should be converted to input elements for use in a html form */
   private boolean optionInput;
 
   // endregion
@@ -106,7 +107,7 @@ public class JsonHtmlFunctions {
    *
    * @param jsonElement the json to convert
    * @param options any conversion or html options
-   * @return an html table or table of tables
+   * @return a html table or table of tables
    */
   public String jsonToHtmlTable(JsonElement jsonElement, JsonObject options) {
 
@@ -326,7 +327,7 @@ public class JsonHtmlFunctions {
         html.append(" open");
       }
       html.append(">");
-      html.append("<summary>");
+      html.append("<summary").append(htmlAttr("class", "json-array")).append(">");
       html.append("<span")
           .append(htmlAttr("class", "json-array"))
           .append(">")
@@ -336,7 +337,7 @@ public class JsonHtmlFunctions {
     }
 
     // add a table to hold the array data
-    html.append("<table>");
+    html.append("<table").append(htmlAttr("class", "json-array")).append(">");
     html.append("<tbody>");
     // loop through each item in the array
     for (int i = 0; i < jsonArray.size(); i++) {
@@ -371,12 +372,12 @@ public class JsonHtmlFunctions {
   }
 
   /**
-   * Pivots a json array of json objects into an html table with the array as rows and child objects
+   * Pivots a json array of json objects into a html table with the array as rows and child objects
    * as columns.
    *
    * @param jsonArray the json array of json objects.
    * @param jsonPath the json path to this json array
-   * @return an html table
+   * @return a html table
    */
   private String tabularizeJsonArrayOfObjects(JsonArray jsonArray, String jsonPath) {
 
@@ -415,7 +416,7 @@ public class JsonHtmlFunctions {
         html.append(" open");
       }
       html.append(">");
-      html.append("<summary>");
+      html.append("<summary").append(htmlAttr("class", "json-array-of-objects")).append(">");
       html.append("<span")
           .append(htmlAttr("class", "json-array"))
           .append(">")
@@ -435,7 +436,7 @@ public class JsonHtmlFunctions {
     }
 
     // add the table
-    html.append("<table>");
+    html.append("<table").append(htmlAttr("class", "json-array-of-objects")).append(">");
     html.append("<thead>");
 
     // add the table header row for the array index and for each unique object key
@@ -485,7 +486,7 @@ public class JsonHtmlFunctions {
         String jsonPathChildObject = String.format("%s['%s']", jsonPathArray, childKey);
         if (jo.get(childKey) != null) {
           html.append("<td")
-              .append(htmlAttrStandard("json-object", jsonPathChildObject, childKey, i))
+              .append(htmlAttrStandard("json-value", jsonPathChildObject, childKey, i))
               .append(">")
               .append(tabularizeJsonElement(jo.get(childKey), jsonPathChildObject))
               .append("</td>");
@@ -511,7 +512,7 @@ public class JsonHtmlFunctions {
   }
 
   /**
-   * Convert a json object into an html table.
+   * Convert a json object into a html table.
    *
    * @param jsonObject the json object
    * @param jsonPath the current json path which is being processed
@@ -532,7 +533,7 @@ public class JsonHtmlFunctions {
         html.append(" open");
       }
       html.append(">");
-      html.append("<summary>");
+      html.append("<summary").append(htmlAttr("class", "json-object")).append(">");
       html.append("<span")
           .append(htmlAttr("class", "json-object"))
           .append(">")
@@ -542,7 +543,7 @@ public class JsonHtmlFunctions {
     }
 
     // add a table to hold the object data
-    html.append("<table>");
+    html.append("<table").append(htmlAttr("class", "json-object")).append(">");
     html.append("<tbody>");
     LinkedHashSet<String> orderedObjectKeys = orderKeys(jsonObject.keySet());
 
@@ -555,14 +556,14 @@ public class JsonHtmlFunctions {
 
       // add a row header
       html.append("<th")
-          .append(htmlAttrStandard("json-object row-header", currentJsonPath, key, null))
+          .append(htmlAttrStandard("json-object", currentJsonPath, key, null))
           .append(">")
           .append(optionEscapeHtml ? escapeHtmlEntities(key) : key)
           .append("</th>");
 
       // add the contents
       html.append("<td")
-          .append(htmlAttrStandard("json-object json-value", currentJsonPath, key, null))
+          .append(htmlAttrStandard("json-value", currentJsonPath, key, null))
           .append(">")
           .append(tabularizeJsonElement(jsonObject.get(key), currentJsonPath))
           .append("</td>");
@@ -579,12 +580,12 @@ public class JsonHtmlFunctions {
   }
 
   /**
-   * Pivots a json object of json objects into an html table with the object as rows and child
+   * Pivots a json object of json objects into a html table with the object as rows and child
    * objects as columns.
    *
    * @param jsonObject the json object of json objects.
    * @param jsonPath the json path to this json array
-   * @return an html table
+   * @return a html table
    */
   private String tabularizeJsonObjectOfObjects(JsonObject jsonObject, String jsonPath) {
 
@@ -625,7 +626,7 @@ public class JsonHtmlFunctions {
         html.append(" open");
       }
       html.append(">");
-      html.append("<summary>");
+      html.append("<summary").append(htmlAttr("class", "json-object-of-objects")).append(">");
       html.append("<span")
           .append(htmlAttr("class", "json-object"))
           .append(">")
@@ -645,7 +646,7 @@ public class JsonHtmlFunctions {
     }
 
     // add the table
-    html.append("<table>");
+    html.append("<table").append(htmlAttr("class", "json-object-of-objects")).append(">");
     html.append("<thead>");
 
     // add the table header row for the parent object and for each unique child object key
@@ -700,7 +701,7 @@ public class JsonHtmlFunctions {
         String jsonPathChildObject = String.format("%s['%s']", jsonPathParentObject, childKey);
         if (jo.get(childKey) != null) {
           html.append("<td")
-              .append(htmlAttrStandard("json-object", jsonPathChildObject, childKey, null))
+              .append(htmlAttrStandard("json-value", jsonPathChildObject, childKey, null))
               .append(">")
               .append(tabularizeJsonElement(jo.get(childKey), jsonPathChildObject))
               .append("</td>");
