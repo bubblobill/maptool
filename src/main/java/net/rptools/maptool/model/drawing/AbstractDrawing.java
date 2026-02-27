@@ -46,8 +46,8 @@ public abstract class AbstractDrawing implements Drawable, ImageObserver {
   }
 
   protected AbstractDrawing(AbstractDrawing other) {
-    // The only thing we don't preserve is the ID.
-    this.id = new GUID();
+    // The only thing we don't preserve is the ID. - umm except that we obviously do
+    this.id = other.id;
     this.layer = other.layer;
     this.name = other.name;
   }

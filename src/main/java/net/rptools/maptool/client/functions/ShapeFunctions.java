@@ -522,6 +522,8 @@ public class ShapeFunctions extends AbstractFunction {
       throw new ParserException(I18N.getText(OBJECT_NOT_FOUND, functionName, shapeName));
     }
     ShapeDrawable shapeDrawable = CACHED_SHAPES.get(shapeName);
+    shapeDrawable.setId(
+        new GUID()); // this gives the drawn element a separate ID to the cached shape
     Rectangle bounds = shapeDrawable.getBounds();
 
     /* Sanity checks */
