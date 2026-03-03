@@ -349,6 +349,7 @@ public class JsonHtmlFunctions {
       // add a row header
       html.append("<th")
           .append(htmlAttrStandard("json-array", currentJsonPath, null, i))
+          .append(htmlAttr("scope", "row"))
           .append(">")
           .append(i)
           .append("</th>");
@@ -446,6 +447,7 @@ public class JsonHtmlFunctions {
     String jsonPathArrayHeader = String.format("%s[%s]", jsonPath, "*");
     html.append("<th")
         .append(htmlAttrStandard("json-array-of-objects", jsonPathArrayHeader, null, "*"))
+        .append(htmlAttr("scope", "col"))
         .append(">")
         .append("*")
         .append("</th>");
@@ -455,6 +457,7 @@ public class JsonHtmlFunctions {
       String jsonPathObjectHeader = String.format("%s['%s']", jsonPathArrayHeader, childKey);
       html.append("<th")
           .append(htmlAttrStandard("json-object", jsonPathObjectHeader, childKey, null))
+          .append(htmlAttr("scope", "col"))
           .append(">")
           .append(optionEscapeHtml ? escapeHtmlEntities(childKey) : childKey)
           .append("</th>");
@@ -474,6 +477,7 @@ public class JsonHtmlFunctions {
       String jsonPathArray = String.format("%s[%s]", jsonPath, i);
       html.append("<th")
           .append(htmlAttrStandard("json-array-of-objects", jsonPathArray, null, i))
+          .append(htmlAttr("scope", "row"))
           .append(">")
           .append(i)
           .append("</th>");
@@ -557,6 +561,7 @@ public class JsonHtmlFunctions {
       // add a row header
       html.append("<th")
           .append(htmlAttrStandard("json-object", currentJsonPath, key, null))
+          .append(htmlAttr("scope", "row"))
           .append(">")
           .append(optionEscapeHtml ? escapeHtmlEntities(key) : key)
           .append("</th>");
@@ -656,6 +661,7 @@ public class JsonHtmlFunctions {
     String jsonPathParentObjectHeader = String.format("%s[%s]", jsonPath, "*");
     html.append("<th")
         .append(htmlAttrStandard("json-object-of-objects", jsonPathParentObjectHeader, "*", null))
+        .append(htmlAttr("scope", "col"))
         .append(">")
         .append("*")
         .append("</th>");
@@ -666,6 +672,7 @@ public class JsonHtmlFunctions {
           String.format("%s['%s']", jsonPathParentObjectHeader, childKey);
       html.append("<th")
           .append(htmlAttrStandard("json-object", jsonPathChildObjectHeader, childKey, null))
+          .append(htmlAttr("scope", "col"))
           .append(">")
           .append(optionEscapeHtml ? escapeHtmlEntities(childKey) : childKey)
           .append("</th>");
@@ -689,6 +696,7 @@ public class JsonHtmlFunctions {
       String jsonPathParentObject = String.format("%s['%s']", jsonPath, parentKey);
       html.append("<th")
           .append(htmlAttrStandard("json-object-of-objects", jsonPathParentObject, parentKey, null))
+          .append(htmlAttr("scope", "row"))
           .append(">")
           .append(optionEscapeHtml ? escapeHtmlEntities(parentKey) : parentKey)
           .append("</th>");
@@ -800,6 +808,7 @@ public class JsonHtmlFunctions {
             .addAttributes("details", "open")
             .addAttributes("img", "src")
             .addAttributes("input", "type", "value", "min", "max", "step")
+            .addAttributes("th", "scope")
             .addProtocols("img", "src", "asset");
     return Jsoup.clean(html, safelist);
   }
