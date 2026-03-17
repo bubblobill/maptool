@@ -225,7 +225,7 @@ public class ShapeDrawable extends AbstractDrawing {
   public JsonObject toJson() {
     JsonObject jo = super.toJson();
     jo.add("antiAliasing", new JsonPrimitive(getUseAntiAliasing()));
-    jo.add("shapeType", new JsonPrimitive(getLayer().name()));
+    jo.add("shapeType", new JsonPrimitive(getShapeTypeName()));
     jo.add("x", new JsonPrimitive(getBounds().x));
     jo.add("y", new JsonPrimitive(getBounds().y));
     jo.add("width", new JsonPrimitive(getBounds().width));
