@@ -73,7 +73,7 @@ public class HandlebarsHelpers {
      */
     @Override
     public Object apply(final Object context, final Options options) {
-      if(context == null || context instanceof String s && s.isBlank()){
+      if (context == null || context instanceof String s && s.isBlank()) {
         return "";
       } else {
         byte[] message = context.toString().getBytes(StandardCharsets.UTF_8);
