@@ -47,6 +47,7 @@ public class HandlebarsHelpers {
     handlebars.registerHelper(IncludeHelper.NAME, IncludeHelper.INSTANCE);
     handlebars.registerHelper(MarkdownHelper.NAME, MarkdownHelper.INSTANCE);
     handlebars.registerHelper(Base64EncodeHelper.NAME, Base64EncodeHelper.INSTANCE);
+    handlebars.registerHelper(HBLogger.NAME, HBLogger.INSTANCE);
     Arrays.stream(HandlebarsHelpers.MathsHelpers.values())
         .forEach(h -> handlebars.registerHelper(h.name(), h));
     return handlebars;
@@ -290,7 +291,7 @@ public class HandlebarsHelpers {
       } else {
         sb.append(options.fn());
       }
-      System.out.println("Handlebars(" + level + "): " + sb.toString().trim());
+
       switch (level) {
         case "error":
           log.error(sb.toString().trim());
