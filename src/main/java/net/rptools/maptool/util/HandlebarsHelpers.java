@@ -255,14 +255,12 @@ public class HandlebarsHelpers {
     ;
 
     List<BigDecimal> numbers(Object a, final Options options) {
-      int count = options.params.length + 1;
       List<BigDecimal> values = new ArrayList<>();
       try {
         values.add(new BigDecimal(a.toString()));
-        for (int i = 0; i < count; i++) {
-          values.add(new BigDecimal((double) options.param(i)));
+        for(Object o: options.params) {
+          values.add(new BigDecimal((double) o));
         }
-
       } catch (NumberFormatException ignored) {
       }
       return values;
