@@ -73,8 +73,12 @@ public class HandlebarsHelpers {
      */
     @Override
     public Object apply(final Object context, final Options options) {
-      byte[] message = context.toString().getBytes(StandardCharsets.UTF_8);
-      return new Handlebars.SafeString(Base64.getUrlEncoder().encodeToString(message));
+      if(context == null || context instanceof String s && s.isBlank()){
+        return "";
+      } else {
+        byte[] message = context.toString().getBytes(StandardCharsets.UTF_8);
+        return new Handlebars.SafeString(Base64.getUrlEncoder().encodeToString(message));
+      }
     }
   }
 
