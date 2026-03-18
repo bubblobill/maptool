@@ -29,9 +29,9 @@ import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolVariableResolver;
+import net.rptools.maptool.client.events.TokenHoverEnter;
 import net.rptools.maptool.client.ui.token.AbstractTokenOverlay;
 import net.rptools.maptool.client.ui.token.BarTokenOverlay;
-import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.player.Player;
 import net.rptools.maptool.util.HTMLUtil;
 import net.rptools.maptool.util.ImageManager;
@@ -136,6 +136,9 @@ public class StatSheetContext {
   /** The portrait asset of the token. */
   private final MD5Key portraitAsset;
 
+  /** The handout asset of the token. */
+  private final MD5Key handoutAsset;
+
   /** The width of the portrait on the stat sheet. */
   private final int portraitWidth;
 
@@ -175,16 +178,22 @@ public class StatSheetContext {
   /** True if the player is a GM. */
   private final boolean gm;
 
+  /** Hover event */
+  private final TokenHoverEnter event;
+
   /**
    * Creates a new instance of the class.
    *
-   * @param token The token to extract the information from.
+   * @param hoverEvent the token hover event to build the stat-sheet for.
    * @param player The player to extract the information for.
    * @param location The location of the stat sheet.
    */
-  public StatSheetContext(Token token, Player player, StatSheetLocation location) {
-    boolean playerOwns = AppUtil.playerOwns(token);
-    boolean playerIsGm = player.isGM();
+  public StatSheetContext(TokenHoverEnter hoverEvent, Player player, StatSheetLocation location) {
+    this.event = hoverEvent;
+    var token = event.token();
+
+    final boolean playerOwns = AppUtil.playerOwns(token);
+    final boolean playerIsGm = player.isGM();
 
     name = token.getName();
     tokenType = token.getType().name();
@@ -217,6 +226,8 @@ public class StatSheetContext {
     notes = playerOwns ? token.getNotes() : null;
     notesType = playerOwns ? token.getNotesType() : null;
     speechName = token.getSpeechName();
+
+    handoutAsset = token.getCharsheetImage();
 
     if (AppPreferences.showPortrait.get()) {
       imageAsset = token.getImageAssetId();
