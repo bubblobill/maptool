@@ -14,6 +14,8 @@
  */
 package net.rptools.maptool.client.functions.json;
 
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
+
 import com.google.gson.*;
 import java.math.BigDecimal;
 import java.util.*;
@@ -24,8 +26,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-
-import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 public class JsonHtmlFunctions {
 
@@ -70,6 +70,9 @@ public class JsonHtmlFunctions {
 
   /** Whether a detail/summary wrapper is open by default */
   private Integer optionCollapsibleOpenDepth;
+
+  /** Limit the recursion json path depth */
+  private Integer optionDepthLimit;
 
   /** Whether to output the json path as html title attributes */
   private boolean optionTitles;
@@ -167,6 +170,7 @@ public class JsonHtmlFunctions {
     optionAttributes = getAsObject(functionName, options, "attributes", new JsonObject());
     optionCaption = getAsString(functionName, options, "caption", "");
     optionCollapsibleOpenDepth = getAsInt(functionName, options, "collapsibleopendepth", -1);
+    optionDepthLimit = getAsInt(functionName, options, "depthlimit", 50);
     optionLeadObjectKeys = getAsArray(functionName, options, "leadobjectkeys", new JsonArray());
     optionRearObjectKeys = getAsArray(functionName, options, "rearobjectkeys", new JsonArray());
     optionSortObjectKeys = parseSortMethod(functionName, options, "sortobjectkeys");
@@ -278,6 +282,12 @@ public class JsonHtmlFunctions {
    * @return the html
    */
   private String tabularizeJsonElement(JsonElement jsonElement, String jsonPath) {
+
+    if (jsonPathDepth > optionDepthLimit) {
+      throw new RuntimeException(
+          I18N.getText(
+              "macro.function.jsonhtml.exceededDepthLimit", optionDepthLimit, jsonPathDepth));
+    }
 
     StringBuilder html = new StringBuilder();
 
@@ -805,16 +815,16 @@ public class JsonHtmlFunctions {
         + (jsonIndex != null ? htmlAttr("data-json-index", jsonIndex) : "");
   }
 
-    /**
-     * Replace specific characters (e.g. <code>&<>\'</code>) with html entity escaped versions.
-     *
-     * @param string the string which may contain characters to be escaped
-     * @return the html with specific characters escaped
-     */
-    private String escapeHtmlEntities(String string) {
-        // escapeHtml4 does not replace apostrophes so we do that
-        return escapeHtml4(string).replaceAll("'", "&apos;");
-    }
+  /**
+   * Replace specific characters (e.g. <code>&<>\'</code>) with html entity escaped versions.
+   *
+   * @param string the string which may contain characters to be escaped
+   * @return the html with specific characters escaped
+   */
+  private String escapeHtmlEntities(String string) {
+    // escapeHtml4 does not replace apostrophes so we do that
+    return escapeHtml4(string).replaceAll("'", "&apos;");
+  }
 
   /**
    * Remove any html tags and attributes not defined on the safelist below.
