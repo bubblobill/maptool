@@ -52,7 +52,7 @@ public class HandlebarsUtil<T> {
         new Handlebars()
             .with(loader)
             .with(HIGH_CONCURRENCY_TEMPLATE_CACHE)
-            .preEvaluatePartialBlocks(true)
+            .preEvaluatePartialBlocks(false)
             .parentScopeResolution(false)
             .setCharset(StandardCharsets.UTF_8));
   }

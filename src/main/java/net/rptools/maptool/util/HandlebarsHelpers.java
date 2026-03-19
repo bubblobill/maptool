@@ -30,14 +30,14 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class HandlebarsHelpers {
+  private static final Logger log = LoggerFactory.getLogger(HandlebarsHelpers.class);
+
   static Handlebars registerHelpers(Handlebars handlebars) {
     StringHelpers.register(handlebars);
     Arrays.stream(ConditionalHelpers.values()).forEach(h -> handlebars.registerHelper(h.name(), h));
@@ -50,6 +50,7 @@ public class HandlebarsHelpers {
     handlebars.registerHelper(HBLogger.NAME, HBLogger.INSTANCE);
     Arrays.stream(HandlebarsHelpers.MathsHelpers.values())
         .forEach(h -> handlebars.registerHelper(h.name(), h));
+
     return handlebars;
   }
 
@@ -72,6 +73,7 @@ public class HandlebarsHelpers {
      * &lt;/script&gt;
      * </pre>
      */
+    @SuppressWarnings("SpellCheckingInspection")
     @Override
     public Object apply(final Object context, final Options options) {
       if (context == null || context instanceof String s && s.isBlank()) {
@@ -88,13 +90,15 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          List<BigDecimal> numbers = numbers(a, options);
+          List<BigDecimal> numbers = numberList(a, options);
+          checkOperandCount(1, -1, numbers);
           BigDecimal result = numbers.removeLast();
           while (!numbers.isEmpty()) {
-            result = result.add(numbers.removeLast());
+            result = result.add(numbers.removeLast(), MATH_CONTEXT);
           }
-          return String.valueOf(result);
-        } catch (Exception ignored) {
+          return result.toPlainString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug("Function \"add\" - {}", e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
@@ -103,13 +107,15 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          List<BigDecimal> numbers = numbers(a, options);
+          List<BigDecimal> numbers = numberList(a, options);
+          checkOperandCount(1, -1, numbers);
           BigDecimal result = numbers.removeLast();
           while (!numbers.isEmpty()) {
-            result = result.subtract(numbers.removeLast());
+            result = result.subtract(numbers.removeLast(), MATH_CONTEXT);
           }
-          return String.valueOf(result);
-        } catch (Exception ignored) {
+          return result.toPlainString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug("Function \"subtract\" - {}", e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
@@ -118,13 +124,15 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          List<BigDecimal> numbers = numbers(a, options).reversed();
+          List<BigDecimal> numbers = numberList(a, options).reversed();
+          checkOperandCount(1, -1, numbers);
           BigDecimal result = numbers.removeLast();
           while (!numbers.isEmpty()) {
-            result = result.multiply(numbers.removeLast());
+            result = result.multiply(numbers.removeLast(), MATH_CONTEXT);
           }
-          return String.valueOf(result);
-        } catch (Exception ignored) {
+          return result.toPlainString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug("Function \"multiply\" - {}", e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
@@ -133,13 +141,15 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          List<BigDecimal> numbers = numbers(a, options).reversed();
+          List<BigDecimal> numbers = numberList(a, options).reversed();
+          checkOperandCount(1, -1, numbers);
           BigDecimal result = numbers.removeLast();
           while (!numbers.isEmpty()) {
-            result = result.divide(numbers.removeLast(), RoundingMode.HALF_EVEN);
+            result = result.divide(numbers.removeLast(), MATH_CONTEXT);
           }
-          return String.valueOf(result);
-        } catch (Exception ignored) {
+          return result.toPlainString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug("Function \"divide\" - {}", e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
@@ -148,13 +158,15 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          List<BigDecimal> numbers = numbers(a, options);
+          List<BigDecimal> numbers = numberList(a, options);
+          checkOperandCount(1, -1, numbers);
           BigDecimal result = numbers.removeLast();
           while (!numbers.isEmpty()) {
             result = result.max(numbers.removeLast());
           }
-          return String.valueOf(result);
-        } catch (Exception ignored) {
+          return result.toPlainString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug("Function \"max\" - {}", e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
@@ -163,13 +175,15 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          List<BigDecimal> numbers = numbers(a, options);
+          List<BigDecimal> numbers = numberList(a, options);
+          checkOperandCount(1, -1, numbers);
           BigDecimal result = numbers.removeLast();
           while (!numbers.isEmpty()) {
             result = result.min(numbers.removeLast());
           }
-          return String.valueOf(result);
-        } catch (Exception ignored) {
+          return result.toPlainString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug("Function \"min\" - {}", e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
@@ -178,13 +192,15 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          List<BigDecimal> numbers = numbers(a, options);
+          List<BigDecimal> numbers = numberList(a, options);
+          checkOperandCount(2, -1, numbers);
           BigDecimal result = numbers.removeLast();
           while (!numbers.isEmpty()) {
-            result = result.remainder(numbers.removeLast());
+            result = result.remainder(numbers.removeLast(), MATH_CONTEXT);
           }
-          return String.valueOf(result);
-        } catch (Exception ignored) {
+          return result.toPlainString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug("Function \"mod\" - {}", e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
@@ -193,13 +209,15 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          List<BigDecimal> numbers = numbers(a, options);
+          List<BigDecimal> numbers = numberList(a, options).reversed();
+          checkOperandCount(2, -1, numbers);
           BigDecimal result = numbers.removeLast();
           while (!numbers.isEmpty()) {
             result = result.divideToIntegralValue(numbers.removeLast());
           }
-          return String.valueOf(result);
-        } catch (Exception ignored) {
+          return result.toPlainString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug("Function \"div\" - {}", e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
@@ -208,13 +226,15 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          List<BigDecimal> numbers = numbers(a, options);
+          List<BigDecimal> numbers = numberList(a, options);
+          checkOperandCount(2, -1, numbers);
           BigDecimal result = numbers.removeLast();
           while (!numbers.isEmpty()) {
-            result = result.pow(numbers.removeLast().intValue());
+            result = result.pow(numbers.removeLast().intValue(), MATH_CONTEXT);
           }
-          return String.valueOf(result);
-        } catch (Exception ignored) {
+          return result.toPlainString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug("Function \"pow\" - {}", e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
@@ -223,8 +243,11 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          return new BigDecimal(a.toString()).abs().toString();
-        } catch (Exception ignored) {
+          List<BigDecimal> numbers = numberList(a, options);
+          checkOperandCount(1, 1, numbers);
+          return numbers.removeFirst().abs().toPlainString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug(e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
@@ -233,13 +256,16 @@ public class HandlebarsHelpers {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
         try {
-          return new BigDecimal(a.toString()).sqrt(MathContext.DECIMAL32).toString();
-        } catch (Exception ignored) {
+          List<BigDecimal> numbers = numberList(a, options);
+          checkOperandCount(1, 1, numbers);
+          return new BigDecimal(a.toString()).sqrt(MATH_CONTEXT).toString();
+        } catch (NumberFormatException | ArithmeticException e) {
+          log.debug(e.getLocalizedMessage(), e);
           return "NaN";
         }
       }
     },
-
+    /** 2 x Pi */
     tau {
       @Override
       public Object apply(final Object a, final Options options) throws IOException {
@@ -253,22 +279,99 @@ public class HandlebarsHelpers {
       }
     },
     ;
+    private static final MathContext MATH_CONTEXT = new MathContext(16, RoundingMode.HALF_EVEN);
 
-    List<BigDecimal> numbers(Object a, final Options options) {
-      List<BigDecimal> values = new ArrayList<>();
-      try {
-        values.add(new BigDecimal(a.toString()));
-        for(Object o: options.params) {
-          values.add(new BigDecimal((double) o));
+    /**
+     * Validate the correct number of operands in list.
+     *
+     * @param minRequired minimum required numberList to preform operation
+     * @param maxAllowed maximum required numberList to preform operation
+     * @param operands list of BigDecimal to check
+     * @throws ArithmeticException if operand list is out of bounds
+     */
+    void checkOperandCount(int minRequired, int maxAllowed, List<BigDecimal> operands)
+        throws ArithmeticException {
+      if (maxAllowed > -1 && operands.size() > maxAllowed) {
+        throw new ArithmeticException("Too many operands.");
+      }
+      if (operands.size() < minRequired) {
+        throw new ArithmeticException("Not enough operands.");
+      }
+    }
+
+    /** Convert passed object to BigDecimal */
+    private static final Function<Object, BigDecimal> toBigDecimal =
+        o -> {
+          try {
+            return new BigDecimal(String.valueOf(o), MATH_CONTEXT);
+          } catch (NumberFormatException ignored) {
+            return BigDecimal.valueOf(Double.NaN);
+          }
+        };
+
+    /**
+     * Compose passed values into a list of BigDecimal
+     *
+     * @param args list of object/object[]
+     * @return List of BigDecimal
+     */
+    List<BigDecimal> numberList(Object... args) {
+      // ("num1", 1)("num2", "-1")("arr1", new Object[]{0.5, "1", 2, "3.5"});
+      List<BigDecimal> values = new LinkedList<>();
+      for (Object o : args) {
+        switch (o) {
+          case String[] strings -> {
+            for (String string : strings) {
+              values.add(toBigDecimal.apply(string));
+            }
+          }
+          case String string -> {
+            string = string.strip();
+
+            if (string.startsWith("[") && string.contains("]")) {
+              /* deal with literal arrays */
+              values.addAll(
+                  numberList((Object) string.substring(1, string.indexOf("]")).split(",")));
+            } else if (string.contains(" ")) {
+              /* split space delimited values */
+              values.addAll(numberList(String.join(" ", string)));
+            } else {
+              values.add(toBigDecimal.apply(string));
+            }
+          }
+          case Object[] objectArray -> {
+            /* contents of options.params */
+            for (var object : objectArray) {
+              values.add(toBigDecimal.apply(object));
+            }
+          }
+          case Options options -> {
+            /* if named arguments exist, try converting them to BigDecimal */
+            for (String key : options.hash.keySet()) {
+              try {
+                BigDecimal bd = new BigDecimal(options.hash(key).toString());
+                values.add(bd);
+              } catch (NumberFormatException ignored) {
+              }
+            }
+            /* add values from parameter array */
+            for (Object param : options.params) {
+              values.addAll(numberList(param));
+            }
+          }
+          case null -> {}
+          default ->
+              /* hooray, it's just a single thing to convert */
+              values.add(toBigDecimal.apply(o));
         }
-      } catch (NumberFormatException ignored) {
       }
       return values;
     }
   }
 
+  @SuppressWarnings("LoggerInitializedWithForeignClass")
   public static class HBLogger extends LogHelper {
-    private static final Logger log = LoggerFactory.getLogger(Handlebars.class);
+    private static final Logger log = LoggerFactory.getLogger(HandlebarsHelpers.class);
 
     /** A singleton instance of this helper. */
     public static final Helper<Object> INSTANCE = new HBLogger();
@@ -292,7 +395,7 @@ public class HandlebarsHelpers {
 
       switch (level) {
         case "error":
-          log.error(sb.toString().trim());
+          log.debug(sb.toString().trim());
           break;
         case "debug":
           log.debug(sb.toString().trim());
