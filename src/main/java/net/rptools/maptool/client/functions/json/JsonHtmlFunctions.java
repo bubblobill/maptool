@@ -387,7 +387,7 @@ public class JsonHtmlFunctions {
     html.append("<tbody>");
     // loop through each item in the array
     for (int i = 0; i < jsonArray.size(); i++) {
-      String currentJsonPath = String.format("%s[%s]", jsonPath, i);
+      String currentJsonPath = jsonPath + "[" + i + "]";
 
       // add a row for each item
       html.append("<tr>");
@@ -490,7 +490,7 @@ public class JsonHtmlFunctions {
     html.append("<tr>");
 
     // parent array index column header
-    String jsonPathArrayHeader = String.format("%s[%s]", jsonPath, "*");
+    String jsonPathArrayHeader = jsonPath + "[*]";
     html.append("<th")
         .append(htmlAttrStandard("json-array-of-objects", jsonPathArrayHeader, null, "*"))
         .append(htmlAttr("scope", "col"))
@@ -500,7 +500,7 @@ public class JsonHtmlFunctions {
 
     // child object key column headers
     for (String childKey : orderedChildKeys) {
-      String jsonPathObjectHeader = String.format("%s['%s']", jsonPathArrayHeader, childKey);
+      String jsonPathObjectHeader = jsonPathArrayHeader + "['" + childKey + "']";
       html.append("<th")
           .append(htmlAttrStandard("json-object", jsonPathObjectHeader, childKey, null))
           .append(htmlAttr("scope", "col"))
@@ -520,7 +520,7 @@ public class JsonHtmlFunctions {
       html.append("<tr>");
 
       // parent array index row header
-      String jsonPathArray = String.format("%s[%s]", jsonPath, i);
+      String jsonPathArray = jsonPath + "[" + i + "]";
       html.append("<th")
           .append(htmlAttrStandard("json-array-of-objects", jsonPathArray, null, i))
           .append(htmlAttr("scope", "row"))
@@ -533,7 +533,7 @@ public class JsonHtmlFunctions {
 
       // loop through each key in the list of child object keys
       for (String childKey : orderedChildKeys) {
-        String jsonPathChildObject = String.format("%s['%s']", jsonPathArray, childKey);
+        String jsonPathChildObject = jsonPathArray + "['" + childKey + "']";
         if (jo.get(childKey) != null) {
           html.append("<td")
               .append(htmlAttrStandard("json-value", jsonPathChildObject, childKey, i))
@@ -599,7 +599,7 @@ public class JsonHtmlFunctions {
 
     // loop through each key in the list of object keys
     for (String key : orderedObjectKeys) {
-      String currentJsonPath = String.format("%s['%s']", jsonPath, key);
+      String currentJsonPath = jsonPath + "['" + key + "']";
 
       // add a row for each object key
       html.append("<tr>");
@@ -704,7 +704,7 @@ public class JsonHtmlFunctions {
     html.append("<tr>");
 
     // parent object key column header
-    String jsonPathParentObjectHeader = String.format("%s[%s]", jsonPath, "*");
+    String jsonPathParentObjectHeader = jsonPath + "['*']";
     html.append("<th")
         .append(htmlAttrStandard("json-object-of-objects", jsonPathParentObjectHeader, "*", null))
         .append(htmlAttr("scope", "col"))
@@ -714,8 +714,7 @@ public class JsonHtmlFunctions {
 
     // child object key column headers
     for (String childKey : orderedChildKeys) {
-      String jsonPathChildObjectHeader =
-          String.format("%s['%s']", jsonPathParentObjectHeader, childKey);
+      String jsonPathChildObjectHeader = jsonPathParentObjectHeader + "['" + childKey + "']";
       html.append("<th")
           .append(htmlAttrStandard("json-object", jsonPathChildObjectHeader, childKey, null))
           .append(htmlAttr("scope", "col"))
@@ -739,7 +738,7 @@ public class JsonHtmlFunctions {
       html.append("<tr>");
 
       // parent object key row header
-      String jsonPathParentObject = String.format("%s['%s']", jsonPath, parentKey);
+      String jsonPathParentObject = jsonPath + "['" + parentKey + "']";
       html.append("<th")
           .append(htmlAttrStandard("json-object-of-objects", jsonPathParentObject, parentKey, null))
           .append(htmlAttr("scope", "row"))
@@ -752,7 +751,7 @@ public class JsonHtmlFunctions {
 
       // loop through each key in the list of child object keys
       for (String childKey : orderedChildKeys) {
-        String jsonPathChildObject = String.format("%s['%s']", jsonPathParentObject, childKey);
+        String jsonPathChildObject = jsonPathParentObject + "['" + childKey + "']";
         if (jo.get(childKey) != null) {
           html.append("<td")
               .append(htmlAttrStandard("json-value", jsonPathChildObject, childKey, null))
