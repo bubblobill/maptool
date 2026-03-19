@@ -17,6 +17,9 @@ package net.rptools.maptool.client.functions.json;
 import com.google.gson.*;
 import java.math.BigDecimal;
 import java.util.*;
+import javax.annotation.Nonnull;
+import net.rptools.maptool.language.I18N;
+import net.rptools.parser.ParserException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -24,7 +27,7 @@ import org.jsoup.safety.Safelist;
 
 public class JsonHtmlFunctions {
 
-  JsonHtmlFunctions(JsonMTSTypeConversion converter) {
+  JsonHtmlFunctions(@Nonnull JsonMTSTypeConversion converter) {
     typeConversion = converter;
   }
 
@@ -42,7 +45,7 @@ public class JsonHtmlFunctions {
   }
 
   /** Track the current depth in the json hierarchy during the conversion to html table(s) */
-  private Integer jsonPathDepth;
+  private int jsonPathDepth;
 
   // region MTS function user options & defaults
   /** Return a specific order of object keys (if present) to start with */
@@ -105,14 +108,16 @@ public class JsonHtmlFunctions {
    * conversion settings from either the options provided or from defaults and second it then calls
    * the main recursive method {@link #tabularizeJsonElement(JsonElement, String)}.
    *
+   * @param functionName the name of the MTScript function
    * @param jsonElement the json to convert
    * @param options any conversion or html options
    * @return a html table or table of tables
    */
-  public String jsonToHtmlTable(JsonElement jsonElement, JsonObject options) {
+  public String jsonToHtmlTable(String functionName, JsonElement jsonElement, JsonObject options)
+      throws ParserException {
 
     // set variables from provided options
-    processJsonToHtmlTableOptions(options);
+    processJsonToHtmlTableOptions(functionName, options);
 
     // region create the root html table and process the json
     jsonPathDepth = 0;
@@ -151,75 +156,104 @@ public class JsonHtmlFunctions {
   /**
    * Set the options as provided to the MTScript function, or set to default values
    *
+   * @param functionName the name of the MTScript function
    * @param options JsonObject containing the option keys (lowercase) and values
    */
-  private void processJsonToHtmlTableOptions(JsonObject options) {
-
+  private void processJsonToHtmlTableOptions(String functionName, JsonObject options)
+      throws ParserException {
     // region non-boolean options
-    optionAttributes =
-        options.has("attributes") ? options.getAsJsonObject("attributes") : new JsonObject();
-    optionCaption = options.has("caption") ? options.get("caption").getAsString() : "";
-    optionCollapsibleOpenDepth =
-        options.has("collapsibleopendepth")
-            ? Integer.parseInt(options.get("collapsibleopendepth").getAsString())
-            : -1;
-    optionLeadObjectKeys =
-        options.has("leadobjectkeys") ? options.getAsJsonArray("leadobjectkeys") : new JsonArray();
-    optionRearObjectKeys =
-        options.has("rearobjectkeys") ? options.getAsJsonArray("rearobjectkeys") : new JsonArray();
-    optionSortObjectKeys = SortMethod.NONE;
-    if (options.has("sortobjectkeys")) {
-      String optionSortObjects = options.get("sortobjectkeys").getAsString().toLowerCase();
-      if (optionSortObjects.startsWith("a")) {
-        optionSortObjectKeys = SortMethod.ASCENDING;
-      } else if (optionSortObjects.startsWith("d")) {
-        optionSortObjectKeys = SortMethod.DESCENDING;
-      } else if (optionSortObjects.startsWith("r")) {
-        optionSortObjectKeys = SortMethod.REVERSE;
-      } else if (optionSortObjects.startsWith("n")) {
-        optionSortObjectKeys = SortMethod.NONE;
-      }
+    optionAttributes = getAsObject(functionName, options, "attributes", new JsonObject());
+    optionCaption = getAsString(functionName, options, "caption", "");
+    optionCollapsibleOpenDepth = getAsInt(functionName, options, "collapsibleopendepth", -1);
+    optionLeadObjectKeys = getAsArray(functionName, options, "leadobjectkeys", new JsonArray());
+    optionRearObjectKeys = getAsArray(functionName, options, "rearobjectkeys", new JsonArray());
+    optionSortObjectKeys = parseSortMethod(functionName, options, "sortobjectkeys");
+    // endregion
+
+    // region boolean options
+    optionTitles = getAsBoolean(functionName, options, "titles", true);
+    optionCollapsible = getAsBoolean(functionName, options, "collapsible", true);
+    optionArrayOfObjects = getAsBoolean(functionName, options, "arrayofobjects", true);
+    optionObjectOfObjects = getAsBoolean(functionName, options, "objectofobjects", true);
+    optionAssetImage = getAsBoolean(functionName, options, "assetimage", true);
+    optionEscapeHtml = getAsBoolean(functionName, options, "escapehtml", true);
+    optionSanitizeHtml = getAsBoolean(functionName, options, "sanitizehtml", true);
+    optionInput = getAsBoolean(functionName, options, "input", false);
+    // endregion
+  }
+
+  private boolean getAsBoolean(
+      String functionName, JsonObject json, String key, boolean defaultValue)
+      throws ParserException {
+    if (!json.has(key)) return defaultValue;
+    JsonElement element = json.get(key);
+
+    if (element.isJsonPrimitive()) {
+      if (element.getAsJsonPrimitive().isBoolean()) return element.getAsBoolean();
+      if (element.getAsJsonPrimitive().isNumber())
+        return !element.getAsBigDecimal().equals(BigDecimal.ZERO);
     }
-    // endregion
+    throw new ParserException(
+        I18N.getText("macro.function.jsonhtml.onlyBoolean", json.get(key), key, functionName));
+  }
 
-    // region boolean options which default to true
-    optionTitles =
-        options.has("titles")
-            ? !options.get("titles").getAsBigDecimal().equals(BigDecimal.ZERO)
-            : true;
-    optionCollapsible =
-        options.has("collapsible")
-            ? !options.get("collapsible").getAsBigDecimal().equals(BigDecimal.ZERO)
-            : true;
-    optionArrayOfObjects =
-        options.has("arrayofobjects")
-            ? !options.get("arrayofobjects").getAsBigDecimal().equals(BigDecimal.ZERO)
-            : true;
-    optionObjectOfObjects =
-        options.has("objectofobjects")
-            ? !options.get("objectofobjects").getAsBigDecimal().equals(BigDecimal.ZERO)
-            : true;
-    optionAssetImage =
-        options.has("assetimage")
-            ? !options.get("assetimage").getAsBigDecimal().equals(BigDecimal.ZERO)
-            : true;
-    optionEscapeHtml =
-        options.has("escapehtml")
-            ? !options.get("escapehtml").getAsBigDecimal().equals(BigDecimal.ZERO)
-            : true;
-    optionSanitizeHtml =
-        options.has("sanitizehtml")
-            ? !options.get("sanitizehtml").getAsBigDecimal().equals(BigDecimal.ZERO)
-            : true;
-    // endregion
+  private int getAsInt(String functionName, JsonObject json, String key, int defaultValue)
+      throws ParserException {
+    if (!json.has(key)) return defaultValue;
+    try {
+      return Integer.parseInt(json.get(key).getAsString());
+    } catch (NumberFormatException e) {
+      throw new ParserException(
+          I18N.getText("macro.function.jsonhtml.onlyInteger", json.get(key), key, functionName));
+    }
+  }
 
-    // region boolean options which default to false
-    optionInput =
-        options.has("input")
-            ? !options.get("input").getAsBigDecimal().equals(BigDecimal.ZERO)
-            : false;
-    // endregion
+  private String getAsString(String functionName, JsonObject json, String key, String defaultValue)
+      throws ParserException {
+    if (json.has(key) && !json.get(key).isJsonPrimitive()) {
+      throw new ParserException(
+          I18N.getText("macro.function.jsonhtml.onlyString", json.get(key), key, functionName));
+    }
+    return json.has(key) ? json.get(key).getAsString() : defaultValue;
+  }
 
+  private JsonArray getAsArray(
+      String functionName, JsonObject json, String key, JsonArray defaultValue)
+      throws ParserException {
+    if (json.has(key) && !json.get(key).isJsonArray()) {
+      throw new ParserException(
+          I18N.getText("macro.function.jsonhtml.onlyArray", json.get(key), key, functionName));
+    }
+    return json.has(key) ? json.getAsJsonArray(key) : defaultValue;
+  }
+
+  private JsonObject getAsObject(
+      String functionName, JsonObject json, String key, JsonObject defaultValue)
+      throws ParserException {
+    if (json.has(key) && !json.get(key).isJsonObject()) {
+      throw new ParserException(
+          I18N.getText("macro.function.jsonhtml.onlyObject", json.get(key), key, functionName));
+    }
+    return json.has(key) ? json.getAsJsonObject(key) : defaultValue;
+  }
+
+  private SortMethod parseSortMethod(String functionName, JsonObject json, String key)
+      throws ParserException {
+    String sort = getAsString(functionName, json, key, "n");
+    if (sort.isEmpty()) return SortMethod.NONE;
+    switch (sort.toLowerCase().charAt(0)) {
+      case 'a':
+        return SortMethod.ASCENDING;
+      case 'd':
+        return SortMethod.DESCENDING;
+      case 'r':
+        return SortMethod.REVERSE;
+      case 'n':
+        return SortMethod.NONE;
+      default:
+        throw new ParserException(
+            I18N.getText("macro.function.jsonhtml.invalidSortMethod", sort, key, functionName));
+    }
   }
 
   /**

@@ -549,7 +549,7 @@ public class JSONMacroFunctions extends AbstractFunction {
                     FunctionUtil.paramAsJsonObject(functionName, args, 1));
           }
 
-          return jsonHtmlFunctions.jsonToHtmlTable(json, options);
+          return jsonHtmlFunctions.jsonToHtmlTable(functionName, json, options);
         }
     }
     throw new ParserException(I18N.getText("macro.function.general.unknownFunction", functionName));
