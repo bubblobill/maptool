@@ -25,6 +25,8 @@ import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
+
 public class JsonHtmlFunctions {
 
   JsonHtmlFunctions(@Nonnull JsonMTSTypeConversion converter) {
@@ -803,20 +805,16 @@ public class JsonHtmlFunctions {
         + (jsonIndex != null ? htmlAttr("data-json-index", jsonIndex) : "");
   }
 
-  /**
-   * Replace specific characters (e.g. <code>&<>\'</code>) with html entity escaped versions.
-   *
-   * @param string the string which may contain characters to be escaped
-   * @return the html with specific characters escaped
-   */
-  private String escapeHtmlEntities(String string) {
-    return string
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll("\"", "&quot;")
-        .replaceAll("'", "&apos;");
-  }
+    /**
+     * Replace specific characters (e.g. <code>&<>\'</code>) with html entity escaped versions.
+     *
+     * @param string the string which may contain characters to be escaped
+     * @return the html with specific characters escaped
+     */
+    private String escapeHtmlEntities(String string) {
+        // escapeHtml4 does not replace apostrophes so we do that
+        return escapeHtml4(string).replaceAll("'", "&apos;");
+    }
 
   /**
    * Remove any html tags and attributes not defined on the safelist below.
