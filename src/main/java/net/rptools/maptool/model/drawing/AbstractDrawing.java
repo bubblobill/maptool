@@ -156,7 +156,8 @@ public abstract class AbstractDrawing implements Drawable, ImageObserver {
 
   public JsonObject toJson() {
     JsonObject jo = new JsonObject();
-    jo.add("name", new JsonPrimitive(getName()));
+    String nm = getName();
+    jo.add("name", new JsonPrimitive(nm == null ? "" : nm));
     jo.add("layer", new JsonPrimitive(getLayer().name()));
     jo.add("id", new JsonPrimitive(getId().toString()));
     return jo;
