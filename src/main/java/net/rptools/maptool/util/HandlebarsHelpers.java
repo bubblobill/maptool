@@ -395,7 +395,7 @@ public class HandlebarsHelpers {
 
       switch (level) {
         case "error":
-          log.debug(sb.toString().trim());
+          log.error(sb.toString().trim());
           break;
         case "debug":
           log.debug(sb.toString().trim());
