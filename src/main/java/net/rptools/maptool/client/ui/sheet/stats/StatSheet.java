@@ -26,7 +26,6 @@ import net.rptools.maptool.client.events.TokenHoverEnter;
 import net.rptools.maptool.client.ui.htmlframe.HTMLContent;
 import net.rptools.maptool.model.sheet.stats.StatSheetContext;
 import net.rptools.maptool.model.sheet.stats.StatSheetLocation;
-import net.rptools.maptool.util.HBDebugUtil;
 import net.rptools.maptool.util.HandlebarsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +34,6 @@ import org.slf4j.LoggerFactory;
 public class StatSheet {
   /** Object for logging messages. */
   private static final Logger log = LoggerFactory.getLogger(StatSheet.class);
-
-  private static final HBDebugUtil HBD;
-
-  static {
-    HBDebugUtil hbd = null;
-    if (DeveloperOptions.Toggle.EnableHandlebarsDebugging.get()) {
-      hbd = new HBDebugUtil();
-    }
-    HBD = hbd;
-  }
 
   /**
    * Sets the content for the stat sheet. The content is a HTML page that is rendered using the
@@ -81,12 +70,6 @@ public class StatSheet {
                       null);
             }
           });
-      if (HBD != null) {
-        Platform.runLater(
-            () ->
-                HBD.publish(
-                    statSheetContext, event.token(), content, entry, output.getHtmlString()));
-      }
     } catch (IOException e) {
       MapTool.showError("msg.error.renderingStatSheet", e);
     }
