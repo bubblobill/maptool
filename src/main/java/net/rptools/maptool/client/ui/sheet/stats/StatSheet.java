@@ -20,7 +20,6 @@ import java.net.URL;
 import java.util.*;
 import javafx.application.Platform;
 import net.rptools.maptool.client.AppConstants;
-import net.rptools.maptool.client.DeveloperOptions;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.events.TokenHoverEnter;
 import net.rptools.maptool.client.ui.htmlframe.HTMLContent;
