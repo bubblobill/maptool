@@ -197,7 +197,21 @@ public class ShapeDrawable extends AbstractDrawing {
         + getBounds().width
         + ";"
         + "height="
-        + getBounds().height;
+        + getBounds().height
+        + ";"
+        + "bounds=\""
+        + "x="
+        + getBounds().x
+        + ";"
+        + "y="
+        + getBounds().y
+        + ";"
+        + "width="
+        + getBounds().width
+        + ";"
+        + "height="
+        + getBounds().height
+        + "\"";
   }
 
   public String toNonLocalisedString() {
@@ -218,7 +232,21 @@ public class ShapeDrawable extends AbstractDrawing {
         + getBounds().width
         + ";"
         + "height="
-        + getBounds().height;
+        + getBounds().height
+        + ";"
+        + "bounds=\""
+        + "x="
+        + getBounds().x
+        + ";"
+        + "y="
+        + getBounds().y
+        + ";"
+        + "width="
+        + getBounds().width
+        + ";"
+        + "height="
+        + getBounds().height
+        + "\"";
   }
 
   @Override
