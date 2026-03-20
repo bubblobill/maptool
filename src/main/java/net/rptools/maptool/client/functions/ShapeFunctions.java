@@ -605,13 +605,13 @@ public class ShapeFunctions extends AbstractFunction {
             ? ":"
             : FunctionUtil.paramAsString(functionName, parameters, 3, false);
     if (delimiter1.equals(delimiter2)) {
-      throw new RuntimeException(
+      throw new ParserException(
           I18N.getText("macro.function.general.argumentTypeB", functionName, 3, 2));
     } else if (delimiter2.equals(delimiter3)) {
-      throw new RuntimeException(
+      throw new ParserException(
           I18N.getText("macro.function.general.argumentTypeB", functionName, 4, 3));
     } else if (delimiter3.equals(delimiter1)) {
-      throw new RuntimeException(
+      throw new ParserException(
           I18N.getText("macro.function.general.argumentTypeB", functionName, 4, 2));
     }
     if (!CACHED_SHAPES.containsKey(name)) {
