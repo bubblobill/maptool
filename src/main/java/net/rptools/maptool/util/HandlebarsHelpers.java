@@ -16,6 +16,7 @@ package net.rptools.maptool.util;
 
 import com.github.jknack.handlebars.*;
 import com.github.jknack.handlebars.helper.ConditionalHelpers;
+import com.github.jknack.handlebars.helper.EmbeddedHelper;
 import com.github.jknack.handlebars.helper.LogHelper;
 import com.github.jknack.handlebars.helper.StringHelpers;
 import com.github.jknack.handlebars.helper.ext.AssignHelper;
@@ -43,6 +44,7 @@ public class HandlebarsHelpers {
     Arrays.stream(ConditionalHelpers.values()).forEach(h -> handlebars.registerHelper(h.name(), h));
     handlebars.registerHelper("json", Jackson2Helper.INSTANCE);
     NumberHelper.register(handlebars);
+    handlebars.registerHelper(EmbeddedHelper.NAME, EmbeddedHelper.INSTANCE);
     handlebars.registerHelper(AssignHelper.NAME, AssignHelper.INSTANCE);
     handlebars.registerHelper(IncludeHelper.NAME, IncludeHelper.INSTANCE);
     handlebars.registerHelper(MarkdownHelper.NAME, MarkdownHelper.INSTANCE);

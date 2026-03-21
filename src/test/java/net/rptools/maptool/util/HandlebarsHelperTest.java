@@ -16,20 +16,31 @@ package net.rptools.maptool.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
+
+import com.github.jknack.handlebars.io.TemplateLoader;
+import com.github.jknack.handlebars.io.TemplateSource;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.junit.jupiter.api.Test;
 
 public class HandlebarsHelperTest {
-  private final Handlebars hb = HandlebarsUtil.getHandlebarsInstance(new ClassPathTemplateLoader());
-  private final Map<Object, Object> contextData =
+  private final TemplateLoader templateLoader = new ClassPathTemplateLoader( "/net/rptools/maptool/util/handlebars/");
+  private final Handlebars hb = HandlebarsUtil.getHandlebarsInstance(templateLoader);
+  private final Map<Object, Object> mathsContextData =
       new HashMap<>() {
         {
           put("num1", 1);
@@ -37,9 +48,9 @@ public class HandlebarsHelperTest {
           put("arr1", new Object[] {0.5, "1", 2, "3.5"});
         }
       };
-  private final Context context = Context.newBuilder(contextData).build();
+  private final Context mathsContext = Context.newBuilder(mathsContextData).build();
 
-  /* function names
+  /* Maths function names
   abs
   add
   div
@@ -53,11 +64,11 @@ public class HandlebarsHelperTest {
   subtract
   */
 
-  private final BiFunction<String, String, String> process =
+  private final BiFunction<String, String, String> applyFunction =
       (helper, values) -> {
         try {
           Template template = hb.compileInline(String.format("{{%s %s}}", helper, values));
-          return template.apply(context);
+          return template.apply(mathsContext);
         } catch (IOException ex) {
           return null;
         }
@@ -65,121 +76,121 @@ public class HandlebarsHelperTest {
 
   @Test
   public void testMathsConstants() {
-    assertEquals("3.141592653589793", process.apply("pi", ""));
-    assertEquals("6.283185307179586", process.apply("tau", ""));
+    assertEquals("3.141592653589793", applyFunction.apply("pi", ""));
+    assertEquals("6.283185307179586", applyFunction.apply("tau", ""));
   }
 
   @Test
   public void testMathsHelpersOneArg() {
-    assertEquals("1", process.apply("abs", "1"));
-    assertEquals("1.1", process.apply("abs", "-1.1"));
+    assertEquals("1", applyFunction.apply("abs", "1"));
+    assertEquals("1.1", applyFunction.apply("abs", "-1.1"));
 
-    assertEquals("1", process.apply("add", "1"));
-    assertEquals("-1", process.apply("add", "-1"));
-    assertEquals("NaN", process.apply("div", "1"));
-    assertEquals("1", process.apply("divide", "1"));
+    assertEquals("1", applyFunction.apply("add", "1"));
+    assertEquals("-1", applyFunction.apply("add", "-1"));
+    assertEquals("NaN", applyFunction.apply("div", "1"));
+    assertEquals("1", applyFunction.apply("divide", "1"));
 
-    assertEquals("1", process.apply("max", "1"));
-    assertEquals("1", process.apply("min", "1"));
-    assertEquals("NaN", process.apply("mod", "1"));
-    assertEquals("1", process.apply("multiply", "1"));
-    assertEquals("NaN", process.apply("pow", "1"));
+    assertEquals("1", applyFunction.apply("max", "1"));
+    assertEquals("1", applyFunction.apply("min", "1"));
+    assertEquals("NaN", applyFunction.apply("mod", "1"));
+    assertEquals("1", applyFunction.apply("multiply", "1"));
+    assertEquals("NaN", applyFunction.apply("pow", "1"));
 
-    assertEquals("2", process.apply("sqrt", "4"));
-    assertEquals("NaN", process.apply("sqrt", "-1"));
-    assertEquals("1", process.apply("subtract", "1"));
+    assertEquals("2", applyFunction.apply("sqrt", "4"));
+    assertEquals("NaN", applyFunction.apply("sqrt", "-1"));
+    assertEquals("1", applyFunction.apply("subtract", "1"));
   }
 
   @Test
   public void testMathsHelpersContextVariables() {
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply("abs", "num1")).doubleValue());
+        new BigDecimal(applyFunction.apply("abs", "num1")).doubleValue());
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply("abs", "num2")).doubleValue());
-    assertEquals("NaN", process.apply("abs", "arr1"));
+        new BigDecimal(applyFunction.apply("abs", "num2")).doubleValue());
+    assertEquals("NaN", applyFunction.apply("abs", "arr1"));
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply("add", "num1")).doubleValue());
+        new BigDecimal(applyFunction.apply("add", "num1")).doubleValue());
     assertEquals(
         new BigDecimal("-1").doubleValue(),
-        new BigDecimal(process.apply("add", "num2")).doubleValue());
+        new BigDecimal(applyFunction.apply("add", "num2")).doubleValue());
     assertEquals(
         new BigDecimal("7").doubleValue(),
-        new BigDecimal(process.apply("add", "arr1")).doubleValue());
-    assertEquals("NaN", process.apply("div", "num1"));
-    assertEquals("NaN", process.apply("div", "num2"));
+        new BigDecimal(applyFunction.apply("add", "arr1")).doubleValue());
+    assertEquals("NaN", applyFunction.apply("div", "num1"));
+    assertEquals("NaN", applyFunction.apply("div", "num2"));
     assertEquals(
         new BigDecimal("0").doubleValue(),
-        new BigDecimal(process.apply("div", "arr1")).doubleValue());
+        new BigDecimal(applyFunction.apply("div", "arr1")).doubleValue());
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply("divide", "num1")).doubleValue());
+        new BigDecimal(applyFunction.apply("divide", "num1")).doubleValue());
     assertEquals(
         new BigDecimal("-1").doubleValue(),
-        new BigDecimal(process.apply("divide", "num2")).doubleValue());
+        new BigDecimal(applyFunction.apply("divide", "num2")).doubleValue());
     assertEquals(
         new BigDecimal("0.07142857142857142").doubleValue(),
-        new BigDecimal(process.apply("divide", "arr1")).doubleValue());
+        new BigDecimal(applyFunction.apply("divide", "arr1")).doubleValue());
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply("max", "num1")).doubleValue());
+        new BigDecimal(applyFunction.apply("max", "num1")).doubleValue());
     assertEquals(
         new BigDecimal("-1").doubleValue(),
-        new BigDecimal(process.apply("max", "num2")).doubleValue());
+        new BigDecimal(applyFunction.apply("max", "num2")).doubleValue());
     assertEquals(
         new BigDecimal("3.5").doubleValue(),
-        new BigDecimal(process.apply("max", "arr1")).doubleValue());
+        new BigDecimal(applyFunction.apply("max", "arr1")).doubleValue());
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply("min", "num1")).doubleValue());
+        new BigDecimal(applyFunction.apply("min", "num1")).doubleValue());
     assertEquals(
         new BigDecimal("-1").doubleValue(),
-        new BigDecimal(process.apply("min", "num2")).doubleValue());
+        new BigDecimal(applyFunction.apply("min", "num2")).doubleValue());
     assertEquals(
         new BigDecimal("0.5").doubleValue(),
-        new BigDecimal(process.apply("min", "arr1")).doubleValue());
-    assertEquals("NaN", process.apply("mod", "num1"));
-    assertEquals("NaN", process.apply("mod", "num2"));
+        new BigDecimal(applyFunction.apply("min", "arr1")).doubleValue());
+    assertEquals("NaN", applyFunction.apply("mod", "num1"));
+    assertEquals("NaN", applyFunction.apply("mod", "num2"));
     assertEquals(
         new BigDecimal("0").doubleValue(),
-        new BigDecimal(process.apply("mod", "arr1")).doubleValue());
+        new BigDecimal(applyFunction.apply("mod", "arr1")).doubleValue());
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply("multiply", "num1")).doubleValue());
+        new BigDecimal(applyFunction.apply("multiply", "num1")).doubleValue());
     assertEquals(
         new BigDecimal("-1").doubleValue(),
-        new BigDecimal(process.apply("multiply", "num2")).doubleValue());
+        new BigDecimal(applyFunction.apply("multiply", "num2")).doubleValue());
     assertEquals(
         new BigDecimal("3.5").doubleValue(),
-        new BigDecimal(process.apply("multiply", "arr1")).doubleValue());
-    assertEquals("NaN", process.apply("pow", "num1"));
-    assertEquals("NaN", process.apply("pow", "num2"));
+        new BigDecimal(applyFunction.apply("multiply", "arr1")).doubleValue());
+    assertEquals("NaN", applyFunction.apply("pow", "num1"));
+    assertEquals("NaN", applyFunction.apply("pow", "num2"));
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply("pow", "arr1")).doubleValue());
+        new BigDecimal(applyFunction.apply("pow", "arr1")).doubleValue());
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply("sqrt", "num1")).doubleValue());
-    assertEquals("NaN", process.apply("sqrt", "num2"));
-    assertEquals("NaN", process.apply("sqrt", "arr1"));
+        new BigDecimal(applyFunction.apply("sqrt", "num1")).doubleValue());
+    assertEquals("NaN", applyFunction.apply("sqrt", "num2"));
+    assertEquals("NaN", applyFunction.apply("sqrt", "arr1"));
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply("subtract", "num1")).doubleValue());
+        new BigDecimal(applyFunction.apply("subtract", "num1")).doubleValue());
     assertEquals(
         new BigDecimal("-1").doubleValue(),
-        new BigDecimal(process.apply("subtract", "num2")).doubleValue());
+        new BigDecimal(applyFunction.apply("subtract", "num2")).doubleValue());
     assertEquals(
         new BigDecimal("0").doubleValue(),
-        new BigDecimal(process.apply("subtract", "arr1")).doubleValue());
+        new BigDecimal(applyFunction.apply("subtract", "arr1")).doubleValue());
   }
 
   @Test
   public void testMathsHelpersMixedArgs() {
     assertEquals(
         new BigDecimal("7").doubleValue(),
-        new BigDecimal(process.apply("add", "-2 2 \"[3,-3]\" num1 num2 arr1 x=5 y=-5"))
+        new BigDecimal(applyFunction.apply("add", "-2 2 \"[3,-3]\" num1 num2 arr1 x=5 y=-5"))
             .doubleValue());
   }
 
@@ -215,6 +226,64 @@ public class HandlebarsHelperTest {
                 """;
     assertEquals(
         new BigDecimal("1").doubleValue(),
-        new BigDecimal(process.apply(complex, "")).doubleValue());
+        new BigDecimal(applyFunction.apply(complex, "")).doubleValue());
+  }
+
+  private final Map<Object, Object> helperContextData = new HashMap<>() {
+    {
+      put("id", new HashMap<Object, Object>(){{
+        put("firstName", "First");
+        put("lastName", "Last");
+      }});
+    }
+  };
+  private final Context helperContext = Context.newBuilder(helperContextData).build();
+
+  @Test
+  public void embeddedHelperTest(){
+    String expected = """
+            <script id="user-hbs" type="text/x-handlebars">
+            <tr><td>{{firstName}}</td><td>{{lastName}}</td></tr>
+            </script>""";
+      try {
+        String templateText = templateLoader.sourceAt("embeddedHelperTest").content(StandardCharsets.UTF_8);
+        Template template = hb.compileInline(templateText);
+        assertEquals(expected, template.apply(helperContext));
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      }
+  }
+  @Test
+  public void includeHelperTest(){
+    String expected = "<tr><td>First</td><td>Last</td></tr>";
+      try {
+        String templateText = templateLoader.sourceAt("includeHelperTest").content(StandardCharsets.UTF_8);
+        Template template = hb.compileInline(templateText);
+        assertEquals(expected, template.apply(helperContext));
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      }
+  }
+  @Test
+  public void jsonHelperTest(){
+    String expected = "{\"id\":{\"firstName\":\"First\",\"lastName\":\"Last\"}}";
+      try {
+        String templateText = templateLoader.sourceAt("jsonHelperTest").content(StandardCharsets.UTF_8);
+        Template template = hb.compileInline(templateText);
+        assertEquals(expected, template.apply(helperContext));
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      }
+  }
+  @Test
+  public void partialHelperTest(){
+    String expected = "<tr><td>First</td><td>Last</td></tr>";
+      try {
+        String templateText = templateLoader.sourceAt("partialHelperTest").content(StandardCharsets.UTF_8);
+        Template template = hb.compileInline(templateText);
+        assertEquals(expected, template.apply(helperContext));
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      }
   }
 }
