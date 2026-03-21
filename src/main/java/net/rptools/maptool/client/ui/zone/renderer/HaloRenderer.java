@@ -30,11 +30,15 @@ import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.drawing.DrawableColorPaint;
 import net.rptools.maptool.model.zones.GridChanged;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class HaloRenderer {
   private final RenderHelper renderHelper;
   private final Campaign campaign;
   private final Zone zone;
+
+  private static final Logger log = LogManager.getLogger(HaloRenderer.class);
 
   private final Map<CompositeUnitShapeKey, Shape> haloUnitShapeMap = new HashMap<>();
 
@@ -107,8 +111,9 @@ public class HaloRenderer {
     timer.start("HaloRenderer-renderHalos:prepareToRender");
     // Loop through the token's halos and first determine whether they actually need to be rendered.
     // If so, get the halos associated halo parts and establish where concentrically they need to be
-    // rendered and store them for later as we will render these halos in reverse order.
-    var renderableHaloParts = new ArrayList<RenderablePart>();
+    // rendered and store them for later as we will render these halos in reverse order and their
+    // respective haloparts in order.
+    var renderableHalos = new ArrayList<ArrayList<RenderablePart>>();
     if (!tokenHalos.isEmpty()) {
       // loop through the halos attached to the token
       for (GUID id : tokenHalos) {
@@ -140,6 +145,7 @@ public class HaloRenderer {
 
             // loop through the individual halo parts in each halo
             var haloParts = halo.getHaloParts();
+            var renderableHaloParts = new ArrayList<RenderablePart>();
             for (HaloPart hp : haloParts) {
 
               /*
@@ -189,6 +195,7 @@ public class HaloRenderer {
                       maxHaloPartWidth,
                       (int) Math.ceil((width * hp.getScaleY() + hp.getOffset()) * haloScaleFactor));
             }
+            renderableHalos.add(renderableHaloParts);
 
             // add to the relevant max width accumulators
             if (maxHaloPartWidth != 0) {
@@ -205,31 +212,34 @@ public class HaloRenderer {
     }
     timer.stop("HaloRenderer-renderHalos:prepareToRender");
 
-    // Render the halos in reverse order, but their respective halos in order.  This is so
-    // any filled outer-concentric halos do not graffiti over inner-concentric halos.
+    // Render the halos in reverse order but their respective haloparts in order.  This is so
+    // any filled outer-concentric halos do not graffiti over inner-concentric halos and also
+    // haloparts are rendered in the order in which they are written in the halo syntax.
     timer.start("HaloRenderer-renderHalos:orderedRendering");
-    for (var renderableHalo : renderableHaloParts.reversed()) {
-      var halo = renderableHalo.halo();
+    for (var renderableHaloParts : renderableHalos.reversed()) {
+      for (var renderableHaloPart : renderableHaloParts) {
+        var halo = renderableHaloPart.halo();
 
-      int offsetConcentricByInner;
-      if (halo.isInner() || renderableInnerHaloMaxWidth <= 0) {
-        offsetConcentricByInner = 0;
-      } else {
-        offsetConcentricByInner = 2 * (renderableInnerHaloMaxWidth + haloLineWidthPreference);
+        int offsetConcentricByInner;
+        if (halo.isInner() || renderableInnerHaloMaxWidth <= 0) {
+          offsetConcentricByInner = 0;
+        } else {
+          offsetConcentricByInner = 2 * (renderableInnerHaloMaxWidth + haloLineWidthPreference);
+        }
+
+        renderHaloPart(
+            g2d,
+            token,
+            position,
+            grid,
+            renderableHaloPart.part(),
+            renderableHaloPart.shapeType(),
+            renderableHaloPart.lineWidth(),
+            renderableHaloPart.facingAngle(),
+            renderableHaloPart.scaleFactor(),
+            renderableHaloPart.concentricOffset() + offsetConcentricByInner,
+            halo.isFlipWithToken());
       }
-
-      renderHaloPart(
-          g2d,
-          token,
-          position,
-          grid,
-          renderableHalo.part(),
-          renderableHalo.shapeType(),
-          renderableHalo.lineWidth(),
-          renderableHalo.facingAngle(),
-          renderableHalo.scaleFactor(),
-          renderableHalo.concentricOffset() + offsetConcentricByInner,
-          halo.isFlipWithToken());
     }
     timer.stop("HaloRenderer-renderHalos:orderedRendering");
 
@@ -293,6 +303,10 @@ public class HaloRenderer {
    * @param position the token's position
    * @param grid the map's grid
    * @param haloPart the haloPart itself
+   * @param haloShapeType the halo shapre type
+   * @param lineWidth the halo line width
+   * @param haloFacingAngle the halo facing angle
+   * @param haloScaleFactor the halo scale factor
    * @param concentricOffset the distance to offset the next haloPart
    * @param flipWithToken {@code true} if the halo should be flipped as the token is flipped.
    */
@@ -447,6 +461,19 @@ public class HaloRenderer {
     return at;
   }
 
+  /**
+   * Build and apply all the transforms we need for basic shapes
+   *
+   * @param scaleX
+   * @param scaleY
+   * @param flipH
+   * @param flipV
+   * @param rotate
+   * @param translateX
+   * @param translateY
+   * @param rotateBeforeScale
+   * @return
+   */
   private AffineTransform buildTransform(
       double scaleX,
       double scaleY,
@@ -456,14 +483,13 @@ public class HaloRenderer {
       double translateX,
       double translateY,
       boolean rotateBeforeScale) {
-    // build and apply all the transforms we need for basic shapes
     // (*) note that transforms are applied in the reverse order to which they are added below
     AffineTransform at = new AffineTransform();
     // (*) the transform below this comment will be applied last
     if (translateX != 0 || translateY != 0) {
       at.translate(translateX, translateY);
     }
-    // for isometric rotate before(*) scale , otherwise scale before (*) rotate
+    // for isometric rotate before (*) scale , otherwise scale before (*) rotate
     if (rotateBeforeScale) {
       if (scaleX != 0 || scaleY != 0) {
         at.scale(scaleX, scaleY);
@@ -800,6 +826,7 @@ public class HaloRenderer {
    * @param grid the grid
    * @param haloPart the haloPart
    * @param concentricAdjustment offset from the centre
+   * @param haloFacingAngle the halo facing angle
    * @return the grid shape, or a circle for gridless
    */
   private Shape getHaloGridShape(
