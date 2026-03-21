@@ -16,29 +16,22 @@ package net.rptools.maptool.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
+import com.github.jknack.handlebars.io.TemplateLoader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
-
-import com.github.jknack.handlebars.io.TemplateLoader;
-import com.github.jknack.handlebars.io.TemplateSource;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.junit.jupiter.api.Test;
 
 public class HandlebarsHelperTest {
-  private final TemplateLoader templateLoader = new ClassPathTemplateLoader( "/net/rptools/maptool/util/handlebars/");
+  private final TemplateLoader templateLoader =
+      new ClassPathTemplateLoader("/net/rptools/maptool/util/handlebars/");
   private final Handlebars hb = HandlebarsUtil.getHandlebarsInstance(templateLoader);
   private final Map<Object, Object> mathsContextData =
       new HashMap<>() {
@@ -229,61 +222,74 @@ public class HandlebarsHelperTest {
         new BigDecimal(applyFunction.apply(complex, "")).doubleValue());
   }
 
-  private final Map<Object, Object> helperContextData = new HashMap<>() {
-    {
-      put("id", new HashMap<Object, Object>(){{
-        put("firstName", "First");
-        put("lastName", "Last");
-      }});
-    }
-  };
+  private final Map<Object, Object> helperContextData =
+      new HashMap<>() {
+        {
+          put(
+              "id",
+              new HashMap<Object, Object>() {
+                {
+                  put("firstName", "First");
+                  put("lastName", "Last");
+                }
+              });
+        }
+      };
   private final Context helperContext = Context.newBuilder(helperContextData).build();
 
   @Test
-  public void embeddedHelperTest(){
-    String expected = """
+  public void embeddedHelperTest() {
+    String expected =
+        """
             <script id="user-hbs" type="text/x-handlebars">
             <tr><td>{{firstName}}</td><td>{{lastName}}</td></tr>
             </script>""";
-      try {
-        String templateText = templateLoader.sourceAt("embeddedHelperTest").content(StandardCharsets.UTF_8);
-        Template template = hb.compileInline(templateText);
-        assertEquals(expected, template.apply(helperContext));
-      } catch (IOException e) {
-          throw new RuntimeException(e);
-      }
+    try {
+      String templateText =
+          templateLoader.sourceAt("embeddedHelperTest").content(StandardCharsets.UTF_8);
+      Template template = hb.compileInline(templateText);
+      assertEquals(expected, template.apply(helperContext));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
+
   @Test
-  public void includeHelperTest(){
+  public void includeHelperTest() {
     String expected = "<tr><td>First</td><td>Last</td></tr>";
-      try {
-        String templateText = templateLoader.sourceAt("includeHelperTest").content(StandardCharsets.UTF_8);
-        Template template = hb.compileInline(templateText);
-        assertEquals(expected, template.apply(helperContext));
-      } catch (IOException e) {
-          throw new RuntimeException(e);
-      }
+    try {
+      String templateText =
+          templateLoader.sourceAt("includeHelperTest").content(StandardCharsets.UTF_8);
+      Template template = hb.compileInline(templateText);
+      assertEquals(expected, template.apply(helperContext));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
+
   @Test
-  public void jsonHelperTest(){
+  public void jsonHelperTest() {
     String expected = "{\"id\":{\"firstName\":\"First\",\"lastName\":\"Last\"}}";
-      try {
-        String templateText = templateLoader.sourceAt("jsonHelperTest").content(StandardCharsets.UTF_8);
-        Template template = hb.compileInline(templateText);
-        assertEquals(expected, template.apply(helperContext));
-      } catch (IOException e) {
-          throw new RuntimeException(e);
-      }
+    try {
+      String templateText =
+          templateLoader.sourceAt("jsonHelperTest").content(StandardCharsets.UTF_8);
+      Template template = hb.compileInline(templateText);
+      assertEquals(expected, template.apply(helperContext));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
+
   @Test
-  public void partialHelperTest(){
+  public void partialHelperTest() {
     String expected = "<tr><td>First</td><td>Last</td></tr>";
-      try {
-        String templateText = templateLoader.sourceAt("partialHelperTest").content(StandardCharsets.UTF_8);
-        Template template = hb.compileInline(templateText);
-        assertEquals(expected, template.apply(helperContext));
-      } catch (IOException e) {
-          throw new RuntimeException(e);
-      }
+    try {
+      String templateText =
+          templateLoader.sourceAt("partialHelperTest").content(StandardCharsets.UTF_8);
+      Template template = hb.compileInline(templateText);
+      assertEquals(expected, template.apply(helperContext));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
