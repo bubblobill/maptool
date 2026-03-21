@@ -125,7 +125,7 @@ public class HaloRenderer {
               || (halo.isOwnerOnly() && AppUtil.playerOwns(token))
               || (!halo.isOwnerOnly() && !halo.isGMOnly())) {
 
-            timer.increment("HaloRenderer-renderHalos:tokensWithRenderableHalos");
+            timer.increment("HaloRenderer-renderHalos:renderableHalos");
 
             double haloScaleFactor;
             if (halo.isScaleWithToken()) {
@@ -233,7 +233,7 @@ public class HaloRenderer {
     }
     timer.stop("HaloRenderer-renderHalos:orderedRendering");
 
-    // finally, render any legacy halo in the innermost position
+    // finally, render any legacy halo in the outermost position
     if (token.getHaloColor() != null) {
       timer.start("HaloRenderer-renderHalos:renderSimpleHalo");
       DrawableColorPaint dcp = new DrawableColorPaint(token.getHaloColor());
