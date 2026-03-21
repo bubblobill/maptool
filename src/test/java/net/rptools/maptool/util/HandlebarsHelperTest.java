@@ -288,6 +288,8 @@ public class HandlebarsHelperTest {
           templateLoader.sourceAt("partialHelperTest").content(StandardCharsets.UTF_8);
       Template template = hb.compileInline(templateText);
       assertEquals(expected, template.apply(helperContext));
+      template = hb.compileInline("{{#*inline \"myPartial\"}}success{{/inline}}{{> myPartial}}");
+      assertEquals("success", template.apply(helperContext));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
