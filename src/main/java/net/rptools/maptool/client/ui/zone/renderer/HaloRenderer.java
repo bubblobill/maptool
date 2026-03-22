@@ -30,15 +30,11 @@ import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.drawing.DrawableColorPaint;
 import net.rptools.maptool.model.zones.GridChanged;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class HaloRenderer {
   private final RenderHelper renderHelper;
   private final Campaign campaign;
   private final Zone zone;
-
-  private static final Logger log = LogManager.getLogger(HaloRenderer.class);
 
   private final Map<CompositeUnitShapeKey, Shape> haloUnitShapeMap = new HashMap<>();
 
@@ -464,15 +460,15 @@ public class HaloRenderer {
   /**
    * Build and apply all the transforms we need for basic shapes
    *
-   * @param scaleX
-   * @param scaleY
-   * @param flipH
-   * @param flipV
-   * @param rotate
-   * @param translateX
-   * @param translateY
-   * @param rotateBeforeScale
-   * @return
+   * @param scaleX scale in the x dimension
+   * @param scaleY scale in the y dimension
+   * @param flipH flip horizontally
+   * @param flipV flip vertically
+   * @param rotate rotate
+   * @param translateX translate in the x dimension
+   * @param translateY translate in the x dimension
+   * @param rotateBeforeScale controls sequencing of scale and rotation (for isometric)
+   * @return the combined transforms
    */
   private AffineTransform buildTransform(
       double scaleX,
