@@ -106,7 +106,7 @@ public class HaloRenderer {
 
     timer.start("HaloRenderer-renderHalos:prepareToRender");
     // Loop through the token's halos and first determine whether they actually need to be rendered.
-    // If so, get the halos associated halo parts and establish where concentrically they need to be
+    // If so, get the halo's associated haloparts and establish where concentrically they need to be
     // rendered and store them for later as we will render these halos in reverse order and their
     // respective haloparts in order.
     var renderableHalos = new ArrayList<ArrayList<RenderablePart>>();
