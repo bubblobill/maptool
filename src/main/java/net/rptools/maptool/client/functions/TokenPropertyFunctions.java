@@ -43,11 +43,17 @@ import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.gamedata.MTScriptDataConversion;
 import net.rptools.maptool.model.library.LibraryManager;
 import net.rptools.maptool.model.library.data.LibraryData;
+import net.rptools.maptool.model.sheet.stats.StatSheet;
+import net.rptools.maptool.model.sheet.stats.StatSheetLocation;
+import net.rptools.maptool.model.sheet.stats.StatSheetManager;
+import net.rptools.maptool.model.sheet.stats.StatSheetProperties;
 import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
 import net.rptools.parser.VariableResolver;
 import net.rptools.parser.function.AbstractFunction;
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class TokenPropertyFunctions extends AbstractFunction {
   private static final TokenPropertyFunctions instance = new TokenPropertyFunctions();
@@ -100,6 +106,8 @@ public class TokenPropertyFunctions extends AbstractFunction {
         "flipTokenIso",
         "setOwner",
         "setOwnedByAll",
+        "getStatSheet",
+        "setStatSheet",
         "getTokenNativeWidth",
         "getTokenNativeHeight",
         "getTokenWidth",
@@ -744,6 +752,126 @@ public class TokenPropertyFunctions extends AbstractFunction {
     }
 
     /*
+     * String getStatSheet = getStatSheet(String delim: json, String tokenId: currentToken(), string mapName: current map)
+     */
+    if (functionName.equalsIgnoreCase("getStatSheet")) {
+      FunctionUtil.checkNumberParam(functionName, parameters, 0, 3);
+      Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 1, 2);
+      StatSheetProperties ssp = token.getStatSheet();
+      String delim = "json";
+      if (!parameters.isEmpty()) {
+        delim = FunctionUtil.paramAsString(functionName, parameters, 0, false);
+        delim = !delim.isBlank() ? delim : "json";
+      }
+      if (delim.equalsIgnoreCase("json")) {
+        JsonObject jo = new JsonObject();
+        jo.addProperty("id", ssp.id());
+        jo.addProperty("location", ssp.location().name());
+        return jo;
+      } else {
+        return "id=" + ssp.id() + delim + "location=" + ssp.location();
+      }
+    }
+
+    /*
+     * String setStatSheet = setStatSheet(String sheetName, String sheetLocation, String delim: json, String tokenId: currentToken(), string mapName: current map)
+     */
+    if (functionName.equalsIgnoreCase("setStatSheet")) {
+      FunctionUtil.blockUntrustedMacro(functionName);
+      FunctionUtil.checkNumberParam(functionName, parameters, 1, 5);
+      Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 3, 4);
+      StatSheetProperties statSheetProperties = token.getStatSheet();
+      final String nameParam =
+          FunctionUtil.paramAsString(functionName, parameters, 0, false).strip();
+      String sheetName;
+      if (nameParam.equalsIgnoreCase(StatSheetManager.LEGACY_STATSHEET_ID)
+          || nameParam.isBlank()
+          || nameParam.equalsIgnoreCase("legacy")
+          || nameParam.equalsIgnoreCase("legacy-sheet")) {
+        sheetName = StatSheetManager.LEGACY_STATSHEET_ID;
+      } else if (nameParam.equalsIgnoreCase(StatSheetManager.NO_STATSHEET.id())
+          || nameParam.equalsIgnoreCase("none")
+          || nameParam.equalsIgnoreCase("false")
+          || nameParam.equalsIgnoreCase("0")) {
+        sheetName = StatSheetManager.NO_STATSHEET.id();
+      } else {
+        // check for valid selection
+        List<String> available =
+            new StatSheetManager()
+                .getStatSheets(token.getPropertyType()).stream()
+                    .filter(
+                        statSheet ->
+                            statSheet.name().equalsIgnoreCase(nameParam)
+                                || statSheet.id().equalsIgnoreCase(nameParam))
+                    .map(StatSheet::id)
+                    .toList();
+        if (available.isEmpty()) {
+          throw new ParserException(
+              I18N.getMessage(
+                  "macro.function.general.invalidParam",
+                  I18N.MessageType.qualifiedOptions,
+                  functionName,
+                  0,
+                  nameParam,
+                  null,
+                  Arrays.deepToString(
+                      new StatSheetManager()
+                          .getStatSheets(token.getPropertyType()).stream()
+                              .map(StatSheet::id)
+                              .toArray(String[]::new))));
+        } else if (available.size() > 1) {
+          throw new ParserException(
+              I18N.getMessage(
+                  "macro.function.general.tooManyResults",
+                  I18N.MessageType.verbose,
+                  functionName,
+                  null,
+                  null,
+                  available,
+                  null,
+                  new Pair[] {Pair.of("requiredNumber", 1)}));
+        } else {
+          sheetName = available.getFirst();
+        }
+      }
+      StatSheetLocation ssl = StatSheetLocation.BOTTOM_LEFT;
+      String loc;
+      if (parameters.size() > 1) {
+        loc = FunctionUtil.paramAsString(functionName, parameters, 1, false);
+        loc = loc.strip().replace(" ", "_");
+        if (!loc.isBlank()) {
+          try {
+            int index = Integer.parseInt(loc);
+            if (index > -1 && index < StatSheetLocation.values().length) {
+              ssl = StatSheetLocation.values()[index];
+            } else {
+              throw new ParserException(
+                  I18N.getText(
+                      "macro.function.general.indexOutOfBounds.verbose", functionName, "2", index));
+            }
+          } catch (NumberFormatException ignored) {
+            ssl = EnumUtils.getEnumIgnoreCase(StatSheetLocation.class, loc);
+            ssl = ssl != null ? ssl : StatSheetLocation.BOTTOM_LEFT;
+          }
+        }
+      }
+      StatSheetProperties ssp = new StatSheetProperties(sheetName, ssl);
+      token.setStatSheet(ssp);
+      String delim = "json";
+      if (parameters.size() > 2) {
+        delim = FunctionUtil.paramAsString(functionName, parameters, 2, false);
+      }
+      if (delim.equalsIgnoreCase("json")) {
+        JsonObject jo = new JsonObject();
+        jo.addProperty("id", ssp.id());
+        jo.addProperty("location", ssp.location().name());
+        return jo;
+      } else {
+        return "id=" + ssp.id() + delim + "location=" + ssp.location();
+      }
+    }
+
+    /*
      * String newShape = getTokenWidth(String tokenId: currentToken(), string mapName: current map)
      *
      * String newShape = getTokenHeight(String tokenId: currentToken(), string mapName: current map)
@@ -1061,8 +1189,8 @@ public class TokenPropertyFunctions extends AbstractFunction {
    * Get the Zone.Layer element corresponding to a layerName
    *
    * @param layerName the String of the name of the layer
-   * @throws ParserException if the layer name is invalid.
    * @return the Zone.Layer corresponding to the layerName
+   * @throws ParserException if the layer name is invalid.
    */
   public static Zone.Layer getLayer(String layerName) throws ParserException {
     Zone.Layer layer;
