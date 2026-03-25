@@ -16,14 +16,21 @@ package net.rptools.maptool.client.functions;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
+import net.rptools.maptool.client.functions.json.JsonObjectFunctions;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.library.Library;
 import net.rptools.maptool.model.library.LibraryInfo;
 import net.rptools.maptool.model.library.LibraryManager;
 import net.rptools.maptool.model.library.LibraryType;
+import net.rptools.maptool.model.sheet.stats.StatSheet;
+import net.rptools.maptool.model.sheet.stats.StatSheetManager;
 import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
@@ -37,11 +44,12 @@ public class LibraryFunctions extends AbstractFunction {
   public LibraryFunctions() {
     super(
         0,
-        1,
+        2,
         "library.listAddOnLibraries",
         "library.getInfo",
         "library.listTokenLibraries",
-        "library.getContents");
+        "library.getContents",
+        "getStatSheets");
   }
 
   @Override
@@ -84,7 +92,50 @@ public class LibraryFunctions extends AbstractFunction {
             return "";
           }
         }
+        /*
+         * String getStatSheets = getStatSheets(String tokenPropertyType, String delim: json)
+         */
+        case "getstatsheets" -> {
+          FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
+          String propType = "";
+          String delim = "json";
+          if (!parameters.isEmpty()) {
+            propType = FunctionUtil.paramAsString(functionName, parameters, 0, false);
+          }
+          if (parameters.size() > 1) {
+            delim = FunctionUtil.paramAsString(functionName, parameters, 1, false);
+          }
+          List<StatSheet> sheetList =
+              new StatSheetManager().getStatSheets(propType).stream().toList();
 
+          JsonArray jsonArray = new JsonArray();
+          sheetList.forEach(
+              statSheet -> {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("description", statSheet.description());
+                jsonObject.addProperty("id", statSheet.id());
+                jsonObject.addProperty("name", statSheet.name());
+                jsonObject.addProperty("nameSpace", statSheet.namespace());
+                URL url = statSheet.entry();
+                jsonObject.addProperty("url", url == null ? "" : url.toString());
+                jsonArray.add(jsonObject);
+              });
+          if (delim.equalsIgnoreCase("json")) {
+            return jsonArray;
+          } else {
+            JsonObjectFunctions jof = JSONMacroFunctions.getInstance().getJsonObjectFunctions();
+            List<String> stringList = new ArrayList<>();
+            jsonArray
+                .iterator()
+                .forEachRemaining(
+                    jsonElement -> {
+                      if (jsonElement.isJsonObject()) {
+                        stringList.add(jof.toStringProp(jsonElement.getAsJsonObject(), ";"));
+                      }
+                    });
+            return String.join(delim, stringList);
+          }
+        }
         default ->
             throw new ParserException(
                 I18N.getText("macro.function.general.unknownFunction", functionName));

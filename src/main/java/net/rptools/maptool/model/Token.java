@@ -224,6 +224,7 @@ public class Token implements Cloneable {
     clearHalos,
     removeHalo,
     addHalo,
+    setStatSheet
   }
 
   public static final Comparator<Token> NAME_COMPARATOR =
