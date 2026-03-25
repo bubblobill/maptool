@@ -425,8 +425,8 @@ public class HaloRenderer {
     double translateX = position.transformedBounds().getBounds2D().getCenterX();
     double translateY = position.transformedBounds().getBounds2D().getCenterY();
 
-    boolean flipH = flipWithToken && position.token().isFlippedX() ^ haloPart.getFlipHorizontal();
-    boolean flipV = flipWithToken && position.token().isFlippedY() ^ haloPart.getFlipVertical();
+    boolean flipH = (flipWithToken && position.token().isFlippedX()) ^ haloPart.getFlipHorizontal();
+    boolean flipV = (flipWithToken && position.token().isFlippedY()) ^ haloPart.getFlipVertical();
 
     double rotate;
     boolean rotateBeforeScale = false;
