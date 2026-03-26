@@ -19,7 +19,6 @@ import com.vladsch.flexmark.util.sequence.Escaping;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
 import javax.swing.*;
 import net.rptools.lib.OsDetection;
 import org.apache.commons.lang3.tuple.Pair;
@@ -198,13 +197,15 @@ public class I18N {
   }
 
   /**
-   * Message composition for use with named arguments. Use when the message pattern string contains field names, for example: <code>Argument at index {paramIndex} to function {functionName} is invalid.</code>
+   * Message composition for use with named arguments. Use when the message pattern string contains
+   * field names, for example: <code>
+   * Argument at index {paramIndex} to function {functionName} is invalid.</code>
+   *
    * @param key The key to look up for the message.
    * @param namedArguments List of pairs containing the parameter name and the substitution value.
    * @return Localised message with parameter placeholders replaced.
    */
-  public static String getMessage(
-      String key, List<Pair<String, Object>> namedArguments) {
+  public static String getMessage(String key, List<Pair<String, Object>> namedArguments) {
     Map<String, Object> namedArgs = new HashMap<>();
     for (Pair<String, Object> pair : namedArguments) {
       namedArgs.put(pair.getKey(), pair.getValue());
@@ -219,13 +220,13 @@ public class I18N {
 
   /**
    * Localised message with no argument substitution.
+   *
    * @param key The key to look up for the message.
    * @return The localised message text.
    */
   public static String getMessage(String key) {
     return getMessage(key, new ArrayList<>());
   }
-
 
   /**
    * Set all the I18N values on an <code>Action</code> by retrieving said values from the properties
