@@ -196,7 +196,6 @@ public class I18N {
     return java.text.MessageFormat.format(getText(key), args);
   }
 
-
   /**
    * Localised message with no argument substitution.
    *
@@ -223,13 +222,15 @@ public class I18N {
     }
     return getMessage(key, namedArgs);
   }
+
   /**
    * Message composition for use with named arguments. Use when the message pattern string contains
    * field names, for example: <code>
    * Argument at index {paramIndex} to function {functionName} is invalid.</code>
    *
    * @param key The key to look up for the message.
-   * @param namedArguments Map&lt;String,Object&gt; containing the parameter name and associated value.
+   * @param namedArguments Map&lt;String,Object&gt; containing the parameter name and associated
+   *     value.
    * @return Localised message with parameter placeholders replaced.
    */
   public static String getMessage(String key, Map<String, Object> namedArguments) {
