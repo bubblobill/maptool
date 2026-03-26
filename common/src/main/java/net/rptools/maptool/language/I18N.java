@@ -196,6 +196,17 @@ public class I18N {
     return java.text.MessageFormat.format(getText(key), args);
   }
 
+
+  /**
+   * Localised message with no argument substitution.
+   *
+   * @param key The key to look up for the message.
+   * @return The localised message text.
+   */
+  public static String getMessage(String key) {
+    return getMessage(key, new ArrayList<>());
+  }
+
   /**
    * Message composition for use with named arguments. Use when the message pattern string contains
    * field names, for example: <code>
@@ -210,22 +221,24 @@ public class I18N {
     for (Pair<String, Object> pair : namedArguments) {
       namedArgs.put(pair.getKey(), pair.getValue());
     }
+    return getMessage(key, namedArgs);
+  }
+  /**
+   * Message composition for use with named arguments. Use when the message pattern string contains
+   * field names, for example: <code>
+   * Argument at index {paramIndex} to function {functionName} is invalid.</code>
+   *
+   * @param key The key to look up for the message.
+   * @param namedArguments Map&lt;String,Object&gt; containing the parameter name and associated value.
+   * @return Localised message with parameter placeholders replaced.
+   */
+  public static String getMessage(String key, Map<String, Object> namedArguments) {
     try {
-      return MessageFormat.format(getText(key), namedArgs);
+      return MessageFormat.format(getText(key), namedArguments);
     } catch (IllegalArgumentException iae) {
       log.error(iae.getMessage(), iae);
       return "";
     }
-  }
-
-  /**
-   * Localised message with no argument substitution.
-   *
-   * @param key The key to look up for the message.
-   * @return The localised message text.
-   */
-  public static String getMessage(String key) {
-    return getMessage(key, new ArrayList<>());
   }
 
   /**
