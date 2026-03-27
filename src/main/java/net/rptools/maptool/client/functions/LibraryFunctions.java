@@ -14,16 +14,15 @@
  */
 package net.rptools.maptool.client.functions;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
-import net.rptools.maptool.client.functions.json.JsonObjectFunctions;
+import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.library.Library;
 import net.rptools.maptool.model.library.LibraryInfo;
@@ -44,12 +43,12 @@ public class LibraryFunctions extends AbstractFunction {
   public LibraryFunctions() {
     super(
         0,
-        2,
+        1,
         "library.listAddOnLibraries",
         "library.getInfo",
         "library.listTokenLibraries",
         "library.getContents",
-        "getStatSheets");
+        "library.getStatSheets");
   }
 
   @Override
@@ -68,7 +67,7 @@ public class LibraryFunctions extends AbstractFunction {
         }
         case "library.getinfo" -> {
           FunctionUtil.checkNumberParam(functionName, parameters, 1, 1);
-          String namespace = parameters.get(0).toString();
+          String namespace = parameters.getFirst().toString();
           Optional<LibraryInfo> libraryInfo = libraryManager.getLibraryInfo(namespace);
           if (libraryInfo.isPresent()) {
             return libraryAsJson(libraryInfo.get());
@@ -84,7 +83,7 @@ public class LibraryFunctions extends AbstractFunction {
         case "library.getcontents" -> {
           FunctionUtil.blockUntrustedMacro(functionName);
           FunctionUtil.checkNumberParam(functionName, parameters, 1, 1);
-          String namespace = parameters.get(0).toString();
+          String namespace = parameters.getFirst().toString();
           Optional<Library> library = libraryManager.getLibrary(namespace);
           if (library.isPresent()) {
             return listLibraryContents(library.get());
@@ -92,49 +91,16 @@ public class LibraryFunctions extends AbstractFunction {
             return "";
           }
         }
-        /*
-         * String getStatSheets = getStatSheets(String tokenPropertyType, String delim: json)
-         */
-        case "getstatsheets" -> {
-          FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
-          String propType = "";
-          String delim = "json";
+        case "library.getstatsheets" -> {
+          FunctionUtil.checkNumberParam(functionName, parameters, 0, 1);
+          List<LibraryInfo> libraries =
+              new ArrayList<>(libraryManager.getLibraries(LibraryType.ADD_ON));
+          libraries.addAll(libraryManager.getLibraries(LibraryType.BUILT_IN));
+          JsonObject jo = new JsonObject();
           if (!parameters.isEmpty()) {
-            propType = FunctionUtil.paramAsString(functionName, parameters, 0, false);
+            jo = FunctionUtil.paramFromStrPropOrJsonAsJsonObject(functionName, parameters, 0, "");
           }
-          if (parameters.size() > 1) {
-            delim = FunctionUtil.paramAsString(functionName, parameters, 1, false);
-          }
-          List<StatSheet> sheetList =
-              new StatSheetManager().getStatSheets(propType).stream().toList();
-
-          JsonArray jsonArray = new JsonArray();
-          sheetList.forEach(
-              statSheet -> {
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("description", statSheet.description());
-                jsonObject.addProperty("id", statSheet.id());
-                jsonObject.addProperty("name", statSheet.name());
-                jsonObject.addProperty("nameSpace", statSheet.namespace());
-                URL url = statSheet.entry();
-                jsonObject.addProperty("url", url == null ? "" : url.toString());
-                jsonArray.add(jsonObject);
-              });
-          if (delim.equalsIgnoreCase("json")) {
-            return jsonArray;
-          } else {
-            JsonObjectFunctions jof = JSONMacroFunctions.getInstance().getJsonObjectFunctions();
-            List<String> stringList = new ArrayList<>();
-            jsonArray
-                .iterator()
-                .forEachRemaining(
-                    jsonElement -> {
-                      if (jsonElement.isJsonObject()) {
-                        stringList.add(jof.toStringProp(jsonElement.getAsJsonObject(), ";"));
-                      }
-                    });
-            return String.join(delim, stringList);
-          }
+          return listStatSheets(libraries, !jo.isEmpty() ? jo : null);
         }
         default ->
             throw new ParserException(
@@ -148,22 +114,16 @@ public class LibraryFunctions extends AbstractFunction {
   private JsonArray listLibraryContents(Library library)
       throws ExecutionException, InterruptedException {
     JsonArray json = new JsonArray();
-    library
-        .getAllFiles()
-        .thenAccept(
-            l -> {
-              l.forEach(json::add);
-            })
-        .get();
+    library.getAllFiles().thenAccept(l -> l.forEach(json::add)).get();
 
     return json;
   }
 
   /**
-   * Returns the list of {@link LibraryInfo} records as a json list.
+   * Returns the list of {@link LibraryInfo} records as a JSON list.
    *
-   * @param libraries the {@link LibraryInfo} list to convert to json.
-   * @return the json list.
+   * @param libraries the {@link LibraryInfo} list to convert to JSON.
+   * @return the JSON list.
    */
   private JsonArray librariesAsJson(List<LibraryInfo> libraries) {
     JsonArray librariesJson = new JsonArray();
@@ -172,10 +132,10 @@ public class LibraryFunctions extends AbstractFunction {
   }
 
   /**
-   * Returns the json representation of a {@link LibraryInfo} object.
+   * Returns the JSON representation of a {@link LibraryInfo} object.
    *
-   * @param library the {@link LibraryInfo} to convert to json.
-   * @return the json representation.
+   * @param library the {@link LibraryInfo} to convert to JSON.
+   * @return the JSON representation.
    */
   private JsonObject libraryAsJson(LibraryInfo library) {
     JsonObject libraryJson = new JsonObject();
@@ -195,5 +155,79 @@ public class LibraryFunctions extends AbstractFunction {
     libraryJson.addProperty("allowsUrlAccess", library.allowsUrlAccess());
 
     return libraryJson;
+  }
+
+  private JsonArray listStatSheets(List<LibraryInfo> libInfoList, Object parameter) {
+    final JsonObject filters = new JsonObject();
+    if (parameter != null) {
+      filters.asMap().putAll(new Gson().toJsonTree(parameter).getAsJsonObject().asMap());
+    }
+    // all the namespaces
+    final List<String> namespaces =
+        new ArrayList<>(libInfoList.stream().map(LibraryInfo::namespace).toList());
+    if (filters.has("namespace")) {
+      if (filters.get("namespace").isJsonArray()) {
+        List<String> nsList =
+            filters.get("namespace").getAsJsonArray().asList().stream()
+                .map(JsonElement::getAsString)
+                .toList();
+        if (!(nsList.contains("all") || nsList.contains(""))) {
+          // filter out anything not on the list
+          namespaces.removeIf(s -> !nsList.contains(s));
+        }
+      } else {
+        String ns = filters.get("namespace").getAsString();
+        if (!ns.equalsIgnoreCase("all") && !ns.isBlank()) {
+          // filter out anything that doesn't match
+          namespaces.removeIf(s -> !s.equals(ns));
+        }
+      }
+    }
+
+    // all the property types
+    List<String> propTypes = new ArrayList<>(MapTool.getCampaign().getTokenTypes());
+    boolean includeUndefined = true;
+    if (filters.has("propertyType")) {
+      if (filters.get("propertyType").isJsonArray()) {
+        List<String> ptList =
+            filters.get("propertyType").getAsJsonArray().asList().stream()
+                .map(JsonElement::getAsString)
+                .toList();
+        if (!(ptList.contains("all") || ptList.contains(""))) {
+          // filter out anything not on the list
+          propTypes.removeIf(s -> !ptList.contains(s));
+          includeUndefined = false;
+        }
+      } else {
+        String pt = filters.get("propertyType").getAsString();
+        if (!pt.equalsIgnoreCase("all") && !pt.isBlank()) {
+          // filter out anything that doesn't match
+          propTypes.removeIf(s -> !s.equals(pt));
+          includeUndefined = false;
+        }
+      }
+    }
+
+    List<StatSheet> results = new ArrayList<>();
+
+    StatSheetManager ssm = new StatSheetManager();
+    for (String propType : propTypes) {
+      // includes generics - will remove later
+      results.addAll(ssm.getStatSheets(propType));
+    }
+    final boolean includeGeneric = includeUndefined;
+    results =
+        results.stream()
+            .distinct()
+            .filter(statSheet -> namespaces.contains(statSheet.namespace()))
+            .filter(
+                statSheet ->
+                    !statSheet.propertyTypes().stream()
+                            .filter(propTypes::contains)
+                            .toList()
+                            .isEmpty()
+                        || (statSheet.propertyTypes().isEmpty() && includeGeneric))
+            .toList();
+    return new Gson().toJsonTree(results).getAsJsonArray();
   }
 }
