@@ -14,15 +14,11 @@
  */
 package net.rptools.maptool.util;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -35,12 +31,11 @@ import net.rptools.maptool.client.MapToolVariableResolver;
 import net.rptools.maptool.client.functions.FindTokenFunctions;
 import net.rptools.maptool.client.functions.StringFunctions;
 import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
+import net.rptools.maptool.client.functions.json.StrPropTypeAdapter;
 import net.rptools.maptool.client.ui.theme.ThemeSupport;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.InvalidGUIDException;
-import net.rptools.maptool.model.Token;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.drawing.DrawableColorPaint;
 import net.rptools.maptool.model.drawing.DrawablePaint;
 import net.rptools.maptool.model.drawing.DrawableTexturePaint;
@@ -101,11 +96,11 @@ public class FunctionUtil {
       String html =
           String.format(
               """
-  <table border=0 width=100%% cellspacing=3 cellpadding=0 style="background:%s;"><tr><td>
-  <table style="background: %s; color: %s"><tr valign=middle><td height="44px" width="48px">%s</td>
-  <td>%s</td></tr></table>
-  </td></tr></table>
-  """,
+                                    <table border=0 width=100%% cellspacing=3 cellpadding=0 style="background:%s;"><tr><td>
+                                    <table style="background: %s; color: %s"><tr valign=middle><td height="44px" width="48px">%s</td>
+                                    <td>%s</td></tr></table>
+                                    </td></tr></table>
+                                    """,
               red, white, textColour, imageText, messageText);
       MapTool.addGlobalMessage(html, List.of("self"));
     }
@@ -406,36 +401,22 @@ public class FunctionUtil {
       String functionName, List<Object> parameters, int index, String delimiter)
       throws ParserException {
     try {
-      JsonObject json = new JsonObject();
-      if (delimiter.equalsIgnoreCase("json")) {
-        json = paramAsJsonObject(functionName, parameters, index);
-      } else if (parameters.get(index) instanceof JsonObject) {
-        json = paramAsJsonObject(functionName, parameters, index);
-      } else if (!delimiter.equalsIgnoreCase(";")) {
-        List<String> entries =
-            Arrays.stream(paramAsString(functionName, parameters, index, true).split(delimiter))
-                .toList();
-        String[] keyValue;
-        for (String entry : entries) {
-          keyValue = entry.split("=");
-          try {
-            json.add(keyValue[0].trim(), new JsonPrimitive(new BigDecimal(keyValue[1])));
-          } catch (NumberFormatException nfe) {
-            json.add(keyValue[0].trim(), new JsonPrimitive(keyValue[1].trim()));
-          }
-        }
+      if (parameters.get(index) instanceof JsonObject jo) {
+        return jo;
       } else {
-        // guessing time
-        if (((String) parameters.get(index)).contains("{")) {
-          json = paramAsJsonObject(functionName, parameters, index);
-        } else if (((String) parameters.get(index)).contains(";")) {
-          json =
-              JSONMacroFunctions.getInstance()
-                  .getJsonObjectFunctions()
-                  .fromStrProp(paramAsString(functionName, parameters, index, true), ";");
+        Gson gson =
+            new GsonBuilder()
+                .registerTypeAdapter(StringPropList.class, new StrPropTypeAdapter())
+                .create();
+        JsonElement je = gson.toJsonTree(parameters.get(index).toString(), StringPropList.class);
+        if (je.isJsonObject()) {
+          return je.getAsJsonObject();
+        } else {
+          throw new ParserException(
+              I18N.getText(
+                  "macro.function.input.illegalArgumentType", "unknown", "JSON Object/StringProp"));
         }
       }
-      return json;
     } catch (ParserException pe) {
       throw new ParserException(
           I18N.getText(
