@@ -14,10 +14,7 @@
  */
 package net.rptools.maptool.client.functions;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -32,6 +29,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import net.rptools.lib.StringUtil;
 import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.client.functions.exceptions.ParserExceptionBuilder;
 import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
@@ -53,7 +51,6 @@ import net.rptools.parser.ParserException;
 import net.rptools.parser.VariableResolver;
 import net.rptools.parser.function.AbstractFunction;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 public class TokenPropertyFunctions extends AbstractFunction {
   private static final TokenPropertyFunctions instance = new TokenPropertyFunctions();
@@ -758,18 +755,27 @@ public class TokenPropertyFunctions extends AbstractFunction {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 3);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 1, 2);
       StatSheetProperties ssp = token.getStatSheet();
-      String delim = "json";
+
+      String delim = ";";
       if (!parameters.isEmpty()) {
         delim = FunctionUtil.paramAsString(functionName, parameters, 0, false);
-        delim = !delim.isBlank() ? delim : "json";
       }
+      JsonObject jo =
+          new Gson().toJsonTree(new StatSheetManager().getStatSheet(ssp.id())).getAsJsonObject();
+      jo.addProperty("location", ssp.location().name());
       if (delim.equalsIgnoreCase("json")) {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("id", ssp.id());
-        jo.addProperty("location", ssp.location().name());
         return jo;
       } else {
-        return "id=" + ssp.id() + delim + "location=" + ssp.location();
+        JsonArray ja = jo.remove("propertyTypes").getAsJsonArray();
+        if (ja.isEmpty()) {
+          jo.add("propertyTypes", new JsonPrimitive(""));
+        } else {
+          jo.add(
+              "propertyTypes",
+              new JsonPrimitive(
+                  JSONMacroFunctions.getInstance().getJsonArrayFunctions().toStringList(ja, ",")));
+        }
+        return JSONMacroFunctions.getInstance().getJsonObjectFunctions().toStringProp(jo, delim);
       }
     }
 
@@ -780,12 +786,14 @@ public class TokenPropertyFunctions extends AbstractFunction {
       FunctionUtil.blockUntrustedMacro(functionName);
       FunctionUtil.checkNumberParam(functionName, parameters, 1, 5);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 3, 4);
-      StatSheetProperties statSheetProperties = token.getStatSheet();
+
       final String nameParam =
-          FunctionUtil.paramAsString(functionName, parameters, 0, false).strip();
+          FunctionUtil.paramAsString(functionName, parameters, 0, true).strip();
       String sheetName;
       if (nameParam.equalsIgnoreCase(StatSheetManager.LEGACY_STATSHEET_ID)
           || nameParam.isBlank()
+          || nameParam.equalsIgnoreCase("true")
+          || nameParam.equalsIgnoreCase("1")
           || nameParam.equalsIgnoreCase("legacy")
           || nameParam.equalsIgnoreCase("legacy-sheet")) {
         sheetName = StatSheetManager.LEGACY_STATSHEET_ID;
@@ -806,30 +814,21 @@ public class TokenPropertyFunctions extends AbstractFunction {
                     .map(StatSheet::id)
                     .toList();
         if (available.isEmpty()) {
-          throw new ParserException(
-              I18N.getMessage(
-                  "macro.function.general.invalidParam",
-                  I18N.MessageType.qualifiedOptions,
-                  functionName,
-                  0,
-                  nameParam,
-                  null,
+          throw ParserExceptionBuilder.forKey("macro.function.general.invalidParam.validValues")
+              .functionName(functionName)
+              .parameterIndex(0)
+              .parameterValue(nameParam)
+              .options(
                   Arrays.deepToString(
                       new StatSheetManager()
                           .getStatSheets(token.getPropertyType()).stream()
                               .map(StatSheet::id)
-                              .toArray(String[]::new))));
+                              .toArray(String[]::new)))
+              .exception();
         } else if (available.size() > 1) {
-          throw new ParserException(
-              I18N.getMessage(
-                  "macro.function.general.tooManyResults",
-                  I18N.MessageType.verbose,
-                  functionName,
-                  null,
-                  null,
-                  available,
-                  null,
-                  new Pair[] {Pair.of("requiredNumber", 1)}));
+          throw ParserExceptionBuilder.forKey("macro.function.general.noUniqueResult")
+              .functionName(functionName)
+              .exception();
         } else {
           sheetName = available.getFirst();
         }
@@ -837,7 +836,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
       StatSheetLocation ssl = StatSheetLocation.BOTTOM_LEFT;
       String loc;
       if (parameters.size() > 1) {
-        loc = FunctionUtil.paramAsString(functionName, parameters, 1, false);
+        loc = FunctionUtil.paramAsString(functionName, parameters, 1, true);
         loc = loc.strip().replace(" ", "_");
         if (!loc.isBlank()) {
           try {
@@ -857,17 +856,26 @@ public class TokenPropertyFunctions extends AbstractFunction {
       }
       StatSheetProperties ssp = new StatSheetProperties(sheetName, ssl);
       token.setStatSheet(ssp);
-      String delim = "json";
+      String delim = ";";
       if (parameters.size() > 2) {
         delim = FunctionUtil.paramAsString(functionName, parameters, 2, false);
       }
+      JsonObject jo =
+          new Gson().toJsonTree(new StatSheetManager().getStatSheet(ssp.id())).getAsJsonObject();
+      jo.addProperty("location", ssp.location().name());
       if (delim.equalsIgnoreCase("json")) {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("id", ssp.id());
-        jo.addProperty("location", ssp.location().name());
         return jo;
       } else {
-        return "id=" + ssp.id() + delim + "location=" + ssp.location();
+        JsonArray ja = jo.remove("propertyTypes").getAsJsonArray();
+        if (ja.isEmpty()) {
+          jo.add("propertyTypes", new JsonPrimitive(""));
+        } else {
+          jo.add(
+              "propertyTypes",
+              new JsonPrimitive(
+                  JSONMacroFunctions.getInstance().getJsonArrayFunctions().toStringList(ja, ",")));
+        }
+        return JSONMacroFunctions.getInstance().getJsonObjectFunctions().toStringProp(jo, delim);
       }
     }
 
