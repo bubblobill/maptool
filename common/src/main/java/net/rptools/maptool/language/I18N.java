@@ -39,6 +39,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @author tcroft
  */
+@SuppressWarnings("unused")
 public class I18N {
   private static final ResourceBundle BUNDLE;
   private static final Logger log = LogManager.getLogger(I18N.class);
@@ -303,5 +304,15 @@ public class I18N {
       }
     }
     return menuItemKeys;
+  }
+
+  public static class MessageBuilder extends AbstractMessageBuilder {
+    protected MessageBuilder(String i18nKey) {
+      super(i18nKey);
+    }
+
+    public static MessageBuilder forKey(String i18nKey) {
+      return new MessageBuilder(i18nKey);
+    }
   }
 }

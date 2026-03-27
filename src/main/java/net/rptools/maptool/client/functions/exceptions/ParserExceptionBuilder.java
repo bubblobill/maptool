@@ -14,29 +14,24 @@
  */
 package net.rptools.maptool.client.functions.exceptions;
 
-import com.google.gson.JsonElement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import net.rptools.maptool.language.AbstractMessageBuilder;
 import net.rptools.maptool.language.I18N;
 import net.rptools.parser.ParserException;
-import org.apache.commons.lang3.tuple.Pair;
 
-public class ParserExceptionBuilder {
-  private Throwable throwable = null;
-  private List<Pair<String, Object>> messageParams;
-  private static ParserExceptionBuilder instance;
-  private String msgKey = null;
+public class ParserExceptionBuilder extends AbstractMessageBuilder {
+  private Throwable throwable;
 
-  private ParserExceptionBuilder() {}
-
-  private void checkInitialised() {
-    if (instance == null) {
-      start();
-    }
+  protected ParserExceptionBuilder(final String i18nKey) {
+    super(i18nKey);
+    throwable = null;
   }
 
-  public ParserException build() {
+  protected ParserExceptionBuilder(final Throwable cause) {
+    super(null);
+    throwable = cause;
+  }
+
+  public ParserException exception() {
     if (throwable != null) {
       return new ParserException(throwable);
     } else if (msgKey != null) {
@@ -46,64 +41,32 @@ public class ParserExceptionBuilder {
     }
   }
 
-  public static ParserExceptionBuilder start() {
-    return start(null);
-  }
-
-  public static ParserExceptionBuilder start(String i18nKey) {
-    instance = new ParserExceptionBuilder();
-    instance.messageParams = new ArrayList<>();
-    instance.throwable = null;
-    instance.msgKey = i18nKey;
-    return instance;
+  public static ParserExceptionBuilder forKey(String i18nKey) {
+    return new ParserExceptionBuilder(i18nKey);
   }
 
   public ParserExceptionBuilder forThrowable(final Throwable cause) {
-    checkInitialised();
     throwable = cause;
     return this;
   }
 
-  public ParserExceptionBuilder i18nKey(final String i18nKey) {
-    checkInitialised();
-    instance.msgKey = i18nKey;
-    return this;
-  }
-
   public ParserExceptionBuilder functionName(final String functionName) {
-    checkInitialised();
-    return namedValue("functionName", functionName);
+    return (ParserExceptionBuilder) namedValue("functionName", functionName);
   }
 
   public ParserExceptionBuilder parameterIndex(final int parameterIndex) {
-    checkInitialised();
-    return namedValue("parameterIndex", parameterIndex);
-  }
-
-  public ParserExceptionBuilder options(String options) {
-    checkInitialised();
-    return namedValue("options", options);
-  }
-
-  public ParserExceptionBuilder results(String results) {
-    checkInitialised();
-    return namedValue("results", results);
+    return (ParserExceptionBuilder) namedValue("parameterIndex", parameterIndex);
   }
 
   public ParserExceptionBuilder parameterValue(Object parameterValue) {
-    return namedValue("parameterValue", parameterValue);
+    return (ParserExceptionBuilder) namedValue("parameterValue", parameterValue);
   }
 
-  public ParserExceptionBuilder namedValue(final String name, Object value) {
-    checkInitialised();
-    if (value instanceof JsonElement je) {
-      value = je.toString();
-    } else if (value instanceof List<?> list) {
-      value = Arrays.deepToString(list.toArray());
-    } else if (value instanceof Object[] array) {
-      value = Arrays.deepToString(array);
-    }
-    messageParams.add(Pair.of(name, value));
-    return this;
+  public ParserExceptionBuilder results(String results) {
+    return (ParserExceptionBuilder) namedValue("results", results);
+  }
+
+  public ParserExceptionBuilder options(String options) {
+    return (ParserExceptionBuilder) namedValue("options", options);
   }
 }
