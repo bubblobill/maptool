@@ -19,6 +19,7 @@ import com.vladsch.flexmark.util.sequence.Escaping;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import net.rptools.lib.OsDetection;
 import org.apache.commons.lang3.tuple.Pair;
@@ -39,7 +40,6 @@ import org.apache.logging.log4j.Logger;
  *
  * @author tcroft
  */
-@SuppressWarnings("unused")
 public class I18N {
   private static final ResourceBundle BUNDLE;
   private static final Logger log = LogManager.getLogger(I18N.class);
@@ -197,50 +197,114 @@ public class I18N {
     return java.text.MessageFormat.format(getText(key), args);
   }
 
-  /**
-   * Localised message with no argument substitution.
-   *
-   * @param key The key to look up for the message.
-   * @return The localised message text.
-   */
-  public static String getMessage(String key) {
-    return getMessage(key, new ArrayList<>());
+  /** Used as a named argument in selecting between different messages. */
+  public enum MessageType {
+    brief,
+    verbose,
+    qualified,
+    qualifiedOptions,
+    custom,
+    other, // the default value in select statements
   }
 
-  /**
-   * Message composition for use with named arguments. Use when the message pattern string contains
-   * field names, for example: <code>
-   * Argument at index {paramIndex} to function {functionName} is invalid.</code>
-   *
-   * @param key The key to look up for the message.
-   * @param namedArguments List of pairs containing the parameter name and the substitution value.
-   * @return Localised message with parameter placeholders replaced.
-   */
-  public static String getMessage(String key, List<Pair<String, Object>> namedArguments) {
+  @SafeVarargs
+  public static String getMessage(
+      String key, MessageType messageType, Pair<String, Object>... namedArguments) {
+    return getMessage(key, messageType, Arrays.stream(namedArguments).toList());
+  }
+
+  public static String getMessage(
+      String key, MessageType messageType, List<Pair<String, Object>> namedArguments) {
     Map<String, Object> namedArgs = new HashMap<>();
+    if (messageType == null) {
+      namedArgs.put("messageType", "");
+    } else {
+      namedArgs.put("messageType", messageType.toString());
+    }
     for (Pair<String, Object> pair : namedArguments) {
       namedArgs.put(pair.getKey(), pair.getValue());
     }
-    return getMessage(key, namedArgs);
-  }
-
-  /**
-   * Message composition for use with named arguments. Use when the message pattern string contains
-   * field names, for example: <code>
-   * Argument at index {paramIndex} to function {functionName} is invalid.</code>
-   *
-   * @param key The key to look up for the message.
-   * @param namedArguments Map&lt;String,Object&gt; containing the parameter name and associated
-   *     value.
-   * @return Localised message with parameter placeholders replaced.
-   */
-  public static String getMessage(String key, Map<String, Object> namedArguments) {
     try {
-      return MessageFormat.format(getText(key), namedArguments);
+      return MessageFormat.format(getText(key), namedArgs);
     } catch (IllegalArgumentException iae) {
       log.error(iae.getMessage(), iae);
       return "";
     }
+  }
+
+  public static String getMessage(String key, MessageType messageType) {
+    return getMessage(key, messageType, null, null);
+  }
+
+  public static String getMessage(String key, MessageType messageType, String functionName) {
+    return getMessage(key, messageType, functionName, null);
+  }
+
+  public static String getMessage(
+      String key, MessageType messageType, String functionName, Object paramIndex) {
+    return getMessage(key, messageType, functionName, paramIndex, null);
+  }
+
+  public static String getMessage(
+      String key,
+      MessageType messageType,
+      String functionName,
+      Object paramIndex,
+      Object paramValue) {
+    return getMessage(key, messageType, functionName, paramIndex, paramValue, null);
+  }
+
+  public static String getMessage(
+      String key,
+      MessageType messageType,
+      String functionName,
+      Object paramIndex,
+      Object paramValue,
+      Object results) {
+    return getMessage(key, messageType, functionName, paramIndex, paramValue, results, null);
+  }
+
+  public static String getMessage(
+      String key,
+      MessageType messageType,
+      String functionName,
+      Object paramIndex,
+      Object paramValue,
+      Object results,
+      Object options) {
+    return getMessage(
+        key, messageType, functionName, paramIndex, paramValue, results, options, null);
+  }
+
+  public static String getMessage(
+      String key,
+      MessageType messageType,
+      String functionName,
+      Object paramIndex,
+      Object paramValue,
+      Object results,
+      Object options,
+      @Nullable Pair<String, Object>[] namedArguments) {
+    List<Pair<String, Object>> pairs = new ArrayList<>();
+    if (namedArguments != null) {
+      pairs.addAll(List.of(namedArguments));
+    }
+    if (functionName != null) {
+      pairs.add(Pair.of("functionName", functionName));
+    }
+    if (paramIndex instanceof String string && !string.isBlank() || paramIndex instanceof Integer) {
+      pairs.add(Pair.of("paramIndex", paramIndex));
+    }
+    if (paramValue != null) {
+      pairs.add(Pair.of("paramValue", paramValue));
+    }
+    if (results != null) {
+      pairs.add(Pair.of("results", results));
+    }
+    if (options != null) {
+      pairs.add(Pair.of("options", options));
+    }
+    return getMessage(key, messageType, pairs);
   }
 
   /**
@@ -304,15 +368,5 @@ public class I18N {
       }
     }
     return menuItemKeys;
-  }
-
-  public static class MessageBuilder extends AbstractMessageBuilder {
-    protected MessageBuilder(String i18nKey) {
-      super(i18nKey);
-    }
-
-    public static MessageBuilder forKey(String i18nKey) {
-      return new MessageBuilder(i18nKey);
-    }
   }
 }

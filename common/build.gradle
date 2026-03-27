@@ -8,13 +8,12 @@ apply from: rootProject.file('buildSrc/shared.gradle')
 // In this section you declare the dependencies for your production and test code
 dependencies {
     implementation(libs.findbugs.jsr305)
-
+    implementation(libs.icu4j)
     implementation(libs.bundles.log4j)
     implementation(libs.slf4j.simple)
-    implementation(libs.flexmark.all)
     implementation(libs.apache.commons.logging)
     implementation(libs.apache.commons.lang)
-    implementation(libs.icu4j)
+    implementation(libs.flexmark.all)
     implementation(libs.gson)
 
     implementation(libs.bundles.imageio)
