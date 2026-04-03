@@ -32,7 +32,6 @@ import java.nio.file.Path;
 import java.util.concurrent.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.library.Library;
 import net.rptools.maptool.model.library.LibraryManager;
 import org.apache.logging.log4j.LogManager;
@@ -47,14 +46,28 @@ public class HandlebarsUtil<T> {
   private static final HighConcurrencyTemplateCache HIGH_CONCURRENCY_TEMPLATE_CACHE =
       new HighConcurrencyTemplateCache();
 
+  /**
+   * Use this to obtain an instance of Handlebars instead of creating one separately.
+   *
+   * <p>Specify a TemplateLoader if the default ClassPathTemplateLoader is not required.
+   *
+   * <p>Using this ensures the instance returned has a consistent setup with all helpers registered.
+   *
+   * @param loader The TemplateLoader to use. If null, handlebars defaults to
+   *     ClassPathTemplateLoader.
+   * @return A HandleBars instance with appropriate settings and registered helpers
+   */
   static Handlebars getHandlebarsInstance(@Nullable TemplateLoader loader) {
-    return HandlebarsHelpers.registerHelpers(
+    Handlebars handlebars =
         new Handlebars()
-            .with(loader)
             .with(HIGH_CONCURRENCY_TEMPLATE_CACHE)
             .preEvaluatePartialBlocks(false)
             .parentScopeResolution(false)
-            .setCharset(StandardCharsets.UTF_8));
+            .setCharset(StandardCharsets.UTF_8);
+    if (loader != null) {
+      handlebars.with(loader);
+    }
+    return HandlebarsHelpers.registerHelpers(handlebars);
   }
 
   public static boolean isAssetFileHandlebars(String filename) {
@@ -68,7 +81,7 @@ public class HandlebarsUtil<T> {
   private final Template template;
 
   /** Logging class instance. */
-  private static final Logger log = LogManager.getLogger(Token.class);
+  private static final Logger log = LogManager.getLogger(HandlebarsUtil.class);
 
   /** Handlebars partial template source that uses Add-On files */
   private static record LibraryTemplateSource(@Nonnull Library library, @Nonnull String filename)
@@ -102,7 +115,6 @@ public class HandlebarsUtil<T> {
     @Nonnull final Library library;
 
     private LibraryTemplateLoader(@Nonnull String current, @Nonnull Library library) {
-      current = current.replace('\\', '/');
       if (!current.startsWith("/")) {
         current = "/" + current;
       }
@@ -116,7 +128,7 @@ public class HandlebarsUtil<T> {
     @Override
     @Nonnull
     public String resolve(@Nonnull final String path) {
-      var location = current.resolveSibling(path).normalize().toString().replace('\\', '/');
+      var location = current.resolveSibling(path).normalize().toString();
       if (location.startsWith("/")) {
         location = location.substring(1);
       }
