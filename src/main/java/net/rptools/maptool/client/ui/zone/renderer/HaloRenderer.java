@@ -106,9 +106,10 @@ public class HaloRenderer {
 
     timer.start("HaloRenderer-renderHalos:prepareToRender");
     // Loop through the token's halos and first determine whether they actually need to be rendered.
-    // If so, get the halo's associated haloparts and establish where concentrically they need to be
+    // If so, get the halo's associated halo parts and establish where concentrically they need to
+    // be
     // rendered and store them for later as we will render these halos in reverse order and their
-    // respective haloparts in order.
+    // respective halo parts in order.
     var renderableHalos = new ArrayList<ArrayList<RenderablePart>>();
     if (!tokenHalos.isEmpty()) {
       // loop through the halos attached to the token
@@ -208,9 +209,9 @@ public class HaloRenderer {
     }
     timer.stop("HaloRenderer-renderHalos:prepareToRender");
 
-    // Render the halos in reverse order but their respective haloparts in order.  This is so
+    // Render the halos in reverse order but their respective halo parts in order.  This is so
     // any filled outer-concentric halos do not graffiti over inner-concentric halos and also
-    // haloparts are rendered in the order in which they are written in the halo syntax.
+    // halo parts are rendered in the order in which they are written in the halo syntax.
     timer.start("HaloRenderer-renderHalos:orderedRendering");
     for (var renderableHaloParts : renderableHalos.reversed()) {
       for (var renderableHaloPart : renderableHaloParts) {
@@ -299,7 +300,7 @@ public class HaloRenderer {
    * @param position the token's position
    * @param grid the map's grid
    * @param haloPart the haloPart itself
-   * @param haloShapeType the halo shapre type
+   * @param haloShapeType the halo shape type
    * @param lineWidth the halo line width
    * @param haloFacingAngle the halo facing angle
    * @param haloScaleFactor the halo scale factor
@@ -528,11 +529,11 @@ public class HaloRenderer {
     var timer = CodeTimer.get();
     timer.start("HaloRenderer-getUnitPolygonShape");
 
-    timer.increment("HaloRenderer-getUnitPolygonShape:computeIfAbsent");
-    double inRadius = 1 / 2d;
+    timer.increment("HaloRenderer-getUnitPolygonShape");
+    double inradius = 1 / 2d;
     // a circumscribed circle passes through all polygon outer-vertices
-    double circumRadius = inRadius / Math.cos(Math.PI / vertices);
-    double radius = circumRadius;
+    double circumradius = inradius / Math.cos(Math.PI / vertices);
+    double radius = circumradius;
 
     double orientationAngle = 0d;
     // orientate regular polygons to have a flat top, otherwise a pointy top for stars
@@ -574,7 +575,7 @@ public class HaloRenderer {
   }
 
   /**
-   * Get a scaled and positioned haloPart minishape, composed of a number of miniature shapes
+   * Get a scaled and positioned haloPart mini-shape, composed of a number of miniature shapes
    * rotated and spread equidistant around a circle.
    *
    * @return the polygon shape
@@ -885,7 +886,7 @@ public class HaloRenderer {
    * @return Area as a Shape
    */
   private Shape getHaloOutlineShape(Token token) {
-    // no concentricAdjustment for HaloPart Topolopy shapes currently...
+    // no concentricAdjustment for HaloPart Outline shapes currently...
 
     var timer = CodeTimer.get();
     timer.start("HaloRenderer-getHaloOutlineShape");
