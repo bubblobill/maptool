@@ -306,13 +306,13 @@ public class I18N {
     return menuItemKeys;
   }
 
-  public static class MessageBuilder extends AbstractMessageBuilder {
-    protected MessageBuilder(String i18nKey) {
+  public static class MessageFactory extends AbstractMessageFactory {
+    protected MessageFactory(String i18nKey) {
       super(i18nKey);
     }
 
-    public static MessageBuilder forKey(String i18nKey) {
-      return new MessageBuilder(i18nKey);
+    public static MessageFactory forKey(String i18nKey) {
+      return new MessageFactory(i18nKey);
     }
   }
 }

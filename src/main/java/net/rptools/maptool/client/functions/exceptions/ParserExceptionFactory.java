@@ -14,19 +14,19 @@
  */
 package net.rptools.maptool.client.functions.exceptions;
 
-import net.rptools.maptool.language.AbstractMessageBuilder;
+import net.rptools.maptool.language.AbstractMessageFactory;
 import net.rptools.maptool.language.I18N;
 import net.rptools.parser.ParserException;
 
-public class ParserExceptionBuilder extends AbstractMessageBuilder {
+public class ParserExceptionFactory extends AbstractMessageFactory {
   private Throwable throwable;
 
-  protected ParserExceptionBuilder(final String i18nKey) {
+  protected ParserExceptionFactory(final String i18nKey) {
     super(i18nKey);
     throwable = null;
   }
 
-  protected ParserExceptionBuilder(final Throwable cause) {
+  protected ParserExceptionFactory(final Throwable cause) {
     super(null);
     throwable = cause;
   }
@@ -41,32 +41,32 @@ public class ParserExceptionBuilder extends AbstractMessageBuilder {
     }
   }
 
-  public static ParserExceptionBuilder forKey(String i18nKey) {
-    return new ParserExceptionBuilder(i18nKey);
+  public static ParserExceptionFactory forKey(String i18nKey) {
+    return new ParserExceptionFactory(i18nKey);
   }
 
-  public ParserExceptionBuilder forThrowable(final Throwable cause) {
+  public ParserExceptionFactory forThrowable(final Throwable cause) {
     throwable = cause;
     return this;
   }
 
-  public ParserExceptionBuilder functionName(final String functionName) {
-    return (ParserExceptionBuilder) namedValue("functionName", functionName);
+  public ParserExceptionFactory functionName(final String functionName) {
+    return (ParserExceptionFactory) namedValue("functionName", functionName);
   }
 
-  public ParserExceptionBuilder parameterIndex(final int parameterIndex) {
-    return (ParserExceptionBuilder) namedValue("parameterIndex", parameterIndex);
+  public ParserExceptionFactory parameterIndex(final int parameterIndex) {
+    return (ParserExceptionFactory) namedValue("parameterIndex", parameterIndex);
   }
 
-  public ParserExceptionBuilder parameterValue(Object parameterValue) {
-    return (ParserExceptionBuilder) namedValue("parameterValue", parameterValue);
+  public ParserExceptionFactory parameterValue(Object parameterValue) {
+    return (ParserExceptionFactory) namedValue("parameterValue", parameterValue);
   }
 
-  public ParserExceptionBuilder results(String results) {
-    return (ParserExceptionBuilder) namedValue("results", results);
+  public ParserExceptionFactory results(String results) {
+    return (ParserExceptionFactory) namedValue("results", results);
   }
 
-  public ParserExceptionBuilder options(String options) {
-    return (ParserExceptionBuilder) namedValue("options", options);
+  public ParserExceptionFactory options(String options) {
+    return (ParserExceptionFactory) namedValue("options", options);
   }
 }

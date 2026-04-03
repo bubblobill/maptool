@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public abstract class AbstractMessageBuilder {
+public abstract class AbstractMessageFactory {
   protected final Map<String, Object> messageParams;
   protected String msgKey;
 
-  protected AbstractMessageBuilder(final String i18nKey) {
+  protected AbstractMessageFactory(final String i18nKey) {
     this.msgKey = i18nKey;
     messageParams = new HashMap<>();
   }
@@ -43,7 +43,7 @@ public abstract class AbstractMessageBuilder {
         return String.valueOf(value);
       };
 
-  public AbstractMessageBuilder namedValue(final String name, final Object value) {
+  public AbstractMessageFactory namedValue(final String name, final Object value) {
     messageParams.put(name, stringify.apply(value));
     return this;
   }
