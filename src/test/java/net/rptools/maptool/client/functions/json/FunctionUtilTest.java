@@ -309,6 +309,7 @@ class FunctionUtilTest {
   }
 
   @Test
+  @DisplayName("FunctionUtil.paramFromStrPropOrJsonAsJsonObject()")
   void paramFromStrPropOrJsonAsJsonObject() throws ParserException {
     assertEquals(
         jsonObject,
