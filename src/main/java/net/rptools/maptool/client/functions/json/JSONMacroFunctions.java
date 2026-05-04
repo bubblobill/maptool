@@ -26,8 +26,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.rptools.dicelib.expression.ExpressionParser;
 import net.rptools.dicelib.expression.Result;
 import net.rptools.maptool.client.MapToolVariableResolver;
@@ -138,7 +139,8 @@ public class JSONMacroFunctions extends AbstractFunction {
         "json.removeFirst",
         "json.rolls",
         "json.objrolls",
-        "json.toHtmlTable");
+        "json.toHtmlTable",
+        "json.fromStrFind");
 
     typeConversion = new JsonMTSTypeConversion();
     jsonArrayFunctions = new JsonArrayFunctions(typeConversion);
@@ -551,6 +553,17 @@ public class JSONMacroFunctions extends AbstractFunction {
 
           return jsonHtmlFunctions.jsonToHtmlTable(functionName, json, options);
         }
+      case "json.fromStrFind":
+        {
+          // args: string, pattern [, returnNamedGroups [, returnGroup0]]
+          FunctionUtil.checkNumberParam(functionName, args, 2, 4);
+          boolean returnNamedGroups =
+              args.size() > 2 ? FunctionUtil.getBooleanValue(args.get(2)) : false;
+          boolean returnGroup0 =
+              args.size() > 3 ? FunctionUtil.getBooleanValue(args.get(3)) : false;
+          return jsonFromStringFind(
+              args.get(0).toString(), args.get(1).toString(), returnNamedGroups, returnGroup0);
+        }
     }
     throw new ParserException(I18N.getText("macro.function.general.unknownFunction", functionName));
   }
@@ -785,6 +798,60 @@ public class JSONMacroFunctions extends AbstractFunction {
       log.error("Unexpected error while formatting JSON", e);
       return json.toString();
     }
+  }
+
+  /**
+   * Matches the pattern against the input string and returns a Json array of objects with capture
+   * groups as keys and matches as values.
+   *
+   * @param str The string to match the pattern against.
+   * @param pattern The pattern to match.
+   * @param returnNamedGroups Whether to return named groups (true) or indexed groups
+   *     (default=false). If returning named groups, unnamed groups are omitted (except for the
+   *     optional group 0).
+   * @param returnGroup0 Whether to return group 0 matches in the Json object (default=false).
+   * @return A Json array containing objects for each match
+   * @throws ParserException The parser exception
+   */
+  public String jsonFromStringFind(
+      String str, String pattern, boolean returnNamedGroups, boolean returnGroup0)
+      throws ParserException {
+    Pattern p = Pattern.compile(pattern);
+    Matcher m = p.matcher(str);
+
+    // create a reversed map to make subsequent lookups easier
+    Map<Integer, String> groupIndexToName = new HashMap<>();
+    p.namedGroups().forEach((name, index) -> groupIndexToName.put(index, name));
+
+    JsonArray jsonArrayMatches = new JsonArray();
+    while (m.find()) {
+      JsonObject jsonObjectMatch = new JsonObject();
+      if (returnGroup0) {
+        // note group 0 does not and cannot have a capture group name
+        jsonObjectMatch.addProperty("group0", m.group(0));
+      }
+      for (int i = 1; i <= m.groupCount(); i++) {
+        String value = m.group(i);
+        if (value == null) {
+          // skip if there was no match for this group
+          continue;
+        }
+        if (returnNamedGroups) {
+          // only return named groups
+          String groupName = groupIndexToName.get(i);
+          if (groupName != null) {
+            jsonObjectMatch.addProperty(groupName, value);
+          }
+        } else {
+          // return all groups by index
+          jsonObjectMatch.addProperty("group" + i, value);
+        }
+      }
+      if (!jsonObjectMatch.isEmpty()) {
+        jsonArrayMatches.add(jsonObjectMatch);
+      }
+    }
+    return new Gson().toJson(jsonArrayMatches);
   }
 
   /**
