@@ -1944,31 +1944,29 @@ public class AppActions {
           client.getServerCommand().setServerPolicy(policy);
         }
       };
-    /** Toggle to enable / disable player use of the token context menu. */
-    public static final Action TOGGLE_TOKEN_CONTEXT_LOCK =
-            new TranslatedClientAction("action.toggleTokenContextMenuLock") {
 
-                @Override
-                public boolean isAvailable() {
-                    return MapTool.getPlayer().isGM();
-                }
+  public static final Action TOGGLE_TOKEN_CONTEXT_LOCK =
+      new TranslatedClientAction("action.toggleTokenContextMenuLock") {
 
-                @Override
-                public boolean isSelected() {
-                    return MapTool.getServerPolicy().isTokenContextLocked();
-                }
+        @Override
+        public boolean isAvailable() { return MapTool.getPlayer().isGM(); }
 
-                @Override
-                protected void executeAction() {
-                    var client = MapTool.getClient();
+        @Override
+        public boolean isSelected() {
+          return MapTool.getServerPolicy().isTokenContextLocked();
+        }
 
-                    ServerPolicy policy = client.getServerPolicy();
-                    policy.setIsTokenContextLocked(!policy.isTokenContextLocked());
+        @Override
+        protected void executeAction() {
+          var client = MapTool.getClient();
 
-                    client.setServerPolicy(policy);
-                    client.getServerCommand().setServerPolicy(policy);
-                }
-            };
+          ServerPolicy policy = client.getServerPolicy();
+          policy.setIsTokenContextLocked(!policy.isTokenContextLocked());
+
+          client.setServerPolicy(policy);
+          client.getServerCommand().setServerPolicy(policy);
+        }
+      };
   public static final Action START_SERVER =
       new TranslatedClientAction("action.serverStart") {
 
