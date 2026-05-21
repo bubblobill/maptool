@@ -1944,7 +1944,31 @@ public class AppActions {
           client.getServerCommand().setServerPolicy(policy);
         }
       };
+    /** Toggle to enable / disable player use of the token context menu. */
+    public static final Action TOGGLE_TOKEN_CONTEXT_LOCK =
+            new TranslatedClientAction("action.toggleTokenContextMenuLock") {
 
+                @Override
+                public boolean isAvailable() {
+                    return MapTool.getPlayer().isGM();
+                }
+
+                @Override
+                public boolean isSelected() {
+                    return MapTool.getServerPolicy().isTokenContextLocked();
+                }
+
+                @Override
+                protected void executeAction() {
+                    var client = MapTool.getClient();
+
+                    ServerPolicy policy = client.getServerPolicy();
+                    policy.setIsTokenContextLocked(!policy.isTokenContextLocked());
+
+                    client.setServerPolicy(policy);
+                    client.getServerCommand().setServerPolicy(policy);
+                }
+            };
   public static final Action START_SERVER =
       new TranslatedClientAction("action.serverStart") {
 
@@ -1985,6 +2009,7 @@ public class AppActions {
           policy.setPlayersReceiveCampaignMacros(serverProps.getPlayersReceiveCampaignMacros());
           policy.setHiddenMapSelectUI(serverProps.getMapSelectUIHidden());
           policy.setIsTokenEditorLocked(serverProps.getLockTokenEditOnStart());
+          policy.setIsTokenContextLocked(serverProps.getLockTokenContextOnStart());
           policy.setIsMovementLocked(serverProps.getLockPlayerMovementOnStart());
           policy.setDisablePlayerAssetPanel(serverProps.getPlayerLibraryLock());
 

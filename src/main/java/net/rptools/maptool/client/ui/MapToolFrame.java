@@ -1399,6 +1399,10 @@ public class MapToolFrame extends DefaultDockableHolder implements WindowListene
                       }
                     }
                     if (!selectedTokenSet.isEmpty()) {
+                      if (!MapTool.getPlayer().isGM()
+                          && MapTool.getServerPolicy().isTokenContextLocked()) {
+                        return;
+                      }
                       try {
                         if (firstToken.getLayer().isStampLayer()) {
                           new StampPopupMenu(
