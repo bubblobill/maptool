@@ -1949,7 +1949,9 @@ public class AppActions {
       new TranslatedClientAction("action.toggleTokenContextMenuLock") {
 
         @Override
-        public boolean isAvailable() { return MapTool.getPlayer().isGM(); }
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
+        }
 
         @Override
         public boolean isSelected() {
