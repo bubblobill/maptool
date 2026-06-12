@@ -39,7 +39,6 @@ public class WebRTCConnection extends AbstractConnection implements Connection {
   private final RTCDataChannelObserver rtcDataChannelObserver = new RTCDataChannelObserverImpl();
   private final PeerConnectionFactory factory = new PeerConnectionFactory();
   private final String serverName;
-  private final String id;
   private final Gson gson = new Gson();
   private final Listener listener;
   private WebSocketClient signalingClient;
@@ -57,7 +56,7 @@ public class WebRTCConnection extends AbstractConnection implements Connection {
 
   // used from client side
   public WebRTCConnection(String id, String serverName, Listener listener) {
-    this.id = id;
+    super(id);
     this.serverName = serverName;
     this.listener = listener;
     init();
@@ -65,7 +64,7 @@ public class WebRTCConnection extends AbstractConnection implements Connection {
 
   // this is used from the server side
   public WebRTCConnection(OfferMessageDto message, WebRTCServer webRTCServer) {
-    this.id = message.source;
+    super(message.source);
     this.server = webRTCServer;
     this.serverName = server.getName();
     this.listener = () -> {};
@@ -223,11 +222,6 @@ public class WebRTCConnection extends AbstractConnection implements Connection {
       case CONNECTED, DISCONNECTED -> true;
       default -> false;
     };
-  }
-
-  @Override
-  public String getId() {
-    return id;
   }
 
   @Override

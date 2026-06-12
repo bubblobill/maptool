@@ -27,7 +27,6 @@ public class SocketConnection extends AbstractConnection implements Connection {
   /** Instance used for log messages. */
   private static final Logger log = LogManager.getLogger(SocketConnection.class);
 
-  private final String id;
   private SendThread send;
   private ReceiveThread receive;
   private Socket socket;
@@ -35,21 +34,16 @@ public class SocketConnection extends AbstractConnection implements Connection {
   private int port;
 
   public SocketConnection(String id, String hostName, int port) {
-    this.id = id;
+    super(id);
     this.hostName = hostName;
     this.port = port;
   }
 
   public SocketConnection(String id, Socket socket) {
-    this.id = id;
+    super(id);
     this.socket = socket;
 
     initialize(socket);
-  }
-
-  @Override
-  public String getId() {
-    return id;
   }
 
   private void initialize(Socket socket) {

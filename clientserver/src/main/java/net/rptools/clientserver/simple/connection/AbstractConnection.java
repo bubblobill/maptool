@@ -33,12 +33,22 @@ import org.apache.logging.log4j.Logger;
 public abstract class AbstractConnection implements Connection {
   private static final Logger log = LogManager.getLogger(AbstractConnection.class);
 
+  private final String id;
   private final AtomicBoolean closed = new AtomicBoolean(false);
   private final BlockingQueue<byte[]> outQueue = new LinkedBlockingQueue<>();
 
   private final List<DisconnectHandler> disconnectHandlers = new CopyOnWriteArrayList<>();
   private final List<ActivityListener> listeners = new CopyOnWriteArrayList<>();
   private final List<MessageHandler> messageHandlers = new CopyOnWriteArrayList<>();
+
+  protected AbstractConnection(String id) {
+    this.id = id;
+  }
+
+  @Override
+  public final String getId() {
+    return id;
+  }
 
   @Override
   public final void close() {
