@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
+import net.rptools.clientserver.ActivityListener;
 import net.rptools.clientserver.simple.server.WebRTCServer;
 import net.rptools.clientserver.simple.webrtc.*;
 import org.apache.logging.log4j.LogManager;
@@ -565,6 +566,46 @@ public class WebRTCConnection extends AbstractConnection implements Connection {
       if (message != null) {
         dispatchCompressedMessage(message);
       }
+    }
+
+    private ByteBuffer messageBuffer = null;
+
+    private byte[] readMessage(ByteBuffer part) {
+      if (messageBuffer == null) {
+        int length = part.getInt();
+        notifyListeners(
+            ActivityListener.Direction.Inbound, ActivityListener.State.Start, length, 0);
+
+        if (part.remaining() == length) {
+          var ret = new byte[length];
+          part.get(ret);
+          notifyListeners(
+              ActivityListener.Direction.Inbound, ActivityListener.State.Complete, length, length);
+          return ret;
+        }
+
+        messageBuffer = ByteBuffer.allocate(length);
+      }
+
+      messageBuffer.put(part);
+      notifyListeners(
+          ActivityListener.Direction.Inbound,
+          ActivityListener.State.Progress,
+          messageBuffer.capacity(),
+          messageBuffer.position());
+
+      if (messageBuffer.capacity() == messageBuffer.position()) {
+        notifyListeners(
+            ActivityListener.Direction.Inbound,
+            ActivityListener.State.Complete,
+            messageBuffer.capacity(),
+            messageBuffer.capacity());
+        var ret = messageBuffer.array();
+        messageBuffer = null;
+        return ret;
+      }
+
+      return null;
     }
   }
 }
