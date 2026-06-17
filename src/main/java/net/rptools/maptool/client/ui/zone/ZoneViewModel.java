@@ -442,7 +442,8 @@ public class ZoneViewModel {
         // A GM sees a marker if it has any notes or a portrait.
         // A player sees a marker only if it has player notes.
         if (marker.playerNotes() != null
-            || (isGM && (marker.gmNotes() != null || marker.imageKey() != null))) {
+            || marker.imageKey() != null
+            || (isGM && marker.gmNotes() != null)) {
           markerList.add(marker);
         }
       }
