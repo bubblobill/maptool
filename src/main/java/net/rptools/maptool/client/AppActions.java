@@ -403,7 +403,11 @@ public class AppActions {
 
             MapTool.getCampaign().mergeCampaignProperties(properties);
 
-            MapTool.getFrame().repaint();
+            for (LookupTable table : properties.getLookupTableMap().values()) {
+              MapTool.serverCommand().putLookupTable(table);
+            }
+
+            MapTool.getFrame().getLookupTablePanel().refreshStructure();
 
           } catch (IOException ioe) {
             MapTool.showError("msg.error.failedAddingDefaultTables", ioe);
@@ -2397,6 +2401,7 @@ public class AppActions {
         // UI related stuff
         MapTool.getFrame().getCommandPanel().clearAllIdentities();
         MapTool.getFrame().resetPanels();
+        MapTool.getFrame().getLookupTablePanel().updateView();
 
       } catch (Throwable t) {
         if (t.getCause() instanceof AppState.FailedToAcquireLockException) {

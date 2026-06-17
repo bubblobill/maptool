@@ -236,6 +236,8 @@ public class RessourceManager {
           put(Icons.WINDOW_MAP_EXPLORER, IMAGE_DIR + "eye.png");
           put(Icons.WINDOW_SELECTED_TOKEN, IMAGE_DIR + "cursor.png");
           put(Icons.WINDOW_TABLES, IMAGE_DIR + "layers.png");
+          put(Icons.PANEL_VIEW_ICONS, IMAGE_DIR + "panel-icons-view.png");
+          put(Icons.PANEL_VIEW_DETAILS, IMAGE_DIR + "panel-details-view.png");
         }
       };
 
@@ -380,6 +382,9 @@ public class RessourceManager {
           put(
               Icons.PROPERTIES_TABLE_HIDE_DESCRIPTION,
               ROD_ICONS + "misc/Show - Hide Description Area.svg");
+
+          put(Icons.PANEL_VIEW_ICONS, ROD_ICONS + "misc/Panel Icons View.svg");
+          put(Icons.PANEL_VIEW_DETAILS, ROD_ICONS + "misc/Panel Details View.svg");
           put(Icons.STATUSBAR_ASSET_CACHE, ROD_ICONS + "bottom/Assets Cache.svg");
           put(Icons.STATUSBAR_FREE_SPACE, ROD_ICONS + "bottom/Free Space.svg");
           put(Icons.STATUSBAR_IMAGE_CACHE, ROD_ICONS + "bottom/Image Thumbs Cache.svg");
