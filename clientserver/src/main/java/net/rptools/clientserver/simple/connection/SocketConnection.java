@@ -28,9 +28,12 @@ public class SocketConnection extends AbstractConnection implements Connection {
   /** Instance used for log messages. */
   private static final Logger log = LogManager.getLogger(SocketConnection.class);
 
+  // Only valid for open connections.
   private SendThread send;
   private ReceiveThread receive;
   private Socket socket;
+
+  // Only valid for pending connections before #open() is called.
   private String hostName;
   private int port;
 
@@ -42,12 +45,12 @@ public class SocketConnection extends AbstractConnection implements Connection {
 
   public SocketConnection(String id, Socket socket) {
     super(id);
-    this.socket = socket;
-
-    initialize(socket);
+    connect(socket);
   }
 
-  private void initialize(Socket socket) {
+  private void connect(Socket socket) {
+    assert this.socket != null : "Should only call #connect() not already open";
+
     this.socket = socket;
     this.send = new SendThread(socket);
     this.receive = new ReceiveThread(socket);
@@ -58,7 +61,11 @@ public class SocketConnection extends AbstractConnection implements Connection {
 
   @Override
   public void open() throws IOException {
-    initialize(new Socket(hostName, port));
+    if (this.socket != null) {
+      throw new IOException("The connection has already been opened.");
+    }
+
+    connect(new Socket(hostName, port));
   }
 
   @Override
@@ -68,6 +75,11 @@ public class SocketConnection extends AbstractConnection implements Connection {
 
   @Override
   protected void onClose() {
+    if (socket == null) {
+      // Not open, so nothing to do.
+      return;
+    }
+
     receive.interrupt();
     send.interrupt();
 
@@ -80,7 +92,7 @@ public class SocketConnection extends AbstractConnection implements Connection {
 
   @Override
   public boolean isAlive() {
-    return !socket.isClosed();
+    return socket != null && !socket.isClosed();
   }
 
   @Override
