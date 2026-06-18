@@ -27,6 +27,16 @@ public class LaunchInstructions {
           + "MapTool will launch anyway, but it is recommended that you increase the maximum memory allocated or don't set a limit.</body></html>";
 
   static {
+    if (System.getProperty("sun.java2d.d3d") == null) {
+      System.setProperty("sun.java2d.d3d", "false");
+    }
+    if (System.getProperty("polyglot.engine.WarnInterpreterOnly") == null) {
+      System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
+    }
+    if (System.getProperty("java.util.Arrays.useLegacyMergeSort") == null) {
+      System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+    }
+
     // This will inject additional data tags in log4j2 which will be picked up by Sentry.io
     System.setProperty("log4j2.isThreadContextMapInheritable", "true");
     // This sets up log4j to capture logging from Java logging manager
