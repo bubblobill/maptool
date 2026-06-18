@@ -125,11 +125,16 @@ public class AppUtil {
     if (dataDirPath == null) {
       String path = System.getProperty(DATADIR_PROPERTY_NAME);
       if (StringUtils.isEmpty(path)) {
-        path = DEFAULT_DATADIR_NAME;
-      }
-      if (!path.contains("/") && !path.contains("\\")) {
+        // This should only happen for test runs that don't go through application initialization.
+        // So use a local directory rather than the user's home directory.
+        var cwd = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
+        var dataDir = cwd.resolve("run/data");
+        path = dataDir.toString();
+      } else if (!path.contains("/") && !path.contains("\\")) {
+        // Plain file names should be resolved under the home directory.
         path = getUserHome() + "/" + path;
       }
+
       // Now we need to check for characters that are known to cause problems in
       // path names. We want to allow the local platform to make this decision, but
       // the built-in "jar://" URL uses the "!" as a separator between the archive name

@@ -33,6 +33,9 @@ public class LaunchInstructions {
     if (System.getProperty("java.util.logging.manager") == null) {
       System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
     }
+    if (System.getProperty(AppUtil.DATADIR_PROPERTY_NAME) == null) {
+      System.setProperty(AppUtil.DATADIR_PROPERTY_NAME, ".maptool-rptools");
+    }
     ThreadContext.put("OS", System.getProperty("os.name"));
   }
 
