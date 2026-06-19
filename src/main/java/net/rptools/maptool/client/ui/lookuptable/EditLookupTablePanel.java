@@ -19,6 +19,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -118,7 +121,7 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     defaultRowHeight = definitionTable.getRowHeight();
 
     definitionTable.setDefaultRenderer(ImageAssetPanel.class, new ImageCellRenderer());
-    definitionTable.setModel(createLookupTableModel(new LookupTable()));
+    definitionTable.setModel(new LookupTableTableModel());
     definitionTable.addMouseListener(
         new MouseAdapter() {
           @Override
@@ -163,8 +166,6 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
 
             // Commit our changes back.
             row.setImageId(imageIdStr);
-            updateDefinitionTableRowHeights();
-            definitionTable.repaint();
           }
         });
   }
@@ -194,11 +195,10 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
 
     view.getTableName().requestFocusInWindow();
 
-    var model = createLookupTableModel(lookupTable);
-    // Ensure our row heights changge as the table is modified.
+    var model = new LookupTableTableModel();
     model.addTableModelListener(e -> updateDefinitionTableRowHeights());
     view.getDefinitionTable().setModel(model);
-    updateDefinitionTableRowHeights();
+    populateLookupTableModel(lookupTable, model);
   }
 
   @Override
@@ -309,8 +309,7 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     }
   }
 
-  private LookupTableTableModel createLookupTableModel(LookupTable lookupTable) {
-    var rows = new ArrayList<LookupTableRow>();
+  private void populateLookupTableModel(LookupTable lookupTable, LookupTableTableModel model) {
     for (LookupEntry entry : lookupTable.getEntryList()) {
       boolean picked = entry.getPicked();
       String range =
@@ -320,12 +319,9 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
       String value = entry.getValue();
       MD5Key imageId = entry.getImageId();
 
-      rows.add(
-          new LookupTableRow(picked, range, value, imageId != null ? imageId.toString() : null));
+      model.addRow(picked, range, value, imageId != null ? imageId.toString() : null);
     }
-    var model = new LookupTableTableModel(rows);
     model.showPicks(lookupTable.getPickOnce());
-    return model;
   }
 
   private class ImageCellRenderer extends ImageAssetPanel implements TableCellRenderer {
@@ -338,6 +334,7 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
   }
 
   private static final class LookupTableRow {
+    private final PropertyChangeSupport pcs;
     private boolean picked;
     private String range;
     private String value;
@@ -352,6 +349,15 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
       this.range = range;
       this.value = value;
       this.imageId = imageId;
+      this.pcs = new PropertyChangeSupport(this);
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+      this.pcs.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+      this.pcs.removePropertyChangeListener(listener);
     }
 
     public boolean isPicked() {
@@ -359,7 +365,9 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     }
 
     public void setPicked(boolean picked) {
+      var oldValue = this.picked;
       this.picked = picked;
+      this.pcs.firePropertyChange("picked", oldValue, picked);
     }
 
     public String getRange() {
@@ -367,7 +375,9 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     }
 
     public void setRange(String range) {
+      var oldValue = this.range;
       this.range = range;
+      this.pcs.firePropertyChange("range", oldValue, range);
     }
 
     public String getValue() {
@@ -375,7 +385,9 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     }
 
     public void setValue(String value) {
+      var oldValue = this.value;
       this.value = value;
+      this.pcs.firePropertyChange("value", oldValue, value);
     }
 
     public @Nullable String getImageId() {
@@ -383,11 +395,14 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     }
 
     public void setImageId(@Nullable String imageId) {
+      var oldValue = this.imageId;
       this.imageId = imageId;
+      this.pcs.firePropertyChange("imageId", oldValue, imageId);
     }
   }
 
-  private static final class LookupTableTableModel extends AbstractTableModel {
+  private static final class LookupTableTableModel extends AbstractTableModel
+      implements PropertyChangeListener {
     private LookupTableRow newRow = new LookupTableRow();
     private final List<LookupTableRow> rowList;
 
@@ -399,8 +414,21 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
             I18N.getText("Label.image"));
     private boolean showPicks = false;
 
-    public LookupTableTableModel(List<LookupTableRow> rowList) {
-      this.rowList = rowList;
+    public LookupTableTableModel() {
+      this.rowList = new ArrayList<>();
+      newRow.addPropertyChangeListener(this);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+      fireTableDataChanged();
+    }
+
+    public void addRow(boolean isPicked, String range, String value, @Nullable String imageId) {
+      var row = new LookupTableRow(isPicked, range, value, imageId);
+      rowList.add(row);
+      row.addPropertyChangeListener(this);
+      fireTableRowsInserted(rowList.size(), rowList.size());
     }
 
     public int getCanonicalColumn(int columnIndex) {
@@ -477,6 +505,7 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
         // Need to make the row permanent, and add a new placeholder.
         rowList.add(newRow);
         newRow = new LookupTableRow();
+        newRow.addPropertyChangeListener(this);
         fireTableRowsInserted(rowList.size(), rowList.size());
       }
     }
