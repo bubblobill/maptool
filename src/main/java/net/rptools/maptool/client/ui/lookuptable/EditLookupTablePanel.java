@@ -123,12 +123,14 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
         new MouseAdapter() {
           @Override
           public void mousePressed(MouseEvent e) {
-            int column = definitionTable.columnAtPoint(e.getPoint());
+            var model = (LookupTableTableModel) definitionTable.getModel();
+
+            int column = model.getCanonicalColumn(definitionTable.columnAtPoint(e.getPoint()));
             if (column != IMAGE_COLUMN_INDEX) {
               return;
             }
-            int row = definitionTable.rowAtPoint(e.getPoint());
-            String imageIdStr = (String) definitionTable.getModel().getValueAt(row, column);
+            var row = model.getRowAt(definitionTable.rowAtPoint(e.getPoint()));
+            String imageIdStr = row.imageId;
 
             // HACK: this is a hacky way to figure out if the button was pushed :P
             if (e.getPoint().x > definitionTable.getSize().width - 15) {
@@ -158,7 +160,9 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
               }
               imageIdStr = imageId.toString();
             }
-            definitionTable.getModel().setValueAt(imageIdStr, row, column);
+
+            // Commit our changes back.
+            row.imageId = imageIdStr;
             updateDefinitionTableRowHeights();
             definitionTable.repaint();
           }
@@ -190,7 +194,10 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
 
     view.getTableName().requestFocusInWindow();
 
-    view.getDefinitionTable().setModel(createLookupTableModel(lookupTable));
+    var model = createLookupTableModel(lookupTable);
+    // Ensure our row heights changge as the table is modified.
+    model.addTableModelListener(e -> updateDefinitionTableRowHeights());
+    view.getDefinitionTable().setModel(model);
     updateDefinitionTableRowHeights();
   }
 
@@ -293,8 +300,10 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
 
   private void updateDefinitionTableRowHeights() {
     JTable table = view.getDefinitionTable();
+    var model = (LookupTableTableModel) table.getModel();
+
     for (int row = 0; row < table.getRowCount(); row++) {
-      String imageId = (String) table.getModel().getValueAt(row, IMAGE_COLUMN_INDEX);
+      String imageId = model.getRowAt(row).imageId;
       table.setRowHeight(row, imageId != null && !imageId.isEmpty() ? 100 : defaultRowHeight);
     }
   }
@@ -361,7 +370,7 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
       this.rowList = rowList;
     }
 
-    private int getCanonicalColumn(int columnIndex) {
+    public int getCanonicalColumn(int columnIndex) {
       // When the "Picked?" column is not present, the column indices don't line up with our
       // predefined constants. So increment the index to match those.
       return columnIndex + (showPicks ? 0 : 1);
