@@ -26,8 +26,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.rptools.dicelib.expression.ExpressionParser;
 import net.rptools.dicelib.expression.Result;
 import net.rptools.maptool.client.MapToolVariableResolver;
@@ -138,7 +139,8 @@ public class JSONMacroFunctions extends AbstractFunction {
         "json.removeFirst",
         "json.rolls",
         "json.objrolls",
-        "json.toHtmlTable");
+        "json.toHtmlTable",
+        "json.fromStrFind");
 
     typeConversion = new JsonMTSTypeConversion();
     jsonArrayFunctions = new JsonArrayFunctions(typeConversion);
@@ -551,6 +553,24 @@ public class JSONMacroFunctions extends AbstractFunction {
 
           return jsonHtmlFunctions.jsonToHtmlTable(functionName, json, options);
         }
+      case "json.fromStrFind":
+        {
+          // args: string, pattern [, group0Key [, returnUnnamedGroups [, returnStringValues]]]
+          FunctionUtil.checkNumberParam(functionName, args, 2, 5);
+          String group0Key =
+              args.size() > 2 ? FunctionUtil.paramAsString(functionName, args, 2, false) : "0";
+          boolean returnUnnamedGroups =
+              args.size() > 3 ? FunctionUtil.getBooleanValue(args.get(3)) : false;
+          boolean returnStringValues =
+              args.size() > 4 ? FunctionUtil.getBooleanValue(args.get(4)) : false;
+          return jsonFromStringFind(
+              functionName,
+              args.get(0).toString(),
+              args.get(1).toString(),
+              group0Key,
+              returnUnnamedGroups,
+              returnStringValues);
+        }
     }
     throw new ParserException(I18N.getText("macro.function.general.unknownFunction", functionName));
   }
@@ -785,6 +805,114 @@ public class JSONMacroFunctions extends AbstractFunction {
       log.error("Unexpected error while formatting JSON", e);
       return json.toString();
     }
+  }
+
+  /**
+   * Matches the pattern against the input string and returns a Json array of Json objects with
+   * capture groups as keys and their matches as values.
+   *
+   * @param str The string to match the pattern against.
+   * @param pattern The pattern to match.
+   * @param group0Key Return group 0 matches against this key. The key cannot be the same as a named
+   *     capture group used in the {@code pattern} nor a positive integer to avoid Json object key
+   *     clashes. If {@code group0Key} is blank any group 0 matches will not be returned.
+   *     Default={@code "0"}.
+   * @param returnUnnamedGroups Whether to return unnamed capture groups ({@code true}) or not
+   *     ({@code false}) alongside named capture groups. If returned, unnamed capture groups use
+   *     their group index as the key. Default={@code false} N.B. while group 0 does not and cannot
+   *     have a capture group name, its return is controlled separately by the {@code group0Key}
+   *     parameter.
+   * @param returnStringValues Whether to return all matched values as strings ({@code true}), or
+   *     convert to primitives ({@code false}). Default={@code false} so for example a match of "10"
+   *     would be returned as 10.
+   * @return A Json array containing objects for each match.
+   * @throws ParserException The parser exception.
+   */
+  public String jsonFromStringFind(
+      String functionName,
+      String str,
+      String pattern,
+      String group0Key,
+      boolean returnUnnamedGroups,
+      boolean returnStringValues)
+      throws ParserException {
+    Pattern p = Pattern.compile(pattern);
+
+    // if we have been provided a key for group 0, check it is valid to use as a key
+    group0Key = group0Key.trim();
+    if (!group0Key.isEmpty()) {
+      // 1. check if the group0Key does not clash with a named capture group present in the regex
+      // pattern
+      if (p.namedGroups().containsKey(group0Key)) {
+        throw new ParserException(
+            I18N.getText(
+                "macro.function.jsonFromStrFind.group0KeyNameClash", group0Key, functionName));
+      }
+      try {
+        // 2. check if an integer has been provided and if so only allow <= 0
+        // this is to avoid potential clashes with indexed capture group keys
+        if (Integer.parseInt(group0Key) > 0) {
+          throw new ParserException(
+              I18N.getText(
+                  "macro.function.jsonFromStrFind.group0KeyIndexClash", group0Key, functionName));
+        }
+      } catch (NumberFormatException e) {
+        // any non-integer is ok
+      }
+    }
+    Matcher m = p.matcher(str);
+
+    // create a reversed map of the namedGroups to group index to make subsequent lookups easier
+    Map<Integer, String> groupIndexToName = new HashMap<>();
+    p.namedGroups().forEach((name, index) -> groupIndexToName.put(index, name));
+
+    JsonArray jsonArrayMatches = new JsonArray();
+    while (m.find()) {
+      // create a new object for each match
+      JsonObject jsonObjectMatch = new JsonObject();
+
+      // only return group 0 when the key != ""
+      if (!group0Key.isEmpty()) {
+        if (returnStringValues) {
+          jsonObjectMatch.addProperty(group0Key, m.group(0));
+        } else {
+          jsonObjectMatch.add(group0Key, typeConversion.convertPrimitiveFromString(m.group(0)));
+        }
+      }
+
+      // add a key for each group match
+      for (int i = 1; i <= m.groupCount(); i++) {
+        String value = m.group(i);
+        if (value == null) {
+          // skip if there was no match for this group
+          continue;
+        }
+
+        String groupName = groupIndexToName.get(i);
+        if (groupName != null) {
+          // add the capture group by name
+          if (returnStringValues) {
+            jsonObjectMatch.addProperty(groupName, value);
+          } else {
+            jsonObjectMatch.add(groupName, typeConversion.convertPrimitiveFromString(value));
+          }
+        } else {
+          if (returnUnnamedGroups) {
+            // add the capture group by index
+            if (returnStringValues) {
+              jsonObjectMatch.addProperty(Integer.toString(i), value);
+            } else {
+              jsonObjectMatch.add(
+                  Integer.toString(i), typeConversion.convertPrimitiveFromString(value));
+            }
+          }
+        }
+      }
+      if (!jsonObjectMatch.isEmpty()) {
+        jsonArrayMatches.add(jsonObjectMatch);
+      }
+    }
+    return new Gson().toJson(jsonArrayMatches);
   }
 
   /**
