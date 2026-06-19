@@ -128,7 +128,7 @@ public class HandlebarsUtil<T> {
     @Override
     @Nonnull
     public String resolve(@Nonnull final String path) {
-      var location = current.resolveSibling(path).normalize().toString();
+      var location = current.resolveSibling(path).normalize().toString().replace('\\','/');
       if (location.startsWith("/")) {
         location = location.substring(1);
       }
