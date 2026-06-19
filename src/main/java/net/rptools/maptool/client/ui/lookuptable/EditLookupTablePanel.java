@@ -130,7 +130,7 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
               return;
             }
             var row = model.getRowAt(definitionTable.rowAtPoint(e.getPoint()));
-            String imageIdStr = row.imageId;
+            String imageIdStr = row.getImageId();
 
             // HACK: this is a hacky way to figure out if the button was pushed :P
             if (e.getPoint().x > definitionTable.getSize().width - 15) {
@@ -162,7 +162,7 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
             }
 
             // Commit our changes back.
-            row.imageId = imageIdStr;
+            row.setImageId(imageIdStr);
             updateDefinitionTableRowHeights();
             definitionTable.repaint();
           }
@@ -236,36 +236,37 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     var entries = new ArrayList<LookupTable.LookupEntry>();
     for (int i = 0; i < tableModel.getRowCount(); i++) {
       var row = tableModel.getRowAt(i);
-      if (row.range.isEmpty()) {
+      var range = row.getRange();
+      if (range.isEmpty()) {
         continue;
       }
 
       int min;
       int max;
       // Allow negative numbers
-      int split = row.range.indexOf('-', row.range.charAt(0) == '-' ? 1 : 0);
+      int split = range.indexOf('-', range.charAt(0) == '-' ? 1 : 0);
       try {
         if (split < 0) {
-          min = Integer.parseInt(row.range);
+          min = Integer.parseInt(range);
           max = min;
         } else {
-          min = Integer.parseInt(row.range.substring(0, split).trim());
-          max = Integer.parseInt(row.range.substring(split + 1).trim());
+          min = Integer.parseInt(range.substring(0, split).trim());
+          max = Integer.parseInt(range.substring(split + 1).trim());
         }
       } catch (NumberFormatException nfe) {
-        MapTool.showError(I18N.getText("EditLookupTablePanel.error.badRange", name, row.range, i));
+        MapTool.showError(I18N.getText("EditLookupTablePanel.error.badRange", name, range, i));
         return false;
       }
 
       MD5Key image = null;
-      if (row.imageId != null && !row.imageId.isEmpty()) {
-        image = new MD5Key(row.imageId);
+      if (row.getImageId() != null && !row.getImageId().isEmpty()) {
+        image = new MD5Key(row.getImageId());
         MapToolUtil.uploadAsset(AssetManager.getAsset(image));
       }
 
-      var entry = new LookupEntry(min, max, row.value, image);
+      var entry = new LookupEntry(min, max, row.getValue(), image);
       if (isPickOnce) {
-        entry.setPicked(row.picked);
+        entry.setPicked(row.isPicked());
       }
       entries.add(entry);
     }
@@ -303,7 +304,7 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     var model = (LookupTableTableModel) table.getModel();
 
     for (int row = 0; row < table.getRowCount(); row++) {
-      String imageId = model.getRowAt(row).imageId;
+      String imageId = model.getRowAt(row).getImageId();
       table.setRowHeight(row, imageId != null && !imageId.isEmpty() ? 100 : defaultRowHeight);
     }
   }
@@ -337,10 +338,10 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
   }
 
   private static final class LookupTableRow {
-    public boolean picked;
-    public String range;
-    public String value;
-    public @Nullable String imageId;
+    private boolean picked;
+    private String range;
+    private String value;
+    private @Nullable String imageId;
 
     public LookupTableRow() {
       this(false, "", "", null);
@@ -350,6 +351,38 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
       this.picked = picked;
       this.range = range;
       this.value = value;
+      this.imageId = imageId;
+    }
+
+    public boolean isPicked() {
+      return picked;
+    }
+
+    public void setPicked(boolean picked) {
+      this.picked = picked;
+    }
+
+    public String getRange() {
+      return range;
+    }
+
+    public void setRange(String range) {
+      this.range = range;
+    }
+
+    public String getValue() {
+      return value;
+    }
+
+    public void setValue(String value) {
+      this.value = value;
+    }
+
+    public @Nullable String getImageId() {
+      return imageId;
+    }
+
+    public void setImageId(@Nullable String imageId) {
       this.imageId = imageId;
     }
   }
@@ -385,9 +418,9 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
 
     public void clearAllPicks() {
       for (var row : rowList) {
-        row.picked = false;
+        row.setPicked(false);
       }
-      newRow.picked = false;
+      newRow.setPicked(false);
       fireTableRowsUpdated(0, getRowCount());
     }
 
@@ -419,10 +452,10 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
       LookupTableRow row = rowIndex < rowList.size() ? rowList.get(rowIndex) : newRow;
 
       return switch (columnIndex) {
-        case PICKED_COLUMN_INDEX -> row.picked;
-        case RANGE_COLUMN_INDEX -> row.range;
-        case VALUE_COLUMN_INDEX -> row.value;
-        case IMAGE_COLUMN_INDEX -> row.imageId;
+        case PICKED_COLUMN_INDEX -> row.isPicked();
+        case RANGE_COLUMN_INDEX -> row.getRange();
+        case VALUE_COLUMN_INDEX -> row.getValue();
+        case IMAGE_COLUMN_INDEX -> row.getImageId();
         default -> "";
       };
     }
@@ -434,10 +467,10 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
       LookupTableRow row = rowIndex < rowList.size() ? rowList.get(rowIndex) : newRow;
 
       switch (columnIndex) {
-        case PICKED_COLUMN_INDEX -> row.picked = (boolean) aValue;
-        case RANGE_COLUMN_INDEX -> row.range = (String) aValue;
-        case VALUE_COLUMN_INDEX -> row.value = (String) aValue;
-        case IMAGE_COLUMN_INDEX -> row.imageId = (String) aValue;
+        case PICKED_COLUMN_INDEX -> row.setPicked((boolean) aValue);
+        case RANGE_COLUMN_INDEX -> row.setRange((String) aValue);
+        case VALUE_COLUMN_INDEX -> row.setValue((String) aValue);
+        case IMAGE_COLUMN_INDEX -> row.setImageId((String) aValue);
       }
 
       if (row == newRow) {
