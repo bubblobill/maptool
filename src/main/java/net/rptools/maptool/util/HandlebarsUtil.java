@@ -21,14 +21,12 @@ import com.github.jknack.handlebars.io.AbstractTemplateLoader;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.concurrent.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -110,7 +108,7 @@ public class HandlebarsUtil<T> {
   /** Handlebars partial template loader that uses Add-On Library URIs */
   private static class LibraryTemplateLoader extends AbstractTemplateLoader {
     /** Path to template being resolved, relative paths are resolved relative to its parent. */
-    @Nonnull final Path current;
+    @Nonnull final URI current;
 
     @Nonnull final Library library;
 
@@ -118,7 +116,7 @@ public class HandlebarsUtil<T> {
       if (!current.startsWith("/")) {
         current = "/" + current;
       }
-      this.current = new File(current).toPath();
+      this.current = URI.create(current);
       this.library = library;
       setPrefix(TemplateLoader.DEFAULT_PREFIX);
       setSuffix(TemplateLoader.DEFAULT_SUFFIX);
@@ -128,7 +126,7 @@ public class HandlebarsUtil<T> {
     @Override
     @Nonnull
     public String resolve(@Nonnull final String path) {
-      var location = current.resolveSibling(path).normalize().toString().replace('\\', '/');
+      var location = current.resolve(path).normalize().toString();
       if (location.startsWith("/")) {
         location = location.substring(1);
       }
