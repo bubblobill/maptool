@@ -14,17 +14,18 @@
  */
 package net.rptools.maptool.client.ui.tokenpanel;
 
+import static net.rptools.maptool.client.ui.MapToolFrame.MTFrame.INITIATIVE;
+
 import com.google.common.eventbus.Subscribe;
+import com.jidesoft.docking.DockableFrame;
+import com.jidesoft.docking.event.DockableFrameAdapter;
+import com.jidesoft.docking.event.DockableFrameEvent;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -62,7 +63,7 @@ public class InitiativePanel extends JPanel
    * Instance Variables
    *-------------------------------------------------------------------------------------------*/
 
-  /** Model containing all of the tokens in this initiative. */
+  /** Model containing all the tokens in this initiative. */
   private InitiativeList list;
 
   /** The model used to display a list in the panel; */
@@ -98,7 +99,7 @@ public class InitiativePanel extends JPanel
   /** The component that contains the initiative menu. */
   private final JPopupMenu popupMenu;
 
-  /** The menu item that tells the GM if NPC's are visible. */
+  /** The menu item that tells the GM if NPCs are visible. */
   private JCheckBoxMenuItem hideNPCMenuItem;
 
   /**
@@ -135,10 +136,13 @@ public class InitiativePanel extends JPanel
    */
   private boolean initPanelButtonsDisabled;
 
+  /** Frame used in docking manager */
+  private DockableFrame dockableFrame;
+
   /*---------------------------------------------------------------------------------------------
    * Constructor
    *-------------------------------------------------------------------------------------------*/
-  /** Setup the menu */
+  /** Set up the menu */
   public InitiativePanel() {
 
     // Build the form and add it's component
@@ -178,7 +182,7 @@ public class InitiativePanel extends JPanel
 
     // Set up the list with an empty model
     displayList =
-        new JList<TokenInitiative>() {
+        new JList<>() {
           @Override
           public boolean getScrollableTracksViewportWidth() {
             // Make sure the width of the list always tracks with the width of the panel. Without
@@ -243,9 +247,12 @@ public class InitiativePanel extends JPanel
         "initPanel.warnWhenResettingRoundCounter", TOGGLE_WARN_WHEN_RESETTING_COUNTER_ACTION);
     I18N.setAction("initPanel.next", NEXT_ACTION);
     I18N.setAction("initPanel.prev", PREV_ACTION);
+
     updateView();
 
     new MapToolEventBus().getMainEventBus().register(this);
+
+    SwingUtilities.invokeLater(() -> dockableFrame = getDockableFrame());
   }
 
   private static class TextlessButton extends JButton {
@@ -332,7 +339,7 @@ public class InitiativePanel extends JPanel
     valueChanged(null);
   }
 
-  /** Remove all of the tokens from the model and clear round and current */
+  /** Remove all the tokens from the model and clear round and current */
   public void clearTokens() {
     list.clearModel();
   }
@@ -410,7 +417,7 @@ public class InitiativePanel extends JPanel
   }
 
   /**
-   * Set the zone that we are currently working on.
+   * Set the zone we are working on.
    *
    * @param aZone The new zone
    */
@@ -442,15 +449,14 @@ public class InitiativePanel extends JPanel
   public boolean hasOwnerPermission(Token token) {
     if (token == null) return false;
     if (hasGMPermission()) return true;
-    if (ownerPermissions
+    return ownerPermissions
         && (!MapTool.getServerPolicy().useStrictTokenManagement()
-            || token.isOwner(MapTool.getPlayer().getName()))) return true;
-    return false;
+            || token.isOwner(MapTool.getPlayer().getName()));
   }
 
   /**
    * See if the current player has permission to execute GM restricted actions. This is <b>not</b>
-   * related to so-called <i>trusted macros</i> in MTscript.
+   * related to so-called <i>trusted macros</i> in MT Script.
    *
    * @return The value <code>true</code> if this player has permission for all actions.
    */
@@ -503,7 +509,7 @@ public class InitiativePanel extends JPanel
    * Updates the "Disable Panel Buttons" setting, and tweaks the Next/Previous button tooltips
    * appropriately. Updates the view.
    *
-   * @param initPanelButtonsDisabled
+   * @param initPanelButtonsDisabled disable panel buttons
    */
   public void setInitPanelButtonsDisabled(boolean initPanelButtonsDisabled) {
     this.initPanelButtonsDisabled = initPanelButtonsDisabled;
@@ -526,8 +532,7 @@ public class InitiativePanel extends JPanel
   public boolean isMovementLocked(Token token) {
     if (!movementLock || list == null || list.getSize() == 0) return false;
     if (model.getCurrentTokenInitiative() == null) return true;
-    if (model.getCurrentTokenInitiative().getToken() == token) return false;
-    return true;
+    return model.getCurrentTokenInitiative().getToken() != token;
   }
 
   /**
@@ -553,7 +558,73 @@ public class InitiativePanel extends JPanel
 
     int oldSize = model.getSize();
     setList(list);
-    if (oldSize != model.getSize()) displayList.getSelectionModel().clearSelection();
+    if (oldSize != model.getSize()) {
+      displayList.getSelectionModel().clearSelection();
+    }
+  }
+
+  public DockableFrame getDockableFrame() {
+    if (dockableFrame == null) {
+      dockableFrame = MapTool.getFrame().getFrame(INITIATIVE);
+      dockableFrame.addDockableFrameListener(
+          new DockableFrameAdapter() {
+            private String oldStatusMessage;
+
+            @Override
+            public void dockableFrameActivated(DockableFrameEvent dockableFrameEvent) {
+              oldStatusMessage = MapTool.getFrame().getStatusMessage();
+              updateStatusBar();
+            }
+
+            @Override
+            public void dockableFrameDeactivated(DockableFrameEvent dockableFrameEvent) {
+              MapTool.getFrame().setStatusMessage(oldStatusMessage);
+              oldStatusMessage = null;
+            }
+          });
+    }
+    return dockableFrame;
+  }
+
+  private void updateStatusBar() {
+    if (!getDockableFrame().isActive()) {
+      return;
+    }
+    SwingUtilities.invokeLater(
+        () -> {
+          if (list != null && list.getSize() > 0 && MapTool.getPlayer().isGM()) {
+            // PCs/NPCs: {0}/{1}, Current: {2}, Round/Phase {3}/{4}
+            int pc = 0, npc = 0;
+            TokenInitiative last = null;
+            boolean sorted = true;
+            Comparator<TokenInitiative> comparator = list.getComparator();
+            for (TokenInitiative ti : list.getTokens()) {
+              if (last != null && sorted && !ti.isHolding()) {
+                int comp = comparator.compare(ti, last);
+                if ((initUseReverseSort && comp > 0) || (!initUseReverseSort && comp < 0)) {
+                  sorted = false;
+                }
+              }
+              last = ti;
+              if (ti.getToken().getType().equals(Type.PC)) {
+                pc++;
+              } else {
+                npc++;
+              }
+            }
+            TokenInitiative current = list.getCurrentTokenInitiative();
+            MapTool.getFrame()
+                .setStatusMessage(
+                    I18N.getText(
+                        "initiative.status.summary",
+                        pc,
+                        npc,
+                        current == null ? "*" : current.getToken().getName(),
+                        list.getRound(),
+                        current == null ? -1 : current.getState(),
+                        sorted));
+          }
+        });
   }
 
   @Subscribe
@@ -612,28 +683,29 @@ public class InitiativePanel extends JPanel
    */
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
-    if (evt.getPropertyName().equals(InitiativeList.ROUND_PROP)) {
-      updateRound();
-    } else if (evt.getPropertyName().equals(InitiativeList.CURRENT_PROP)) {
-      Token t = list.getCurrentToken();
-      if (t == null) return;
-      String s = I18N.getText("initPanel.displayMessage", t.getName());
-      if (InitiativeListModel.isTokenVisible(t, list.isHideNPC())
-          && t.getType() != Type.NPC
-          && AppPreferences.showInitiativeGainedMessage.get())
-        MapTool.addMessage(TextMessage.say(null, s));
-      displayList.ensureIndexIsVisible(model.getDisplayIndex(list.getCurrent()));
-      NEXT_ACTION.setEnabled(
-          !isInitPanelButtonsDisabled() && hasOwnerPermission(list.getCurrentToken()));
-    } else if (evt.getPropertyName().equals(InitiativeList.TOKENS_PROP)) {
-      if ((evt.getOldValue() == null && evt.getNewValue() instanceof TokenInitiative)
-          || (evt.getNewValue() == null & evt.getOldValue() instanceof TokenInitiative))
-        displayList.getSelectionModel().clearSelection();
-    } else if (evt.getPropertyName().equals(InitiativeList.HIDE_NPCS_PROP)) {
-      displayList.getSelectionModel().clearSelection();
-    } else if (evt.getPropertyName().equals(InitiativeList.OWNER_PERMISSIONS_PROP)) {
-      updateView();
-    } // endif
+    updateStatusBar();
+    switch (evt.getPropertyName()) {
+      case InitiativeList.ROUND_PROP -> updateRound();
+      case InitiativeList.CURRENT_PROP -> {
+        Token t = list.getCurrentToken();
+        if (t == null) return;
+        String s = I18N.getText("initPanel.displayMessage", t.getName());
+        if (InitiativeListModel.isTokenVisible(t, list.isHideNPC())
+            && t.getType() != Type.NPC
+            && AppPreferences.showInitiativeGainedMessage.get())
+          MapTool.addMessage(TextMessage.say(null, s));
+        displayList.ensureIndexIsVisible(model.getDisplayIndex(list.getCurrent()));
+        NEXT_ACTION.setEnabled(
+            !isInitPanelButtonsDisabled() && hasOwnerPermission(list.getCurrentToken()));
+      }
+      case InitiativeList.TOKENS_PROP -> {
+        if ((evt.getOldValue() == null && evt.getNewValue() instanceof TokenInitiative)
+            || (evt.getNewValue() == null & evt.getOldValue() instanceof TokenInitiative))
+          displayList.getSelectionModel().clearSelection();
+      }
+      case InitiativeList.HIDE_NPCS_PROP -> displayList.getSelectionModel().clearSelection();
+      case InitiativeList.OWNER_PERMISSIONS_PROP -> updateView();
+    }
   }
 
   /*---------------------------------------------------------------------------------------------
@@ -776,7 +848,7 @@ public class InitiativePanel extends JPanel
         }
       };
 
-  /** This action will set the initiative state of the currently selected token. */
+  /** This action will set the initiative state of the current selected token. */
   public final Action SET_INIT_STATE_VALUE =
       new AbstractAction() {
         @Override
@@ -788,7 +860,7 @@ public class InitiativePanel extends JPanel
           if (hasGMPermission()
               && token != null
               && token.getGMName() != null
-              && token.getGMName().trim().length() != 0)
+              && !token.getGMName().trim().isEmpty())
             sName += " (" + token.getGMName().trim() + ")";
           String s = I18N.getText("initPanel.enterState", sName);
           String input = JOptionPane.showInputDialog(s, ti.getState());
@@ -797,7 +869,7 @@ public class InitiativePanel extends JPanel
         }
       };
 
-  /** This action will clear the initiative state of the currently selected token. */
+  /** This action will clear the initiative state of the current selected token. */
   public final Action CLEAR_INIT_STATE_VALUE =
       new AbstractAction() {
         @Override
@@ -831,7 +903,7 @@ public class InitiativePanel extends JPanel
       new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          List<Token> tokens = new ArrayList<Token>();
+          List<Token> tokens = new ArrayList<>();
           for (Token token : list.getZone().getTokensForLayers(Zone.Layer::isTokenLayer)) {
             if (token.getType() == Type.PC) tokens.add(token);
           } // endfor
