@@ -30,11 +30,20 @@ public class TextInputCssContext {
   /** The background color of the text input. */
   private final String backgroundColor;
 
+  /** The background color of the text input when disabled. */
+  private final String disabledBackgroundColor;
+
   /** The border size of the text input when disabled. */
   private final String disabledBorderSize;
 
   /** The border color of the text input when disabled. */
   private final String disabledBorderColor;
+
+  /** The foreground color of the text input when disabled. */
+  private final String disabledForegroundColor;
+
+  /** The foreground color of the text input placeholder. */
+  private final String placeholderForegroundColor;
 
   /**
    * Creates a new instance of the text input css context.
@@ -45,8 +54,12 @@ public class TextInputCssContext {
   public TextInputCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
     foregroundColor = formatColor.apply(uiDef.getColor("TextField.foreground"));
     backgroundColor = formatColor.apply(uiDef.getColor("TextField.background"));
+    disabledForegroundColor = formatColor.apply(uiDef.getColor("TextField.inactiveForeground"));
+    disabledBackgroundColor = formatColor.apply(uiDef.getColor("TextField.disabledBackground"));
+    disabledBorderColor = disabledForegroundColor;
     disabledBorderSize = "1px";
-    disabledBorderColor = formatColor.apply(uiDef.getColor("TextField.inactiveForeground"));
+    placeholderForegroundColor =
+        formatColor.apply(uiDef.getColor("TextField.placeholderForeground"));
   }
 
   /**
@@ -68,6 +81,15 @@ public class TextInputCssContext {
   }
 
   /**
+   * Returns the background color of the text input when disabled.
+   *
+   * @return The background color of the text input when disabled.
+   */
+  public String getDisabledBackgroundColor() {
+    return disabledBackgroundColor;
+  }
+
+  /**
    * Returns the border size of the text input when disabled.
    *
    * @return The border size of the text input when disabled.
@@ -83,5 +105,23 @@ public class TextInputCssContext {
    */
   public String getDisabledBorderColor() {
     return disabledBorderColor;
+  }
+
+  /**
+   * Returns the foreground color of the text input when disabled.
+   *
+   * @return The foreground color of the text input when disabled.
+   */
+  public String getDisabledForegroundColor() {
+    return disabledForegroundColor;
+  }
+
+  /**
+   * Returns the foreground color of the text input placeholder.
+   *
+   * @return The foreground color of the text input placeholder.
+   */
+  public String getPlaceholderForegroundColor() {
+    return placeholderForegroundColor;
   }
 }

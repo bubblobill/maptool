@@ -44,20 +44,41 @@ public class ThemeCssContext {
   /** The button CSS context. */
   private final ButtonCssContext button;
 
-  /** The text input CSS context. */
-  private final TextInputCssContext textInput;
+  /** The checkbox CSS context. */
+  private final CheckBoxCssContext checkBox;
 
   /** The theme color CSS context. */
   private final ColorCssContext themeColor;
 
-  /** The theme header CSS context. */
-  private final ThemeHeader themeHeader;
+  /** The combo box CSS context. */
+  private final ComboBoxCssContext comboBox;
 
-  /** The scroll bar CSS context. */
-  private final ScrollBarCSSContext scrollBar;
+  /** The component CSS context. */
+  private final ComponentCssContext component;
+
+  /** The meter progress bar CSS context. */
+  private final MeterProgressBarCssContext meterProgressBar;
+
+  /** The preferences CSS context. */
+  private final PreferencesCssContext preferences;
 
   /** The progress bar CSS context. */
-  private final ProgressBarCSSContext progressBar;
+  private final ProgressBarCssContext progressBar;
+
+  /** The scroll bar CSS context. */
+  private final ScrollBarCssContext scrollBar;
+
+  /** The slider CSS context. */
+  private final SliderCssContext slider;
+
+  /** The text area CSS context. */
+  private final TextAreaCssContext textArea;
+
+  /** The text input CSS context. */
+  private final TextInputCssContext textInput;
+
+  /** The theme header CSS context. */
+  private final ThemeHeader themeHeader;
 
   /** Creates a new instance of the theme CSS context. */
   public ThemeCssContext() {
@@ -70,12 +91,23 @@ public class ThemeCssContext {
     var font = uiDef.getFont("Label.font");
     fontFamily = font.getFamily();
     fontSize = font.getSize() + "px";
-    button = new ButtonCssContext(uiDef, ThemeCssContext::formatColor);
-    textInput = new TextInputCssContext(uiDef, ThemeCssContext::formatColor);
+
+    // special css contexts
+    preferences = new PreferencesCssContext(ThemeCssContext::formatColor);
     themeColor = new ColorCssContext(uiDef, ThemeCssContext::formatColor);
     themeHeader = new ThemeHeader(uiDef);
-    scrollBar = new ScrollBarCSSContext(uiDef, ThemeCssContext::formatColor);
-    progressBar = new ProgressBarCSSContext(uiDef, ThemeCssContext::formatColor);
+
+    // swing control css contexts
+    button = new ButtonCssContext(uiDef, ThemeCssContext::formatColor);
+    checkBox = new CheckBoxCssContext(uiDef, ThemeCssContext::formatColor);
+    comboBox = new ComboBoxCssContext(uiDef, ThemeCssContext::formatColor);
+    component = new ComponentCssContext(uiDef, ThemeCssContext::formatColor);
+    meterProgressBar = new MeterProgressBarCssContext(uiDef, ThemeCssContext::formatColor);
+    progressBar = new ProgressBarCssContext(uiDef, ThemeCssContext::formatColor);
+    scrollBar = new ScrollBarCssContext(uiDef, ThemeCssContext::formatColor);
+    slider = new SliderCssContext(uiDef, ThemeCssContext::formatColor);
+    textArea = new TextAreaCssContext(uiDef, ThemeCssContext::formatColor);
+    textInput = new TextInputCssContext(uiDef, ThemeCssContext::formatColor);
   }
 
   /**
@@ -127,48 +159,12 @@ public class ThemeCssContext {
   }
 
   /**
-   * Gets the disabled foreground color.
-   *
-   * @return The disabled foreground color.
-   */
-  public ButtonCssContext getButton() {
-    return button;
-  }
-
-  /**
-   * Gets the text input CSS context.
-   *
-   * @return The text input CSS context.
-   */
-  public TextInputCssContext getTextInput() {
-    return textInput;
-  }
-
-  /**
-   * Gets the theme color CSS context.
-   *
-   * @return The theme color CSS context.
-   */
-  public ColorCssContext getThemeColor() {
-    return themeColor;
-  }
-
-  /**
    * Gets the disabled foreground color CSS.
    *
    * @return The disabled foreground color CSS.
    */
   public String getForegroundColorDisabled() {
     return foregroundColorDisabled;
-  }
-
-  /**
-   * Gets the theme header CSS context.
-   *
-   * @return The theme header CSS context.
-   */
-  public ThemeHeader getThemeHeader() {
-    return themeHeader;
   }
 
   /**
@@ -185,13 +181,120 @@ public class ThemeCssContext {
     return panelForegroundColor;
   }
 
-  /** Gets the scroll bar CSS context. */
-  public ScrollBarCSSContext getScrollBar() {
+  /**
+   * Gets the button CSS context.
+   *
+   * @return The button CSS context.
+   */
+  public ButtonCssContext getButton() {
+    return button;
+  }
+
+  /**
+   * Gets the check box CSS context.
+   *
+   * @return The check box CSS context.
+   */
+  public CheckBoxCssContext getCheckBox() {
+    return checkBox;
+  }
+
+  /**
+   * Gets the theme color CSS context.
+   *
+   * @return The theme color CSS context.
+   */
+  public ColorCssContext getThemeColor() {
+    return themeColor;
+  }
+
+  /**
+   * Gets the combo box CSS context.
+   *
+   * @return The combo box CSS context.
+   */
+  public ComboBoxCssContext getComboBox() {
+    return comboBox;
+  }
+
+  /**
+   * Gets the component CSS context.
+   *
+   * @return The component CSS context.
+   */
+  public ComponentCssContext getComponent() {
+    return component;
+  }
+
+  /**
+   * Gets the meter progress bar CSS context.
+   *
+   * @return The meter progress bar CSS context.
+   */
+  public MeterProgressBarCssContext getMeterProgressBar() {
+    return meterProgressBar;
+  }
+
+  /**
+   * Gets the preferences CSS context.
+   *
+   * @return The preferences CSS context.
+   */
+  public PreferencesCssContext getPreferences() {
+    return preferences;
+  }
+
+  /**
+   * Gets the progress bar CSS context.
+   *
+   * @return The progress bar CSS context.
+   */
+  public ProgressBarCssContext getProgressBar() {
+    return progressBar;
+  }
+
+  /**
+   * Gets the scroll bar CSS context.
+   *
+   * @return The scroll bar CSS context.
+   */
+  public ScrollBarCssContext getScrollBar() {
     return scrollBar;
   }
 
-  /** Gets the progress bar CSS context. */
-  public ProgressBarCSSContext getProgressBar() {
-    return progressBar;
+  /**
+   * Gets the slider CSS context.
+   *
+   * @return The slider CSS context.
+   */
+  public SliderCssContext getSlider() {
+    return slider;
+  }
+
+  /**
+   * Gets the text area CSS context.
+   *
+   * @return The text area CSS context.
+   */
+  public TextAreaCssContext getTextArea() {
+    return textArea;
+  }
+
+  /**
+   * Gets the text input CSS context.
+   *
+   * @return The text input CSS context.
+   */
+  public TextInputCssContext getTextInput() {
+    return textInput;
+  }
+
+  /**
+   * Gets the theme header CSS context.
+   *
+   * @return The theme header CSS context.
+   */
+  public ThemeHeader getThemeHeader() {
+    return themeHeader;
   }
 }

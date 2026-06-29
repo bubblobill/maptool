@@ -15,8 +15,10 @@
 package net.rptools.maptool.model.library.builtin.themecss;
 
 import java.awt.Color;
+import java.util.Objects;
 import java.util.function.Function;
 import javax.swing.UIDefaults;
+import net.rptools.maptool.client.ui.theme.ThemeSupport;
 
 /**
  * Class that extracts and represents the information passed to handlebars for building the themed
@@ -33,6 +35,9 @@ public class ButtonCssContext {
   /** Ending background color for the button background. */
   private final String endBackgroundColor;
 
+  /** The foreground color of the button when it is pressed. */
+  private final String pressedForegroundColor;
+
   /** The background color of the button when it is pressed. */
   private final String pressedBackgroundColor;
 
@@ -45,11 +50,44 @@ public class ButtonCssContext {
   /** The size of the button border when it is disabled. */
   private final String disabledBorderSize;
 
-  /** The color of the border when the button is disabled. */
+  /** The border color when the button is disabled. */
   private final String disabledBorderColor;
+
+  /** The foreground color of the button when the mouse pointer is hovering over it. */
+  private final String hoverForegroundColor;
 
   /** The background color of the button when the mouse pointer is hovering over it. */
   private final String hoverBackgroundColor;
+
+  /** The border color of the button when the mouse pointer is hovering over it. */
+  private final String hoverBorderColor;
+
+  /** The border color of the button when it has focus. */
+  private final String focusedForegroundColor;
+
+  /** The border color of the button when it has focus. */
+  private final String focusedBackgroundColor;
+
+  /** The border color of the button when it has focus. */
+  private final String focusedBorderColor;
+
+  /** The border width of the button. */
+  private final String borderWidth;
+
+  /** The shadow width of the button. */
+  private final String shadowWidth;
+
+  /** The shadow color of the button. */
+  private final String shadowColor;
+
+  /** The shadow color of the button. */
+  private final String startBorderColor;
+
+  /** The shadow color of the button. */
+  private final String endBorderColor;
+
+  /** Whether to show a button shadow color. */
+  private final int showShadow;
 
   /**
    * Creates a new <code>ButtonCssContext</code>
@@ -61,12 +99,33 @@ public class ButtonCssContext {
     foregroundColor = formatColor.apply(uiDef.getColor("Button.foreground"));
     startBackgroundColor = formatColor.apply(uiDef.getColor("Button.startBackground"));
     endBackgroundColor = formatColor.apply(uiDef.getColor("Button.endBackground"));
-    pressedBackgroundColor = formatColor.apply(uiDef.getColor("Button.pressedBackground"));
+    var pressedForeground = uiDef.getColor("Button.pressedForeground");
+    pressedForegroundColor = pressedForeground == null ? "" : formatColor.apply(pressedForeground);
+    var pressedBackground = uiDef.getColor("Button.pressedBackground");
+    pressedBackgroundColor = pressedBackground == null ? "" : formatColor.apply(pressedBackground);
     disabledBackgroundColor = formatColor.apply(uiDef.getColor("Button.disabledBackground"));
     disabledForegroundColor = formatColor.apply(uiDef.getColor("Button.disabledForeground"));
     disabledBorderSize = uiDef.getInt("Button.disabledBorderSize") + "px";
     disabledBorderColor = formatColor.apply(uiDef.getColor("Button.disabledBorderColor"));
+    var hoverForeground = uiDef.getColor("Button.hoverForeground");
+    hoverForegroundColor = hoverForeground == null ? "" : formatColor.apply(hoverForeground);
     hoverBackgroundColor = formatColor.apply(uiDef.getColor("Button.hoverBackground"));
+    hoverBorderColor = formatColor.apply(uiDef.getColor("Button.hoverBorderColor"));
+    var focusedForeground = uiDef.getColor("Button.focusedForeground");
+    focusedForegroundColor = focusedForeground == null ? "" : formatColor.apply(focusedForeground);
+    var focusedBackground = uiDef.getColor("Button.focusedBackground");
+    focusedBackgroundColor = focusedBackground == null ? "" : formatColor.apply(focusedBackground);
+    focusedBorderColor = formatColor.apply(uiDef.getColor("Button.focusedBorderColor"));
+    borderWidth = uiDef.getInt("Button.borderWidth") + "px";
+    var shadowClr = uiDef.getColor("Button.shadowColor");
+    shadowColor = shadowClr == null ? "" : formatColor.apply(shadowClr);
+    shadowWidth = uiDef.getInt("Button.shadowWidth") + "px";
+    startBorderColor = formatColor.apply(uiDef.getColor("Button.startBorderColor"));
+    endBorderColor = formatColor.apply(uiDef.getColor("Button.endBorderColor"));
+    showShadow =
+        uiDef.getBoolean("button.showShadow") || Objects.equals(ThemeSupport.getThemeName(), "Aah")
+            ? 1
+            : 0;
   }
 
   /**
@@ -94,6 +153,15 @@ public class ButtonCssContext {
    */
   public String getEndBackgroundColor() {
     return endBackgroundColor;
+  }
+
+  /**
+   * Returns the foreground color of the button when it is pressed.
+   *
+   * @return the foreground color of the button when it is pressed.
+   */
+  public String getPressedForegroundColor() {
+    return pressedForegroundColor;
   }
 
   /**
@@ -148,5 +216,104 @@ public class ButtonCssContext {
    */
   public String getHoverBackgroundColor() {
     return hoverBackgroundColor;
+  }
+
+  /**
+   * Returns the foreground color of the button when the mouse pointer is hovering over it.
+   *
+   * @return the foreground color of the button when the mouse pointer is hovering over it.
+   */
+  public String getHoverForegroundColor() {
+    return hoverForegroundColor;
+  }
+
+  /**
+   * Returns the border color of the button when the mouse pointer is hovering over it.
+   *
+   * @return the border color of the button when the mouse pointer is hovering over it.
+   */
+  public String getHoverBorderColor() {
+    return hoverBorderColor;
+  }
+
+  /**
+   * Returns the foreground color of the button when it has focus.
+   *
+   * @return the foreground color of the button when it has focus.
+   */
+  public String getFocusedForegroundColor() {
+    return focusedForegroundColor;
+  }
+
+  /**
+   * Returns the background color of the button when it has focus.
+   *
+   * @return the background color of the button when it has focus.
+   */
+  public String getFocusedBackgroundColor() {
+    return focusedBackgroundColor;
+  }
+
+  /**
+   * Returns the border color of the button when it has focus.
+   *
+   * @return the border color of the button when it has focus.
+   */
+  public String getFocusedBorderColor() {
+    return focusedBorderColor;
+  }
+
+  /**
+   * Returns the border width of the button.
+   *
+   * @return the border width of the button.
+   */
+  public String getBorderWidth() {
+    return borderWidth;
+  }
+
+  /**
+   * Returns the shadow width of the button.
+   *
+   * @return the shadow width of the button.
+   */
+  public String getShadowWidth() {
+    return shadowWidth;
+  }
+
+  /**
+   * Returns the shadow color of the button.
+   *
+   * @return the shadow color of the button.
+   */
+  public String getShadowColor() {
+    return shadowColor;
+  }
+
+  /**
+   * Returns the start border color of the button.
+   *
+   * @return the start border color of the button.
+   */
+  public String getStartBorderColor() {
+    return startBorderColor;
+  }
+
+  /**
+   * Returns the end border color of the button.
+   *
+   * @return the end border color of the button.
+   */
+  public String getEndBorderColor() {
+    return endBorderColor;
+  }
+
+  /**
+   * Returns whether to show a button shadow.
+   *
+   * @return whether to show a button shadow.
+   */
+  public int getShowShadow() {
+    return showShadow;
   }
 }
