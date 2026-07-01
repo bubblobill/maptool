@@ -281,7 +281,9 @@ public class PointerTool extends DefaultTool {
       }
       if (SwingUtilities.isRightMouseButton(event)) {
         Token token = getTokenAt(event.getX(), event.getY());
-        if (token == null || !AppUtil.playerOwns(token)) {
+        if (token == null
+            || !AppUtil.playerOwns(token)
+            || (!MapTool.getPlayer().isGM() && MapTool.getServerPolicy().isTokenContextLocked())) {
           return;
         }
         tokenUnderMouse = token;
@@ -568,6 +570,9 @@ public class PointerTool extends DefaultTool {
 
     // POPUP MENU
     if (SwingUtilities.isRightMouseButton(e) && tokenDragOp == null && !isDraggingMap) {
+      if (!MapTool.getPlayer().isGM() && MapTool.getServerPolicy().isTokenContextLocked()) {
+        return;
+      }
       final var selectionModel = renderer.getSelectionModel();
       if (tokenUnderMouse != null && !selectionModel.isSelected(tokenUnderMouse.getId())) {
         if (!SwingUtil.isShiftDown(e)) {
