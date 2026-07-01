@@ -15,6 +15,7 @@
 package net.rptools.maptool.util;
 
 import com.github.jknack.handlebars.*;
+import com.github.jknack.handlebars.cache.HighConcurrencyTemplateCache;
 import com.github.jknack.handlebars.context.JavaBeanValueResolver;
 import com.github.jknack.handlebars.helper.ConditionalHelpers;
 import com.github.jknack.handlebars.helper.StringHelpers;
@@ -49,17 +50,31 @@ import org.apache.logging.log4j.Logger;
  * @param <T> The type of the bean to apply the template to.
  */
 public class HandlebarsUtil<T> {
-  static Handlebars getHandlebarsInstance(@Nullable TemplateLoader loader) {
-    Handlebars handlebars = new Handlebars(loader);
-    StringHelpers.register(handlebars);
-    Arrays.stream(ConditionalHelpers.values()).forEach(h -> handlebars.registerHelper(h.name(), h));
-    handlebars.registerHelper("json", Jackson2Helper.INSTANCE);
-    NumberHelper.register(handlebars);
-    handlebars.registerHelper(AssignHelper.NAME, AssignHelper.INSTANCE);
-    handlebars.registerHelper(IncludeHelper.NAME, IncludeHelper.INSTANCE);
-    Arrays.stream(MapToolHelpers.values()).forEach(h -> handlebars.registerHelper(h.name(), h));
+  private static final HighConcurrencyTemplateCache HIGH_CONCURRENCY_TEMPLATE_CACHE =
+          new HighConcurrencyTemplateCache();
 
-    return handlebars;
+  /**
+   * Use this to get an instance of Handlebars instead of creating one separately.
+   *
+   * <p>Specify a TemplateLoader if the default ClassPathTemplateLoader is not required.
+   *
+   * <p>Using this ensures the instance returned has a consistent setup with all helpers registered.
+   *
+   * @param loader The TemplateLoader to use. If null, handlebars defaults to
+   *     ClassPathTemplateLoader.
+   * @return A HandleBars instance with appropriate settings and registered helpers
+   */
+  static Handlebars getHandlebarsInstance(@Nullable TemplateLoader loader) {
+    Handlebars handlebars =
+            new Handlebars()
+                    .with(HIGH_CONCURRENCY_TEMPLATE_CACHE)
+                    .preEvaluatePartialBlocks(false)
+                    .parentScopeResolution(false)
+                    .setCharset(StandardCharsets.UTF_8);
+    if (loader != null) {
+      handlebars.with(loader);
+    }
+    return HandlebarsHelpers.registerHelpers(handlebars);
   }
 
   public static boolean isAssetFileHandlebars(String filename) {
