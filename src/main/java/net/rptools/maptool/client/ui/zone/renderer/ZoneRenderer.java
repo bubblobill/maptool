@@ -2162,20 +2162,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     return null;
   }
 
-  public @Nullable Token getMarkerAt(int x, int y) {
-    var zonePoint = viewModel.getZoneScale().toWorldSpace(x, y);
-
-    List<ZoneViewModel.TokenPosition> positionList =
-        new ArrayList<>(viewModel.getMarkerPositions());
-    Collections.reverse(positionList);
-    for (ZoneViewModel.TokenPosition position : positionList) {
-      if (position.transformedBounds().contains(zonePoint)) {
-        return position.token();
-      }
-    }
-    return null;
-  }
-
   public List<Token> getTokenStackAt(int x, int y) {
     var tokenStackMap = viewModel.getTokenStackMap();
 
