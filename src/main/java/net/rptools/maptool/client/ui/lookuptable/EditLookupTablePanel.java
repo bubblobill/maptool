@@ -58,6 +58,7 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
   private final EditLookupTablePanelView view;
   private ImageAssetPanel tableImageAssetPanel;
   private int defaultRowHeight;
+  private boolean isNew;
 
   private EditLookupTablePanel(EditLookupTablePanelView view) {
     super(view.getRootComponent());
@@ -83,6 +84,7 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
   }
 
   public void showDialog(@Nullable LookupTable lookupTable, boolean isNew) {
+    this.isNew = isNew;
     var title =
         isNew || lookupTable == null
             ? I18N.getString("LookupTablePanel.msg.titleNew")
@@ -291,6 +293,10 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     if (!name.equals(origname)) {
       // New name is not the same as the existing name
       MapTool.getCampaign().getLookupTableMap().remove(origname);
+      // if not a new table (i.e. create/duplicate) delete the previous named one from the server.
+      if (!isNew) {
+        MapTool.serverCommand().deleteLookupTable(origname);
+      }
     }
     // This will add it if it is new
     MapToolUtil.uploadAsset(AssetManager.getAsset(tableImageAssetPanel.getImageId()));
