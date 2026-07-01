@@ -184,8 +184,6 @@ public class AppActions {
         }
       };
 
-  // region Screenshot export
-
   private static final class ExportScreenshotAction extends ZoneClientAction {
     private final boolean forceSaveAs;
 
