@@ -19,6 +19,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -118,17 +121,19 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     defaultRowHeight = definitionTable.getRowHeight();
 
     definitionTable.setDefaultRenderer(ImageAssetPanel.class, new ImageCellRenderer());
-    definitionTable.setModel(createLookupTableModel(new LookupTable()));
+    definitionTable.setModel(new LookupTableTableModel());
     definitionTable.addMouseListener(
         new MouseAdapter() {
           @Override
           public void mousePressed(MouseEvent e) {
-            int column = definitionTable.columnAtPoint(e.getPoint());
+            var model = (LookupTableTableModel) definitionTable.getModel();
+
+            int column = model.getCanonicalColumn(definitionTable.columnAtPoint(e.getPoint()));
             if (column != IMAGE_COLUMN_INDEX) {
               return;
             }
-            int row = definitionTable.rowAtPoint(e.getPoint());
-            String imageIdStr = (String) definitionTable.getModel().getValueAt(row, column);
+            var row = model.getRowAt(definitionTable.rowAtPoint(e.getPoint()));
+            String imageIdStr = row.getImageId();
 
             // HACK: this is a hacky way to figure out if the button was pushed :P
             if (e.getPoint().x > definitionTable.getSize().width - 15) {
@@ -158,9 +163,9 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
               }
               imageIdStr = imageId.toString();
             }
-            definitionTable.getModel().setValueAt(imageIdStr, row, column);
-            updateDefinitionTableRowHeights();
-            definitionTable.repaint();
+
+            // Commit our changes back.
+            row.setImageId(imageIdStr);
           }
         });
   }
@@ -190,8 +195,10 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
 
     view.getTableName().requestFocusInWindow();
 
-    view.getDefinitionTable().setModel(createLookupTableModel(lookupTable));
-    updateDefinitionTableRowHeights();
+    var model = new LookupTableTableModel();
+    model.addTableModelListener(e -> updateDefinitionTableRowHeights());
+    view.getDefinitionTable().setModel(model);
+    populateLookupTableModel(lookupTable, model);
   }
 
   @Override
@@ -229,36 +236,37 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
     var entries = new ArrayList<LookupTable.LookupEntry>();
     for (int i = 0; i < tableModel.getRowCount(); i++) {
       var row = tableModel.getRowAt(i);
-      if (row.range.isEmpty()) {
+      var range = row.getRange();
+      if (range.isEmpty()) {
         continue;
       }
 
       int min;
       int max;
       // Allow negative numbers
-      int split = row.range.indexOf('-', row.range.charAt(0) == '-' ? 1 : 0);
+      int split = range.indexOf('-', range.charAt(0) == '-' ? 1 : 0);
       try {
         if (split < 0) {
-          min = Integer.parseInt(row.range);
+          min = Integer.parseInt(range);
           max = min;
         } else {
-          min = Integer.parseInt(row.range.substring(0, split).trim());
-          max = Integer.parseInt(row.range.substring(split + 1).trim());
+          min = Integer.parseInt(range.substring(0, split).trim());
+          max = Integer.parseInt(range.substring(split + 1).trim());
         }
       } catch (NumberFormatException nfe) {
-        MapTool.showError(I18N.getText("EditLookupTablePanel.error.badRange", name, row.range, i));
+        MapTool.showError(I18N.getText("EditLookupTablePanel.error.badRange", name, range, i));
         return false;
       }
 
       MD5Key image = null;
-      if (row.imageId != null && !row.imageId.isEmpty()) {
-        image = new MD5Key(row.imageId);
+      if (row.getImageId() != null && !row.getImageId().isEmpty()) {
+        image = new MD5Key(row.getImageId());
         MapToolUtil.uploadAsset(AssetManager.getAsset(image));
       }
 
-      var entry = new LookupEntry(min, max, row.value, image);
+      var entry = new LookupEntry(min, max, row.getValue(), image);
       if (isPickOnce) {
-        entry.setPicked(row.picked);
+        entry.setPicked(row.isPicked());
       }
       entries.add(entry);
     }
@@ -293,14 +301,15 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
 
   private void updateDefinitionTableRowHeights() {
     JTable table = view.getDefinitionTable();
+    var model = (LookupTableTableModel) table.getModel();
+
     for (int row = 0; row < table.getRowCount(); row++) {
-      String imageId = (String) table.getModel().getValueAt(row, IMAGE_COLUMN_INDEX);
+      String imageId = model.getRowAt(row).getImageId();
       table.setRowHeight(row, imageId != null && !imageId.isEmpty() ? 100 : defaultRowHeight);
     }
   }
 
-  private LookupTableTableModel createLookupTableModel(LookupTable lookupTable) {
-    var rows = new ArrayList<LookupTableRow>();
+  private void populateLookupTableModel(LookupTable lookupTable, LookupTableTableModel model) {
     for (LookupEntry entry : lookupTable.getEntryList()) {
       boolean picked = entry.getPicked();
       String range =
@@ -310,12 +319,9 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
       String value = entry.getValue();
       MD5Key imageId = entry.getImageId();
 
-      rows.add(
-          new LookupTableRow(picked, range, value, imageId != null ? imageId.toString() : null));
+      model.addRow(picked, range, value, imageId != null ? imageId.toString() : null);
     }
-    var model = new LookupTableTableModel(rows);
     model.showPicks(lookupTable.getPickOnce());
-    return model;
   }
 
   private class ImageCellRenderer extends ImageAssetPanel implements TableCellRenderer {
@@ -328,10 +334,11 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
   }
 
   private static final class LookupTableRow {
-    public boolean picked;
-    public String range;
-    public String value;
-    public @Nullable String imageId;
+    private final PropertyChangeSupport pcs;
+    private boolean picked;
+    private String range;
+    private String value;
+    private @Nullable String imageId;
 
     public LookupTableRow() {
       this(false, "", "", null);
@@ -342,10 +349,60 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
       this.range = range;
       this.value = value;
       this.imageId = imageId;
+      this.pcs = new PropertyChangeSupport(this);
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+      this.pcs.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+      this.pcs.removePropertyChangeListener(listener);
+    }
+
+    public boolean isPicked() {
+      return picked;
+    }
+
+    public void setPicked(boolean picked) {
+      var oldValue = this.picked;
+      this.picked = picked;
+      this.pcs.firePropertyChange("picked", oldValue, picked);
+    }
+
+    public String getRange() {
+      return range;
+    }
+
+    public void setRange(String range) {
+      var oldValue = this.range;
+      this.range = range;
+      this.pcs.firePropertyChange("range", oldValue, range);
+    }
+
+    public String getValue() {
+      return value;
+    }
+
+    public void setValue(String value) {
+      var oldValue = this.value;
+      this.value = value;
+      this.pcs.firePropertyChange("value", oldValue, value);
+    }
+
+    public @Nullable String getImageId() {
+      return imageId;
+    }
+
+    public void setImageId(@Nullable String imageId) {
+      var oldValue = this.imageId;
+      this.imageId = imageId;
+      this.pcs.firePropertyChange("imageId", oldValue, imageId);
     }
   }
 
-  private static final class LookupTableTableModel extends AbstractTableModel {
+  private static final class LookupTableTableModel extends AbstractTableModel
+      implements PropertyChangeListener {
     private LookupTableRow newRow = new LookupTableRow();
     private final List<LookupTableRow> rowList;
 
@@ -357,11 +414,24 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
             I18N.getText("Label.image"));
     private boolean showPicks = false;
 
-    public LookupTableTableModel(List<LookupTableRow> rowList) {
-      this.rowList = rowList;
+    public LookupTableTableModel() {
+      this.rowList = new ArrayList<>();
+      newRow.addPropertyChangeListener(this);
     }
 
-    private int getCanonicalColumn(int columnIndex) {
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+      fireTableDataChanged();
+    }
+
+    public void addRow(boolean isPicked, String range, String value, @Nullable String imageId) {
+      var row = new LookupTableRow(isPicked, range, value, imageId);
+      rowList.add(row);
+      row.addPropertyChangeListener(this);
+      fireTableRowsInserted(rowList.size(), rowList.size());
+    }
+
+    public int getCanonicalColumn(int columnIndex) {
       // When the "Picked?" column is not present, the column indices don't line up with our
       // predefined constants. So increment the index to match those.
       return columnIndex + (showPicks ? 0 : 1);
@@ -376,9 +446,9 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
 
     public void clearAllPicks() {
       for (var row : rowList) {
-        row.picked = false;
+        row.setPicked(false);
       }
-      newRow.picked = false;
+      newRow.setPicked(false);
       fireTableRowsUpdated(0, getRowCount());
     }
 
@@ -410,10 +480,10 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
       LookupTableRow row = rowIndex < rowList.size() ? rowList.get(rowIndex) : newRow;
 
       return switch (columnIndex) {
-        case PICKED_COLUMN_INDEX -> row.picked;
-        case RANGE_COLUMN_INDEX -> row.range;
-        case VALUE_COLUMN_INDEX -> row.value;
-        case IMAGE_COLUMN_INDEX -> row.imageId;
+        case PICKED_COLUMN_INDEX -> row.isPicked();
+        case RANGE_COLUMN_INDEX -> row.getRange();
+        case VALUE_COLUMN_INDEX -> row.getValue();
+        case IMAGE_COLUMN_INDEX -> row.getImageId();
         default -> "";
       };
     }
@@ -425,16 +495,17 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
       LookupTableRow row = rowIndex < rowList.size() ? rowList.get(rowIndex) : newRow;
 
       switch (columnIndex) {
-        case PICKED_COLUMN_INDEX -> row.picked = (boolean) aValue;
-        case RANGE_COLUMN_INDEX -> row.range = (String) aValue;
-        case VALUE_COLUMN_INDEX -> row.value = (String) aValue;
-        case IMAGE_COLUMN_INDEX -> row.imageId = (String) aValue;
+        case PICKED_COLUMN_INDEX -> row.setPicked((boolean) aValue);
+        case RANGE_COLUMN_INDEX -> row.setRange((String) aValue);
+        case VALUE_COLUMN_INDEX -> row.setValue((String) aValue);
+        case IMAGE_COLUMN_INDEX -> row.setImageId((String) aValue);
       }
 
       if (row == newRow) {
         // Need to make the row permanent, and add a new placeholder.
         rowList.add(newRow);
         newRow = new LookupTableRow();
+        newRow.addPropertyChangeListener(this);
         fireTableRowsInserted(rowList.size(), rowList.size());
       }
     }
