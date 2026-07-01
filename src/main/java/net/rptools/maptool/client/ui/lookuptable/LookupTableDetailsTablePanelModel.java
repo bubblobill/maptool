@@ -259,17 +259,16 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
    *   <li>entries
    */
   public void refreshData() {
+    tables = buildTables();
     fireTableDataChanged();
   }
 
   /**
    * Refresh the structure of the details view.
    *
-   * <p>Use when the number of lookup tables may change:
+   * <p>Use when the columns may change:
    *
    * <ul>
-   *   <li>table created
-   *   <li>table deleted
    *   <li>campaign loaded
    *   <li>GM/player status changes
    */
