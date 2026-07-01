@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 public abstract class AbstractMessageFactory {
   protected final Map<String, Object> messageParams;
@@ -31,20 +30,17 @@ public abstract class AbstractMessageFactory {
   }
 
   /** Persuade likely value types to something meaningful */
-  protected Function<Object, String> stringify =
-      value -> {
-        if (value instanceof JsonElement je) {
-          return je.toString();
-        } else if (value instanceof List<?> list) {
-          return Arrays.deepToString(list.toArray());
-        } else if (value instanceof Object[] array) {
-          return Arrays.deepToString(array);
-        }
-        return String.valueOf(value);
-      };
+  protected String stringify(Object value) {
+    return switch (value) {
+      case JsonElement je -> je.toString();
+      case List<?> list -> Arrays.deepToString(list.toArray());
+      case Object[] array -> Arrays.deepToString(array);
+      case null, default -> String.valueOf(value);
+    };
+  }
 
   public AbstractMessageFactory namedValue(final String name, final Object value) {
-    messageParams.put(name, stringify.apply(value));
+    messageParams.put(name, stringify(value));
     return this;
   }
 

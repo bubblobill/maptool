@@ -17,7 +17,6 @@ package net.rptools.maptool.language;
 import com.ibm.icu.text.MessageFormat;
 import com.vladsch.flexmark.util.sequence.Escaping;
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import javax.swing.*;
 import net.rptools.lib.OsDetection;
@@ -33,7 +32,7 @@ import org.apache.logging.log4j.Logger;
  *
  * <p>As MapTool uses a base name for the string and extensions for alternate pieces (such as <code>
  * action.loadMap</code> as the base and <code>action.loadMap.accel</code> as the menu accelerator
- * key) there are different methods used to return the different components.
+ * key) different methods are used to return the different components.
  *
  * <p>The ResourceBundle name is <b>net.rptools.maptool.language.i18n</b>.
  *
@@ -75,8 +74,8 @@ public class I18N {
 
   /**
    * Returns the character to use as the menu mnemonic for the given key. This method searches the
-   * properties file for the given key. If the value contains an ampersand ("&amp;") the character
-   * following the ampersand is converted to uppercase and returned.
+   * properties file for the given key. Where the value contains an ampersand ("&amp;") the
+   * following character is converted to uppercase and returned.
    *
    * @param key the component to search for
    * @return the character to use as the mnemonic (as an <code>int</code>)
@@ -88,7 +87,7 @@ public class I18N {
     }
     // replace HTML entities with characters to prevent spurious results - should not happen but
     // this is not Utopia
-    value = convertText.apply(value, false);
+    value = replaceHtmlEntities(value, false);
     int index = value.indexOf(MNEMONIC_MARKER);
     if (index != -1 && index + 1 < value.length()) {
       return Character.toUpperCase(value.charAt(index + 1));
@@ -152,11 +151,11 @@ public class I18N {
 
     String value = getString(key);
     if (value == null) {
-      log.debug("Cannot find key '" + key + "' in properties file.");
+      log.debug("Cannot find key '{}' in properties file.", key);
       return key;
     }
     // remove mnemonic marker and return value
-    return convertText.apply(value, true);
+    return replaceHtmlEntities(value, true);
   }
 
   /**
@@ -164,23 +163,22 @@ public class I18N {
    * &amp;lt;div&amp;gt;</code> for <code>&lt;div&gt;</code>, or returning a false positive for a
    * mnemonic key, we need to replace entities with their actual characters first.
    */
-  private static final BiFunction<String, Boolean, String> convertText =
-      (string, stripAmpersand) -> {
-        if (string.indexOf(MNEMONIC_MARKER) == -1) {
-          return string;
-        } else {
-          string = Escaping.unescapeString(string);
-          if (stripAmpersand) {
-            return MNEMONIC_PREFIX_PATTERN.matcher(string).replaceAll("$1");
-          }
-          return Escaping.escapeHtml(string, false);
-        }
-      };
+  private static String replaceHtmlEntities(String string, boolean stripAmpersand) {
+    if (string.indexOf(MNEMONIC_MARKER) == -1) {
+      return string;
+    } else {
+      string = Escaping.unescapeString(string);
+      if (stripAmpersand) {
+        return MNEMONIC_PREFIX_PATTERN.matcher(string).replaceAll("$1");
+      }
+      return Escaping.escapeHtml(string, false);
+    }
+  }
 
   /**
-   * Simple functionality &ndash; similar to {@link #getText(String key)} &ndash; with simple
-   * indexed argument replacement. Use this version where the target string pattern contains
-   * placeholders in the form <code>{n}</code> where n is an integer.
+   * Simple functionality to {@link #getText(String key)} using indexed argument replacement. Use
+   * this version where the target string pattern contains placeholders in the form <code>{n}</code>
+   * where n is an integer.
    *
    * <p>See the "Parameterised Strings" section of the <b>i18n.properties</b> file for example
    * usage. Full documentation for this technique can be found under {@link
@@ -230,7 +228,7 @@ public class I18N {
    * Argument at index {paramIndex} to function {functionName} is invalid.</code>
    *
    * @param key The key to look up for the message.
-   * @param namedArguments Map&lt;String,Object&gt; containing the parameter name and associated
+   * @param namedArguments Map&lt;String, Object&gt; containing the parameter name and associated
    *     value.
    * @return Localised message with parameter placeholders replaced.
    */
@@ -251,16 +249,16 @@ public class I18N {
    * field of <b>action</b>.
    *
    * <p>The string used for the <b>NAME</b> is searched for an ampersand ("&amp;") to determine the
-   * mnemonic used by any menu item (no mnemonic is set if there is no ampersand). If there is one,
-   * the <b>Action.MNEMONIC_KEY</b> property is set.
+   * mnemonic used by any menu item (no mnemonic is set without an ampersand). Where it exists the
+   * <b>Action.MNEMONIC_KEY</b> property is set.
    *
    * <p>The <code>key</code> string has "<code>.accel</code>" appended to it and the properties file
-   * is searched again, this time to obtain a string representing the shortcut key. If there is one,
-   * the <b>Action.ACCELERATOR_KEY</b> property is set.
+   * is searched again, this time getting a string representing the shortcut key. Where found, the
+   * <b>Action.ACCELERATOR_KEY</b> property is set.
    *
    * <p>The <code>key</code> string has "<code>.description</code>" appended to it and the
-   * properties file is searched again, this time to obtain a string representing the status bar
-   * help message. If there is one, the <b>Action.SHORT_DESCRIPTION</b> property is set.
+   * properties file is searched again, this time to get a string representing the status bar help
+   * message. If found, the <b>Action.SHORT_DESCRIPTION</b> property is set.
    *
    * @param key String to use as an index into the <b>i18n.properties</b> file
    * @param action Action used to store the retrieved settings
