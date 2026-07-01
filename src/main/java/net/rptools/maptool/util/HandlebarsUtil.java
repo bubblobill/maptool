@@ -17,11 +17,6 @@ package net.rptools.maptool.util;
 import com.github.jknack.handlebars.*;
 import com.github.jknack.handlebars.cache.HighConcurrencyTemplateCache;
 import com.github.jknack.handlebars.context.JavaBeanValueResolver;
-import com.github.jknack.handlebars.helper.ConditionalHelpers;
-import com.github.jknack.handlebars.helper.StringHelpers;
-import com.github.jknack.handlebars.helper.ext.AssignHelper;
-import com.github.jknack.handlebars.helper.ext.IncludeHelper;
-import com.github.jknack.handlebars.helper.ext.NumberHelper;
 import com.github.jknack.handlebars.io.AbstractTemplateLoader;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
@@ -34,7 +29,6 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Base64;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,7 +45,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class HandlebarsUtil<T> {
   private static final HighConcurrencyTemplateCache HIGH_CONCURRENCY_TEMPLATE_CACHE =
-          new HighConcurrencyTemplateCache();
+      new HighConcurrencyTemplateCache();
 
   /**
    * Use this to get an instance of Handlebars instead of creating one separately.
@@ -66,11 +60,11 @@ public class HandlebarsUtil<T> {
    */
   static Handlebars getHandlebarsInstance(@Nullable TemplateLoader loader) {
     Handlebars handlebars =
-            new Handlebars()
-                    .with(HIGH_CONCURRENCY_TEMPLATE_CACHE)
-                    .preEvaluatePartialBlocks(false)
-                    .parentScopeResolution(false)
-                    .setCharset(StandardCharsets.UTF_8);
+        new Handlebars()
+            .with(HIGH_CONCURRENCY_TEMPLATE_CACHE)
+            .preEvaluatePartialBlocks(false)
+            .parentScopeResolution(false)
+            .setCharset(StandardCharsets.UTF_8);
     if (loader != null) {
       handlebars.with(loader);
     }
