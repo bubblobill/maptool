@@ -384,6 +384,11 @@ public class AppActions {
       new TranslatedClientAction("action.addDefaultTables") {
 
         @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
+        }
+
+        @Override
         protected void executeAction() {
           try {
             // Load the defaults
