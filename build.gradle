@@ -92,15 +92,37 @@ ext {
     println "OS Detected: " + osdetector.os
 }
 
+def modulesToOpen = [
+        'java.desktop/java.awt',
+        'java.desktop/java.awt.geom',
+        'java.desktop/sun.awt.geom',
+        'java.base/java.util',
+        'javafx.web/javafx.scene.web',
+        'javafx.web/com.sun.webkit',
+        'javafx.web/com.sun.webkit.dom',
+        'java.base/java.lang',
+        'java.desktop/sun.awt',
+        'java.desktop/sun.java2d',
+        'java.desktop/javax.swing',
+        'java.desktop/sun.awt.shell',
+]
+def jarManifestAttributes = [
+        'Implementation-Title': project.name + developerRelease,
+        'Implementation-Version': tagVersion,
+        'Implementation-Vendor': vendor,
+        'Git-Commit': revision,
+        'Git-Commit-SHA': revisionFull,
+        'Built-By': System.getProperty('user.name'),
+        'Built-Date': new Date(),
+        'Built-JDK': System.getProperty('java.version'),
+        'Source-Compatibility': project.java.sourceCompatibility,
+        'Target-Compatibility': project.java.targetCompatibility,
+        'Main-Class': project.application.mainClass,
+        'Add-Opens': modulesToOpen.join(' '),
+]
 def javaArgs = [
         "-Xss8M",
-        "--add-opens=java.desktop/java.awt=ALL-UNNAMED", "--add-opens=java.desktop/java.awt.geom=ALL-UNNAMED",
-        "--add-opens=java.desktop/sun.awt.geom=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED",
-        "--add-opens=javafx.web/javafx.scene.web=ALL-UNNAMED", "--add-opens=javafx.web/com.sun.webkit=ALL-UNNAMED",
-        "--add-opens=javafx.web/com.sun.webkit.dom=ALL-UNNAMED","--add-opens=java.base/java.lang=ALL-UNNAMED",
-        "--add-opens=java.desktop/sun.awt=ALL-UNNAMED", "--add-opens=java.desktop/sun.java2d=ALL-UNNAMED",
-        "--add-opens=java.desktop/javax.swing=ALL-UNNAMED","--add-opens=java.desktop/sun.awt.shell=ALL-UNNAMED",
-        "--add-opens=java.desktop/com.sun.java.swing.plaf.windows=ALL-UNNAMED"]
+] + modulesToOpen.collect { '--add-opens=' + it + '=ALL-UNNAMED' }
 
 // Used by gradle assemble & run tasks
 application {
@@ -442,18 +464,8 @@ shadowJar {
     archiveClassifier = null
 
     manifest {
-        attributes 'Implementation-Title': project.name + developerRelease,
-                'Implementation-Version': tagVersion,
-                'Implementation-Vendor': vendor,
-                'Git-Commit': revision,
-                'Git-Commit-SHA': revisionFull,
-                'Built-By': System.getProperty('user.name'),
-                'Built-Date': new Date(),
-                'Built-JDK': System.getProperty('java.version'),
-                'Source-Compatibility': project.java.sourceCompatibility,
-                'Target-Compatibility': project.java.targetCompatibility,
-                'Main-Class': project.application.mainClass,
-                'Multi-Release': true
+        attributes jarManifestAttributes
+        attributes 'Multi-Release': true
     }
 
     exclude 'module-info.class' //This is to make sure maptool doesn't become a module by including module-info of dependencies. Probably needs to be fixed before we go to jdk 11+
@@ -461,17 +473,7 @@ shadowJar {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': project.name + developerRelease,
-                'Implementation-Version': tagVersion,
-                'Implementation-Vendor': vendor,
-                'Git-Commit': revision,
-                'Git-Commit-SHA': revisionFull,
-                'Built-By': System.getProperty('user.name'),
-                'Built-Date': new Date(),
-                'Built-JDK': System.getProperty('java.version'),
-                'Source-Compatibility': project.java.sourceCompatibility,
-                'Target-Compatibility': project.java.targetCompatibility,
-                'Main-Class': project.application.mainClass
+        attributes jarManifestAttributes
     }
 }
 
