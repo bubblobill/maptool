@@ -93,9 +93,7 @@ ext {
 }
 
 def javaArgs = [
-        "-Xss8M", "-Dsun.java2d.d3d=false",
-        "-Dpolyglot.engine.WarnInterpreterOnly=false",
-        "-Djava.util.Arrays.useLegacyMergeSort=true",
+        "-Xss8M",
         "--add-opens=java.desktop/java.awt=ALL-UNNAMED", "--add-opens=java.desktop/java.awt.geom=ALL-UNNAMED",
         "--add-opens=java.desktop/sun.awt.geom=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED",
         "--add-opens=javafx.web/javafx.scene.web=ALL-UNNAMED", "--add-opens=javafx.web/com.sun.webkit=ALL-UNNAMED",
