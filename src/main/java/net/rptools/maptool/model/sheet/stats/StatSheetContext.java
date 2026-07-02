@@ -37,10 +37,14 @@ import net.rptools.maptool.util.HTMLUtil;
 import net.rptools.maptool.util.ImageManager;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /** Class that extracts and provides the information needed to render a stat sheet. */
 @SuppressWarnings("unused")
 public class StatSheetContext {
+  private static final Logger log = LogManager.getLogger(StatSheetContext.class);
+
   /** Class that represents a token property on a stat sheet. */
   public static class Property {
     /** Name of the property. */
@@ -352,7 +356,8 @@ public class StatSheetContext {
         PropertyUtilsBean pub = BeanUtilsBean.getInstance().getPropertyUtils();
         featureMap.putAll(pub.describe(ato));
       } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-        throw new RuntimeException(e);
+        log.error(e);
+        return;
       }
       String mName;
       Map<String, Object> aspectRatioMap = new HashMap<>();

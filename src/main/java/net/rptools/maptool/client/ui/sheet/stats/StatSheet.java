@@ -26,13 +26,13 @@ import net.rptools.maptool.client.ui.htmlframe.HTMLContent;
 import net.rptools.maptool.model.sheet.stats.StatSheetContext;
 import net.rptools.maptool.model.sheet.stats.StatSheetLocation;
 import net.rptools.maptool.util.HandlebarsUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-/** Class that represents a pop up stat sheet. */
+/** Class that represents a pop-up stat sheet. */
 public class StatSheet {
   /** Object for logging messages. */
-  private static final Logger log = LoggerFactory.getLogger(StatSheet.class);
+  private static final Logger log = LogManager.getLogger(StatSheet.class);
 
   /**
    * Sets the content for the stat sheet. The content is a HTML page that is rendered using the
