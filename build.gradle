@@ -96,7 +96,6 @@ def javaArgs = [
         "-Xss8M", "-Dsun.java2d.d3d=false",
         "-Dpolyglot.engine.WarnInterpreterOnly=false",
         "-Djava.util.Arrays.useLegacyMergeSort=true",
-        "-DMAPTOOL_DATADIR=.maptool-" + vendor.toLowerCase(),
         "--add-opens=java.desktop/java.awt=ALL-UNNAMED", "--add-opens=java.desktop/java.awt.geom=ALL-UNNAMED",
         "--add-opens=java.desktop/sun.awt.geom=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED",
         "--add-opens=javafx.web/javafx.scene.web=ALL-UNNAMED", "--add-opens=javafx.web/com.sun.webkit=ALL-UNNAMED",
@@ -137,7 +136,6 @@ javafx {
 }
 
 run {
-    args = ['-v=' + appSemVer]
     // Add -Dlog4j2.debug to see log4j2 details
     // Add  -Djavax.net.debug=all to debug networking issues
 
@@ -419,11 +417,6 @@ dependencies {
     implementation(libs.rptools.maptool.addons)
     implementation(libs.rptools.dice.roller)
     implementation(libs.noiselib)
-
-    // libgdx
-    implementation(libs.bundles.gdx)
-    implementation(variantOf(libs.gdx.platform) { classifier('natives-desktop')})
-    implementation(variantOf(libs.gdx.freetype.platform) { classifier('natives-desktop')})
 }
 
 processResources {
