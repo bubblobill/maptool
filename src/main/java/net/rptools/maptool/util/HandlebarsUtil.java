@@ -45,7 +45,7 @@ public class HandlebarsUtil<T> {
       new HighConcurrencyTemplateCache();
 
   /**
-   * Use this to obtain an instance of Handlebars instead of creating one separately.
+   * Use this to get an instance of Handlebars instead of creating one separately.
    *
    * <p>Specify a TemplateLoader if the default ClassPathTemplateLoader is not required.
    *
