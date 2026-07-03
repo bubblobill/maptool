@@ -14,6 +14,8 @@
  */
 package net.rptools.maptool.util;
 
+import static org.apache.commons.lang3.Validate.notNull;
+
 import com.github.jknack.handlebars.*;
 import com.github.jknack.handlebars.helper.ConditionalHelpers;
 import com.github.jknack.handlebars.helper.EmbeddedHelper;
@@ -41,6 +43,7 @@ public class HandlebarsHelpers {
 
   static Handlebars registerHelpers(Handlebars handlebars) {
     StringHelpers.register(handlebars);
+    MoreStringHelpers.register(handlebars);
     Arrays.stream(ConditionalHelpers.values()).forEach(h -> handlebars.registerHelper(h.name(), h));
     handlebars.registerHelper("json", Jackson2Helper.INSTANCE);
     NumberHelper.register(handlebars);
@@ -434,6 +437,66 @@ public class HandlebarsHelpers {
       String markdown = context.toString();
       Node document = PARSER.parse(markdown);
       return new Handlebars.SafeString(HTML_RENDERER.render(document));
+    }
+  }
+
+  public enum MoreStringHelpers implements Helper<Object> {
+    contains {
+      @Override
+      public Object apply(final Object value, final Options options) throws IOException {
+        try {
+          return value.toString().contains(options.param(1, ""));
+        } catch (Exception e) {
+          log.debug("Function \"contains\" - {}", e.getLocalizedMessage(), e);
+          return "";
+        }
+      }
+    },
+    containsIgnoreCase {
+      @Override
+      public Object apply(final Object value, final Options options) throws IOException {
+        try {
+          return value.toString().toLowerCase().contains(options.param(1, "").toLowerCase());
+        } catch (Exception e) {
+          log.debug("Function \"containsIgnoreCase\" - {}", e.getLocalizedMessage(), e);
+          return "";
+        }
+      }
+    },
+    equalsIgnoreCase {
+      @Override
+      public Object apply(final Object value, final Options options) throws IOException {
+        try {
+          return value.toString().equalsIgnoreCase(options.param(1, ""));
+        } catch (Exception e) {
+          log.debug("Function \"equalsIgnoreCase\" - {}", e.getLocalizedMessage(), e);
+          return "";
+        }
+      }
+    },
+    ;
+
+    /**
+     * Register the helper in a handlebars instance.
+     *
+     * @param handlebars A handlebars object. Required.
+     */
+    public void registerHelper(final Handlebars handlebars) {
+      notNull(handlebars, "The handlebars is required.");
+      handlebars.registerHelper(name(), this);
+    }
+
+    /**
+     * Register all the text helpers.
+     *
+     * @param handlebars The helper's owner. Required.
+     */
+    public static void register(final Handlebars handlebars) {
+      notNull(handlebars, "A handlebars object is required.");
+      MoreStringHelpers[] helpers = values();
+      for (MoreStringHelpers helper : helpers) {
+        helper.registerHelper(handlebars);
+      }
     }
   }
 }
