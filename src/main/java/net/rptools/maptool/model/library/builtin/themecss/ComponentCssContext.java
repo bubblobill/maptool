@@ -48,20 +48,17 @@ public class ComponentCssContext {
    * Creates a new instance of the combo box css context.
    *
    * @param uiDef The UI defaults to use to extract the values.
-   * @param formatColor The function to use to format the color.
+   * @param getColorOrBlank The function to use to convert the color key into a string color format.
    */
-  public ComponentCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
-    linkColor = formatColor.apply(uiDef.getColor("Component.linkColor"));
-    focusedBorderColor = formatColor.apply(uiDef.getColor("Component.focusedBorderColor"));
-    errorBorderColor = formatColor.apply(uiDef.getColor("Component.error.borderColor"));
-    errorFocusedBorderColor =
-        formatColor.apply(uiDef.getColor("Component.error.focusedBorderColor"));
-    successBorderColor = formatColor.apply(uiDef.getColor("Component.success.borderColor"));
-    successFocusedBorderColor =
-        formatColor.apply(uiDef.getColor("Component.success.focusedBorderColor"));
-    warningBorderColor = formatColor.apply(uiDef.getColor("Component.warning.borderColor"));
-    warningFocusedBorderColor =
-        formatColor.apply(uiDef.getColor("Component.warning.focusedBorderColor"));
+  public ComponentCssContext(UIDefaults uiDef, Function<String, String> getColorOrBlank) {
+    linkColor = getColorOrBlank.apply("Component.linkColor");
+    focusedBorderColor = getColorOrBlank.apply("Component.focusedBorderColor");
+    errorBorderColor = getColorOrBlank.apply("Component.error.borderColor");
+    errorFocusedBorderColor = getColorOrBlank.apply("Component.error.focusedBorderColor");
+    successBorderColor = getColorOrBlank.apply("Component.success.borderColor");
+    successFocusedBorderColor = getColorOrBlank.apply("Component.success.focusedBorderColor");
+    warningBorderColor = getColorOrBlank.apply("Component.warning.borderColor");
+    warningFocusedBorderColor = getColorOrBlank.apply("Component.warning.focusedBorderColor");
   }
 
   /**

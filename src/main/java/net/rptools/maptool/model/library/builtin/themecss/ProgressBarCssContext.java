@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.model.library.builtin.themecss;
 
-import java.awt.Color;
 import java.util.function.Function;
 import javax.swing.UIDefaults;
 
@@ -38,13 +37,13 @@ public class ProgressBarCssContext {
   /**
    * Creates a new instance of the progress bar CSS context.
    *
-   * @param uiDef the UI defaults to use.
-   * @param formatColor the function to use to format colors.
+   * @param uiDef The UI defaults to use.
+   * @param getColorOrBlank The function to use to convert the color key into a string color format
    */
-  public ProgressBarCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
+  public ProgressBarCssContext(UIDefaults uiDef, Function<String, String> getColorOrBlank) {
     arc = uiDef.getInt("ProgressBar.arc");
-    backgroundColor = formatColor.apply(uiDef.getColor("ProgressBar.background"));
-    foregroundColor = formatColor.apply(uiDef.getColor("ProgressBar.foreground"));
+    backgroundColor = getColorOrBlank.apply("ProgressBar.background");
+    foregroundColor = getColorOrBlank.apply("ProgressBar.foreground");
     fontFamily = uiDef.getFont("ProgressBar.font").getFamily();
     fontSize = uiDef.getFont("ProgressBar.font").getSize() + "px";
   }

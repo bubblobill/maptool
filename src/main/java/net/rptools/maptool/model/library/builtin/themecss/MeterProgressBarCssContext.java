@@ -29,12 +29,12 @@ public class MeterProgressBarCssContext {
   /**
    * Creates a new instance of the meter progress bar CSS context.
    *
-   * @param uiDef the UI defaults to use.
-   * @param formatColor the function to use to format colors.
+   * @param uiDef The UI defaults to use.
+   * @param getColorOrBlank The function to use to convert the color key into a string color format.
    */
-  public MeterProgressBarCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
-    backgroundColor = formatColor.apply(uiDef.getColor("MeterProgressBar.background"));
-    foregroundColor = formatColor.apply(uiDef.getColor("MeterProgressBar.foreground"));
+  public MeterProgressBarCssContext(UIDefaults uiDef, Function<String, String> getColorOrBlank) {
+    backgroundColor = getColorOrBlank.apply("MeterProgressBar.background");
+    foregroundColor = getColorOrBlank.apply("MeterProgressBar.foreground");
   }
 
   /**

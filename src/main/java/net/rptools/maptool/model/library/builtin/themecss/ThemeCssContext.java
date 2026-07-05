@@ -15,10 +15,20 @@
 package net.rptools.maptool.model.library.builtin.themecss;
 
 import java.awt.Color;
-import javax.swing.UIManager;
+import javax.swing.*;
+import net.rptools.maptool.client.ui.theme.ThemeSupport;
+import net.rptools.maptool.language.I18N;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /** Context for the theme CSS. This is used to provide the CSS with the values it needs to render */
 public class ThemeCssContext {
+
+  /** A logger for logging logs */
+  private static final Logger log = LogManager.getLogger(ThemeCssContext.class);
+
+  /** The UI Defaults. */
+  private static final UIDefaults uiDef = UIManager.getDefaults();
 
   /** The font size to use for the theme. */
   private final String fontSize;
@@ -83,11 +93,11 @@ public class ThemeCssContext {
   /** Creates a new instance of the theme CSS context. */
   public ThemeCssContext() {
     var uiDef = UIManager.getDefaults();
-    backgroundColor = formatColor(uiDef.getColor("Label.background"));
-    foregroundColor = formatColor(uiDef.getColor("Label.foreground"));
-    foregroundColorDisabled = formatColor(uiDef.getColor("Label.disabledForeground"));
-    panelForegroundColor = formatColor(uiDef.getColor("Panel.foreground"));
-    panelBackgroundColor = formatColor(uiDef.getColor("Panel.background"));
+    backgroundColor = getColorOrBlank("Label.background");
+    foregroundColor = getColorOrBlank("Label.foreground");
+    foregroundColorDisabled = getColorOrBlank("Label.disabledForeground");
+    panelForegroundColor = getColorOrBlank("Panel.foreground");
+    panelBackgroundColor = getColorOrBlank("Panel.background");
     var font = uiDef.getFont("Label.font");
     fontFamily = font.getFamily();
     fontSize = font.getSize() + "px";
@@ -98,16 +108,67 @@ public class ThemeCssContext {
     themeHeader = new ThemeHeader(uiDef);
 
     // swing control css contexts
-    button = new ButtonCssContext(uiDef, ThemeCssContext::formatColor);
-    checkBox = new CheckBoxCssContext(uiDef, ThemeCssContext::formatColor);
-    comboBox = new ComboBoxCssContext(uiDef, ThemeCssContext::formatColor);
-    component = new ComponentCssContext(uiDef, ThemeCssContext::formatColor);
-    meterProgressBar = new MeterProgressBarCssContext(uiDef, ThemeCssContext::formatColor);
-    progressBar = new ProgressBarCssContext(uiDef, ThemeCssContext::formatColor);
-    scrollBar = new ScrollBarCssContext(uiDef, ThemeCssContext::formatColor);
-    slider = new SliderCssContext(uiDef, ThemeCssContext::formatColor);
-    textArea = new TextAreaCssContext(uiDef, ThemeCssContext::formatColor);
-    textInput = new TextInputCssContext(uiDef, ThemeCssContext::formatColor);
+    button = new ButtonCssContext(uiDef, ThemeCssContext::getColorOrBlank);
+    checkBox = new CheckBoxCssContext(uiDef, ThemeCssContext::getColorOrBlank);
+    comboBox = new ComboBoxCssContext(uiDef, ThemeCssContext::getColorOrBlank);
+    component = new ComponentCssContext(uiDef, ThemeCssContext::getColorOrBlank);
+    meterProgressBar = new MeterProgressBarCssContext(uiDef, ThemeCssContext::getColorOrBlank);
+    progressBar = new ProgressBarCssContext(uiDef, ThemeCssContext::getColorOrBlank);
+    scrollBar = new ScrollBarCssContext(uiDef, ThemeCssContext::getColorOrBlank);
+    slider = new SliderCssContext(uiDef, ThemeCssContext::getColorOrBlank);
+    textArea = new TextAreaCssContext(uiDef, ThemeCssContext::getColorOrBlank);
+    textInput = new TextInputCssContext(uiDef, ThemeCssContext::getColorOrBlank);
+  }
+
+  /**
+   * Here we try to get a color from the UI Defaults and format it into a CSS color string, or if
+   * there is no color at the given key return a blank string as a fallback which will cause the css
+   * property to be ignored and use standard cascade.
+   *
+   * <h4>Rationale:</h4>
+   *
+   * <p>MapTool Themes come from different sources, are in different formats, and may not have all
+   * the keys that we desire for our Theme CSS...
+   *
+   * <p>{@link UIDefaults#getColor(Object)} returns {@code null} for themes with specific color keys
+   * missing, causing {@link #formatColor} to fail and not generate any theme CSS at all unless we
+   * handle those missing keys. Previously this was handled in each CSS context class and required
+   * laboriously trawling through each theme (68 of them in the MapTool theme list) and restarting
+   * MapTool, but now with this method we centralize the null handling to and tolerate those missing
+   * color keys.
+   *
+   * @param colorKey The {@link UIDefaults} color key to convert.
+   * @return The formatted color, or blank fallback.
+   */
+  private static String getColorOrBlank(String colorKey) {
+    Color color = uiDef.getColor(colorKey);
+    if (color != null) {
+      return formatColor(color);
+    }
+    log.warn(I18N.getText("theme.css.colorKeyUndefined", ThemeSupport.getThemeName(), colorKey));
+    return "";
+  }
+
+  /**
+   * As {@link ThemeCssContext#getColorOrBlank(String)} but returns a specified default color (as a
+   * formated color string)
+   *
+   * @param colorKey
+   * @param colorDefault
+   * @return The formatted color, or default fallback.
+   */
+  public static String getColorOrDefault(String colorKey, String colorDefault) {
+    Color color = uiDef.getColor(colorKey);
+    if (color != null) {
+      return formatColor(color);
+    }
+    log.warn(
+        I18N.getText(
+            "theme.css.colorKeyUndefinedUseDefault",
+            ThemeSupport.getThemeName(),
+            colorKey,
+            colorDefault));
+    return colorDefault;
   }
 
   /**
@@ -116,7 +177,7 @@ public class ThemeCssContext {
    * @param color The color to format.
    * @return The formatted color.
    */
-  static String formatColor(Color color) {
+  private static String formatColor(Color color) {
     return String.format(
         "rgba(%d, %d, %d, %.02f)",
         color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() / 255.0);

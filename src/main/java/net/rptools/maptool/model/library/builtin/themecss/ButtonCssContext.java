@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.model.library.builtin.themecss;
 
-import java.awt.Color;
 import java.util.Objects;
 import java.util.function.Function;
 import javax.swing.UIDefaults;
@@ -29,14 +28,14 @@ public class ButtonCssContext {
   /** The button foreground color. */
   private final String foregroundColor;
 
+  /** The button background color. */
+  private final String backgroundColor;
+
   /** Starting background color for the button background. */
   private final String startBackgroundColor;
 
   /** Ending background color for the button background. */
   private final String endBackgroundColor;
-
-  /** The foreground color of the button when it is pressed. */
-  private final String pressedForegroundColor;
 
   /** The background color of the button when it is pressed. */
   private final String pressedBackgroundColor;
@@ -92,36 +91,34 @@ public class ButtonCssContext {
   /**
    * Creates a new <code>ButtonCssContext</code>
    *
-   * @param uiDef the {@link UIDefaults} to extract information from.
-   * @param formatColor the function to use to format the color.
+   * @param uiDef The {@link UIDefaults} to extract information from.
+   * @param getColorOrBlank The function to use to convert the color key into a string color format.
    */
-  public ButtonCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
-    foregroundColor = formatColor.apply(uiDef.getColor("Button.foreground"));
-    startBackgroundColor = formatColor.apply(uiDef.getColor("Button.startBackground"));
-    endBackgroundColor = formatColor.apply(uiDef.getColor("Button.endBackground"));
-    var pressedForeground = uiDef.getColor("Button.pressedForeground");
-    pressedForegroundColor = pressedForeground == null ? "" : formatColor.apply(pressedForeground);
-    var pressedBackground = uiDef.getColor("Button.pressedBackground");
-    pressedBackgroundColor = pressedBackground == null ? "" : formatColor.apply(pressedBackground);
-    disabledBackgroundColor = formatColor.apply(uiDef.getColor("Button.disabledBackground"));
-    disabledForegroundColor = formatColor.apply(uiDef.getColor("Button.disabledForeground"));
+  public ButtonCssContext(UIDefaults uiDef, Function<String, String> getColorOrBlank) {
+    foregroundColor = getColorOrBlank.apply("Button.foreground");
+    backgroundColor = getColorOrBlank.apply("Button.background");
+    startBackgroundColor =
+        ThemeCssContext.getColorOrDefault("Button.startBackground", backgroundColor);
+    endBackgroundColor = ThemeCssContext.getColorOrDefault("Button.endBackground", backgroundColor);
+    pressedBackgroundColor = getColorOrBlank.apply("Button.pressedBackground");
+    disabledBackgroundColor = getColorOrBlank.apply("Button.disabledBackground");
+    disabledForegroundColor = getColorOrBlank.apply("Button.disabledForeground");
     disabledBorderSize = uiDef.getInt("Button.disabledBorderSize") + "px";
-    disabledBorderColor = formatColor.apply(uiDef.getColor("Button.disabledBorderColor"));
-    var hoverForeground = uiDef.getColor("Button.hoverForeground");
-    hoverForegroundColor = hoverForeground == null ? "" : formatColor.apply(hoverForeground);
-    hoverBackgroundColor = formatColor.apply(uiDef.getColor("Button.hoverBackground"));
-    hoverBorderColor = formatColor.apply(uiDef.getColor("Button.hoverBorderColor"));
-    var focusedForeground = uiDef.getColor("Button.focusedForeground");
-    focusedForegroundColor = focusedForeground == null ? "" : formatColor.apply(focusedForeground);
-    var focusedBackground = uiDef.getColor("Button.focusedBackground");
-    focusedBackgroundColor = focusedBackground == null ? "" : formatColor.apply(focusedBackground);
-    focusedBorderColor = formatColor.apply(uiDef.getColor("Button.focusedBorderColor"));
+    disabledBorderColor = getColorOrBlank.apply("Button.disabledBorderColor");
+    hoverForegroundColor =
+        ThemeCssContext.getColorOrDefault("Button.hoverForeground", foregroundColor);
+    hoverBackgroundColor = getColorOrBlank.apply("Button.hoverBackground");
+    hoverBorderColor = getColorOrBlank.apply("Button.hoverBorderColor");
+    focusedForegroundColor =
+        ThemeCssContext.getColorOrDefault("Button.focusedForeground", foregroundColor);
+    focusedBackgroundColor =
+        ThemeCssContext.getColorOrDefault("Button.focusedBackground", backgroundColor);
+    focusedBorderColor = getColorOrBlank.apply("Button.focusedBorderColor");
     borderWidth = uiDef.getInt("Button.borderWidth") + "px";
-    var shadowClr = uiDef.getColor("Button.shadowColor");
-    shadowColor = shadowClr == null ? "" : formatColor.apply(shadowClr);
+    shadowColor = getColorOrBlank.apply("Button.shadowColor");
     shadowWidth = uiDef.getInt("Button.shadowWidth") + "px";
-    startBorderColor = formatColor.apply(uiDef.getColor("Button.startBorderColor"));
-    endBorderColor = formatColor.apply(uiDef.getColor("Button.endBorderColor"));
+    startBorderColor = getColorOrBlank.apply("Button.startBorderColor");
+    endBorderColor = getColorOrBlank.apply("Button.endBorderColor");
     showShadow =
         uiDef.getBoolean("button.showShadow") || Objects.equals(ThemeSupport.getThemeName(), "Aah")
             ? 1
@@ -153,15 +150,6 @@ public class ButtonCssContext {
    */
   public String getEndBackgroundColor() {
     return endBackgroundColor;
-  }
-
-  /**
-   * Returns the foreground color of the button when it is pressed.
-   *
-   * @return the foreground color of the button when it is pressed.
-   */
-  public String getPressedForegroundColor() {
-    return pressedForegroundColor;
   }
 
   /**

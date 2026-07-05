@@ -68,64 +68,37 @@ public class CheckBoxCssContext {
    * Creates a new instance of the checkbox css context.
    *
    * @param uiDef The UI defaults to use to extract the values.
-   * @param formatColor The function to use to format the color.
+   * @param getColorOrBlank The function to use to convert the color key into a string color format.
    */
-  public CheckBoxCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
+  public CheckBoxCssContext(UIDefaults uiDef, Function<String, String> getColorOrBlank) {
+
+    disabledForegroundColor = getColorOrBlank.apply("CheckBox.icon.disabledCheckmarkColor");
+    disabledBorderColor = getColorOrBlank.apply("CheckBox.icon.disabledBorderColor");
+    hoverBackgroundColor = getColorOrBlank.apply("CheckBox.icon.hoverBackground");
+
     styleFilled = Objects.equals(uiDef.getString("CheckBox.icon.style"), "filled");
-    backgroundColor =
-        formatColor.apply(
-            uiDef.getColor(
-                styleFilled ? "CheckBox.icon[filled].background" : "CheckBox.icon.background"));
-    borderColor =
-        formatColor.apply(
-            uiDef.getColor(
-                styleFilled ? "CheckBox.icon[filled].borderColor" : "CheckBox.icon.borderColor"));
-    foregroundColor =
-        formatColor.apply(
-            uiDef.getColor(
-                styleFilled
-                    ? "CheckBox.icon[filled].checkmarkColor"
-                    : "CheckBox.icon.checkmarkColor"));
-    disabledForegroundColor =
-        formatColor.apply(uiDef.getColor("CheckBox.icon.disabledCheckmarkColor"));
-    disabledBackgroundColor =
-        formatColor.apply(
-            uiDef.getColor(
-                styleFilled
-                    ? "CheckBox.icon[filled].disabledBackground"
-                    : "CheckBox.icon.disabledBackground"));
-    disabledBorderColor = formatColor.apply(uiDef.getColor("CheckBox.icon.disabledBorderColor"));
-    hoverBackgroundColor = formatColor.apply(uiDef.getColor("CheckBox.icon.hoverBackground"));
-    hoverBorderColor =
-        formatColor.apply(
-            uiDef.getColor(
-                styleFilled
-                    ? "CheckBox.icon[filled].hoverBorderColor"
-                    : "CheckBox.icon.hoverBorderColor"));
-    hoverSelectedBackgroundColor =
-        formatColor.apply(
-            uiDef.getColor(
-                styleFilled
-                    ? "CheckBox.icon[filled].hoverSelectedBackground"
-                    : "CheckBox.icon.hoverBackground"));
-    focusedBorderColor =
-        formatColor.apply(
-            uiDef.getColor(
-                styleFilled
-                    ? "CheckBox.icon[filled].focusedBorderColor"
-                    : "CheckBox.icon.focusedBorderColor"));
-    selectedBackgroundColor =
-        formatColor.apply(
-            uiDef.getColor(
-                styleFilled
-                    ? "CheckBox.icon[filled].selectedBackground"
-                    : "CheckBox.icon.selectedBackground"));
-    selectedBorderColor =
-        formatColor.apply(
-            uiDef.getColor(
-                styleFilled
-                    ? "CheckBox.icon[filled].selectedBorderColor"
-                    : "CheckBox.icon.selectedBorderColor"));
+    if (styleFilled) {
+      backgroundColor = getColorOrBlank.apply("CheckBox.icon[filled].background");
+      borderColor = getColorOrBlank.apply("CheckBox.icon[filled].borderColor");
+      foregroundColor = getColorOrBlank.apply("CheckBox.icon[filled].checkmarkColor");
+      disabledBackgroundColor = getColorOrBlank.apply("CheckBox.icon[filled].disabledBackground");
+      hoverBorderColor = getColorOrBlank.apply("CheckBox.icon[filled].hoverBorderColor");
+      hoverSelectedBackgroundColor =
+          getColorOrBlank.apply("CheckBox.icon[filled].hoverSelectedBackground");
+      focusedBorderColor = getColorOrBlank.apply("CheckBox.icon[filled].focusedBorderColor");
+      selectedBackgroundColor = getColorOrBlank.apply("CheckBox.icon[filled].selectedBackground");
+      selectedBorderColor = getColorOrBlank.apply("CheckBox.icon[filled].selectedBorderColor");
+    } else {
+      backgroundColor = getColorOrBlank.apply("CheckBox.icon.background");
+      borderColor = getColorOrBlank.apply("CheckBox.icon.borderColor");
+      foregroundColor = getColorOrBlank.apply("CheckBox.icon.checkmarkColor");
+      disabledBackgroundColor = getColorOrBlank.apply("CheckBox.icon.disabledBackground");
+      hoverBorderColor = getColorOrBlank.apply("CheckBox.icon.hoverBorderColor");
+      hoverSelectedBackgroundColor = getColorOrBlank.apply("CheckBox.icon.hoverBackground");
+      focusedBorderColor = getColorOrBlank.apply("CheckBox.icon.focusedBorderColor");
+      selectedBackgroundColor = getColorOrBlank.apply("CheckBox.icon.selectedBackground");
+      selectedBorderColor = getColorOrBlank.apply("CheckBox.icon.selectedBorderColor");
+    }
   }
 
   /**

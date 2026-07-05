@@ -11,7 +11,7 @@
    06. Form Validation
    07. Scrollbars
    08. Other Elements
-   09. Helper Classes
+   09. Ids & Classes
    ========================= */
 
 /* =========================
@@ -59,7 +59,6 @@
   --mt-theme-color-button-background-disabled: {{button.disabledBackgroundColor}};
   --mt-theme-color-button-foreground-disabled: {{button.disabledForegroundColor}};
   --mt-theme-color-button-pressed-background: {{button.pressedBackgroundColor}};
-  --mt-theme-color-button-pressed-foreground: {{button.pressedForegroundColor}};
   --mt-theme-color-button-disabled-border-size: {{button.disabledBorderSize}};
   --mt-theme-color-button-disabled-border-color: {{button.disabledBorderColor}};
   --mt-theme-button-hover-background-color: {{button.hoverBackgroundColor}};
@@ -310,6 +309,7 @@ h1, h2, h3, h4, h5, h6 { margin-bottom: .5rem; }
   cursor: default;
   position: relative;
   background: linear-gradient(
+    to bottom,
     var(--mt-theme-color-button-start-background),
     var(--mt-theme-color-button-end-background)
   ) padding-box,
@@ -361,7 +361,7 @@ input[type=file]:enabled:active::file-selector-button {
 ):enabled:focus,
 input[type=file]:enabled:focus::file-selector-button {
   color: var(--mt-theme-button-focused-foreground-color);
-  background: var(--mt-theme-color-button-focused-background);
+  background: var(--mt-theme-button-focused-background-color);
   border-color: var(--mt-theme-button-focused-border-color);
   outline: var(--mt-theme-button-border-width) solid var(--mt-theme-button-focused-border-color);
   box-shadow: {{#if button.showShadow}}0px var(--mt-theme-button-shadow-width) 0px var(--mt-theme-button-focused-border-color);{{else}}none;{{/if}}
@@ -758,9 +758,11 @@ textarea:disabled {
 ::-webkit-scrollbar {
   background-color: var(--mt-theme-scroll-bar-background-color);
 }
+
 ::-webkit-scrollbar:vertical {
   width: var(--mt-theme-scroll-bar-width);
 }
+
 ::-webkit-scrollbar:horizontal {
   height: var(--mt-theme-scroll-bar-width);  /* intentionally using the scroll bar width for the height */
 }
@@ -930,11 +932,14 @@ progress::-webkit-progress-value {
 
 
 /* =========================
-   09. Helper Classes
+   09. Ids & Classes
    ========================= */
 
 .mt-map-label {
   display: inline-block;
+  border-width: {{#if preferences.mapLabelShowBorder}}var(--mt-prefs-map-label-border-width){{else}}0{{/if}};
+  border-style: solid;
+  border-color: transparent;
   border-radius: var(--mt-map-label-border-radius);
   font-size: var(--mt-prefs-map-label-font-size);
   padding: 4px;
@@ -944,30 +949,30 @@ progress::-webkit-progress-value {
 
 .mt-map-label-pc {
   background: var(--mt-prefs-map-label-pc-background-color) !important;
-  border: var(--mt-prefs-map-label-border-width) solid {{#if preferences.mapLabelShowBorder}}var(--mt-prefs-map-label-pc-border-color){{else}}transparent{{/if}} !important;
+  border-color: var(--mt-prefs-map-label-pc-border-color) !important;
   color: var(--mt-prefs-map-label-pc-foreground-color) !important;
 }
 
 .mt-map-label-npc {
   background: var(--mt-prefs-map-label-npc-background-color) !important;
-  border: var(--mt-prefs-map-label-border-width) solid {{#if preferences.mapLabelShowBorder}}var(--mt-prefs-map-label-npc-border-color){{else}}transparent{{/if}} !important;
+  border-color: var(--mt-prefs-map-label-npc-border-color) !important;
   color: var(--mt-prefs-map-label-npc-foreground-color) !important;
 }
 
 .mt-map-label-non-visible {
   background: var(--mt-prefs-map-label-non-visible-background-color) !important;
-  border: var(--mt-prefs-map-label-border-width) solid {{#if preferences.mapLabelShowBorder}}var(--mt-prefs-map-label-non-visible-border-color){{else}}transparent{{/if}} !important;
+  border-color: var(--mt-prefs-map-label-non-visible-border-color) !important;
   color: var(--mt-prefs-map-label-non-visible-foreground-color) !important;
 }
 
 .mt-map-label-drawing {
   background: var(--mt-prefs-map-label-drawing-background-color) !important;
-  border: var(--mt-prefs-map-label-border-width) solid {{#if preferences.mapLabelShowBorder}}var(--mt-prefs-map-label-drawing-border-color){{else}}transparent{{/if}} !important;
+  border-color: var(--mt-prefs-map-label-drawing-border-color) !important;
   color: var(--mt-prefs-map-label-drawing-foreground-color) !important;
 }
 
 .mt-map-label-template {
   background: var(--mt-prefs-map-label-template-background-color) !important;
-  border: var(--mt-prefs-map-label-border-width) solid {{#if preferences.mapLabelShowBorder}}var(--mt-prefs-map-label-template-border-color){{else}}transparent{{/if}} !important;
+  border-color: var(--mt-prefs-map-label-template-border-color) !important;
   color: var(--mt-prefs-map-label-template-foreground-color) !important;
 }

@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.model.library.builtin.themecss;
 
-import java.awt.Color;
 import java.util.function.Function;
 import javax.swing.UIDefaults;
 import javax.swing.plaf.InsetsUIResource;
@@ -102,39 +101,39 @@ public class ScrollBarCssContext {
   /**
    * Creates a new instance of the theme CSS context.
    *
-   * @param uiDef the UI defaults to use.
+   * @param uiDef The UI defaults to use.
+   * @param getColorOrBlank The function to use to convert the color key into a string color format.
    */
-  public ScrollBarCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
+  public ScrollBarCssContext(UIDefaults uiDef, Function<String, String> getColorOrBlank) {
     width = uiDef.get("ScrollBar.width") == null ? "12px" : uiDef.getInt("ScrollBar.width") + "px";
-    backgroundColor = formatColor.apply(uiDef.getColor("ScrollBar.background"));
-    foregroundColor = formatColor.apply(uiDef.getColor("ScrollBar.foreground"));
-    hoverButtonBackgroundColor =
-        formatColor.apply(uiDef.getColor("ScrollBar.hoverButtonBackground"));
-    hoverThumbColor = formatColor.apply(uiDef.getColor("ScrollBar.hoverThumbColor"));
-    hoverTrackColor = formatColor.apply(uiDef.getColor("ScrollBar.hoverTrackColor"));
-    pressedThumbColor = formatColor.apply(uiDef.getColor("ScrollBar.pressedThumbColor"));
+    backgroundColor = getColorOrBlank.apply("ScrollBar.background");
+    foregroundColor = getColorOrBlank.apply("ScrollBar.foreground");
+    hoverButtonBackgroundColor = getColorOrBlank.apply("ScrollBar.hoverButtonBackground");
+    hoverThumbColor = getColorOrBlank.apply("ScrollBar.hoverThumbColor");
+    hoverTrackColor = getColorOrBlank.apply("ScrollBar.hoverTrackColor");
+    pressedThumbColor = getColorOrBlank.apply("ScrollBar.pressedThumbColor");
     showButtons = uiDef.getBoolean("ScrollBar.showButtons") ? 1 : 0;
-    thumbHighlightColor = formatColor.apply(uiDef.getColor("ScrollBar.thumbHighlight"));
+    thumbHighlightColor = getColorOrBlank.apply("ScrollBar.thumbHighlight");
     thumbArc = uiDef.getInt("ScrollBar.thumbArc");
-    thumbShadowColor = formatColor.apply(uiDef.getColor("ScrollBar.thumbShadow"));
-    var dscol = uiDef.getColor("ScrollBar.thumbDarkShadow");
-    thumbDarkShadowColor = dscol != null ? formatColor.apply(dscol) : thumbShadowColor;
-    var tcol = uiDef.getColor("ScrollBar.thumbBorderColor");
-    thumbBorderColor = tcol != null ? formatColor.apply(tcol) : thumbShadowColor;
-    thumbColor = formatColor.apply(uiDef.getColor("ScrollBar.thumb"));
+    thumbShadowColor = getColorOrBlank.apply("ScrollBar.thumbShadow");
+    thumbDarkShadowColor =
+        ThemeCssContext.getColorOrDefault("ScrollBar.thumbDarkShadow", thumbShadowColor);
+    thumbBorderColor =
+        ThemeCssContext.getColorOrDefault("ScrollBar.thumbBorderColor", thumbShadowColor);
+    thumbColor = getColorOrBlank.apply("ScrollBar.thumb");
     InsetsUIResource thumbInsets = (InsetsUIResource) uiDef.get("ScrollBar.thumbInsets");
     thumbInsetsTop = thumbInsets == null ? 2 : thumbInsets.top;
     thumbInsetsRight = thumbInsets == null ? 2 : thumbInsets.right;
     thumbInsetsBottom = thumbInsets == null ? 2 : thumbInsets.bottom;
     thumbInsetsLeft = thumbInsets == null ? 2 : thumbInsets.left;
-    trackColor = formatColor.apply(uiDef.getColor("ScrollBar.track"));
+    trackColor = getColorOrBlank.apply("ScrollBar.track");
     InsetsUIResource trackInsets = (InsetsUIResource) uiDef.get("ScrollBar.trackInsets");
     trackInsetsTop = trackInsets == null ? 0 : trackInsets.top;
     trackInsetsRight = trackInsets == null ? 0 : trackInsets.right;
     trackInsetsBottom = trackInsets == null ? 0 : trackInsets.bottom;
     trackInsetsLeft = trackInsets == null ? 0 : trackInsets.left;
     hasTrackInsets = trackInsets == null ? 0 : 1;
-    buttonArrowColor = formatColor.apply(uiDef.getColor("ScrollBar.buttonArrowColor"));
+    buttonArrowColor = getColorOrBlank.apply("ScrollBar.buttonArrowColor");
   }
 
   /** Gets the scroll bar width. */

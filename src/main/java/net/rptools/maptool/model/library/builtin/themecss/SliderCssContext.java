@@ -52,17 +52,17 @@ public class SliderCssContext {
    * Creates a new instance of the slider css context.
    *
    * @param uiDef The UI defaults to use to extract the values.
-   * @param formatColor The function to use to format the color.
+   * @param getColorOrBlank The function to use to convert the color key into a string color format
    */
-  public SliderCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
-    backgroundColor = formatColor.apply(uiDef.getColor("Slider.background"));
-    thumbColor = formatColor.apply(uiDef.getColor("Slider.thumbColor"));
-    trackColor = formatColor.apply(uiDef.getColor("Slider.trackColor"));
-    focusColor = formatColor.apply(uiDef.getColor("Slider.focus"));
-    disabledThumbColor = formatColor.apply(uiDef.getColor("Slider.disabledThumbColor"));
-    disabledTrackColor = formatColor.apply(uiDef.getColor("Slider.disabledTrackColor"));
-    hoverThumbColor = formatColor.apply(uiDef.getColor("Slider.hoverThumbColor"));
-    pressedThumbColor = formatColor.apply(uiDef.getColor("Slider.pressedThumbColor"));
+  public SliderCssContext(UIDefaults uiDef, Function<String, String> getColorOrBlank) {
+    backgroundColor = getColorOrBlank.apply("Slider.background");
+    thumbColor = getColorOrBlank.apply("Slider.thumbColor");
+    trackColor = getColorOrBlank.apply("Slider.trackColor");
+    focusColor = getColorOrBlank.apply("Slider.focus");
+    disabledThumbColor = getColorOrBlank.apply("Slider.disabledThumbColor");
+    disabledTrackColor = getColorOrBlank.apply("Slider.disabledTrackColor");
+    hoverThumbColor = getColorOrBlank.apply("Slider.hoverThumbColor");
+    pressedThumbColor = getColorOrBlank.apply("Slider.pressedThumbColor");
   }
 
   /**

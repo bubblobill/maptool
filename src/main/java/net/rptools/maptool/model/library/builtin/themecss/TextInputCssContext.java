@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.model.library.builtin.themecss;
 
-import java.awt.Color;
 import java.util.function.Function;
 import javax.swing.UIDefaults;
 
@@ -49,17 +48,16 @@ public class TextInputCssContext {
    * Creates a new instance of the text input css context.
    *
    * @param uiDef The UI defaults to use to extract the values.
-   * @param formatColor The function to use to format the color.
+   * @param getColorOrBlank The function to use to convert the color key into a string color format.
    */
-  public TextInputCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
-    foregroundColor = formatColor.apply(uiDef.getColor("TextField.foreground"));
-    backgroundColor = formatColor.apply(uiDef.getColor("TextField.background"));
-    disabledForegroundColor = formatColor.apply(uiDef.getColor("TextField.inactiveForeground"));
-    disabledBackgroundColor = formatColor.apply(uiDef.getColor("TextField.disabledBackground"));
+  public TextInputCssContext(UIDefaults uiDef, Function<String, String> getColorOrBlank) {
+    foregroundColor = getColorOrBlank.apply("TextField.foreground");
+    backgroundColor = getColorOrBlank.apply("TextField.background");
+    disabledForegroundColor = getColorOrBlank.apply("TextField.inactiveForeground");
+    disabledBackgroundColor = getColorOrBlank.apply("TextField.disabledBackground");
     disabledBorderColor = disabledForegroundColor;
     disabledBorderSize = "1px";
-    placeholderForegroundColor =
-        formatColor.apply(uiDef.getColor("TextField.placeholderForeground"));
+    placeholderForegroundColor = getColorOrBlank.apply("TextField.placeholderForeground");
   }
 
   /**

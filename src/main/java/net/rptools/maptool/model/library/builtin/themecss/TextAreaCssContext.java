@@ -46,14 +46,14 @@ public class TextAreaCssContext {
    * Creates a new instance of the textarea css context.
    *
    * @param uiDef The UI defaults to use to extract the values.
-   * @param formatColor The function to use to format the color.
+   * @param getColorOrBlank The function to use to convert the color key into a string color format.
    */
-  public TextAreaCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
-    foregroundColor = formatColor.apply(uiDef.getColor("TextArea.foreground"));
-    backgroundColor = formatColor.apply(uiDef.getColor("TextArea.background"));
-    disabledForegroundColor = formatColor.apply(uiDef.getColor("TextArea.inactiveForeground"));
-    disabledBackgroundColor = formatColor.apply(uiDef.getColor("TextArea.inactiveBackground"));
-    disabledBorderColor = formatColor.apply(uiDef.getColor("TextArea.inactiveForeground"));
+  public TextAreaCssContext(UIDefaults uiDef, Function<String, String> getColorOrBlank) {
+    foregroundColor = getColorOrBlank.apply("TextArea.foreground");
+    backgroundColor = getColorOrBlank.apply("TextArea.background");
+    disabledForegroundColor = getColorOrBlank.apply("TextArea.inactiveForeground");
+    disabledBackgroundColor = getColorOrBlank.apply("TextArea.inactiveBackground");
+    disabledBorderColor = getColorOrBlank.apply("TextArea.inactiveForeground");
     disabledBorderSize = "1px";
   }
 

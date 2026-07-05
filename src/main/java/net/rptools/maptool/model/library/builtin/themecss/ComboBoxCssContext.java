@@ -51,19 +51,18 @@ public class ComboBoxCssContext {
    * Creates a new instance of the combo box css context.
    *
    * @param uiDef The UI defaults to use to extract the values.
-   * @param formatColor The function to use to format the color.
+   * @param getColorOrBlank The function to use to convert the color key into a string color format.
    */
-  public ComboBoxCssContext(UIDefaults uiDef, Function<Color, String> formatColor) {
-    backgroundColor = formatColor.apply(uiDef.getColor("ComboBox.background"));
-    foregroundColor = formatColor.apply(uiDef.getColor("ComboBox.foreground"));
-    buttonArrowColor = formatColor.apply(uiDef.getColor("ComboBox.buttonArrowColor"));
-    buttonBackgroundColor = formatColor.apply(uiDef.getColor("ComboBox.buttonBackground"));
-    buttonDisabledArrowColor =
-        formatColor.apply(uiDef.getColor("ComboBox.buttonDisabledArrowColor"));
-    buttonHoverArrowColor = formatColor.apply(uiDef.getColor("ComboBox.buttonHoverArrowColor"));
-    buttonPressedArrowColor = formatColor.apply(uiDef.getColor("ComboBox.buttonPressedArrowColor"));
-    disabledBackgroundColor = formatColor.apply(uiDef.getColor("ComboBox.disabledBackground"));
-    disabledForegroundColor = formatColor.apply(uiDef.getColor("ComboBox.disabledForeground"));
+  public ComboBoxCssContext(UIDefaults uiDef, Function<String, String> getColorOrBlank) {
+    backgroundColor = getColorOrBlank.apply("ComboBox.background");
+    foregroundColor = getColorOrBlank.apply("ComboBox.foreground");
+    buttonArrowColor = getColorOrBlank.apply("ComboBox.buttonArrowColor");
+    buttonBackgroundColor = getColorOrBlank.apply("ComboBox.buttonBackground");
+    buttonDisabledArrowColor = getColorOrBlank.apply("ComboBox.buttonDisabledArrowColor");
+    buttonHoverArrowColor = getColorOrBlank.apply("ComboBox.buttonHoverArrowColor");
+    buttonPressedArrowColor = getColorOrBlank.apply("ComboBox.buttonPressedArrowColor");
+    disabledBackgroundColor = getColorOrBlank.apply("ComboBox.disabledBackground");
+    disabledForegroundColor = getColorOrBlank.apply("ComboBox.disabledForeground");
   }
 
   /**
