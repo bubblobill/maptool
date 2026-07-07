@@ -426,6 +426,10 @@ public class MapToolFrame extends DefaultDockableHolder implements WindowListene
     pointerToolOverlay = new PointerToolOverlay();
     zoneRendererPanel.add(pointerToolOverlay, PositionalLayout.Position.CENTER, 0);
 
+    // bring chat notifications to the front
+    zoneRendererPanel.setComponentZOrder(getChatTypingPanel(), 0);
+    zoneRendererPanel.setComponentZOrder(getChatActionLabel(), 0);
+
     // Put it all together
     setJMenuBar(menuBar);
     add(BorderLayout.NORTH, toolbarPanel);
@@ -1928,6 +1932,10 @@ public class MapToolFrame extends DefaultDockableHolder implements WindowListene
 
     zoneRendererPanel.add(initiativePanel, PositionalLayout.Position.SE);
     zoneRendererPanel.setComponentZOrder(initiativePanel, 0);
+
+    // bring chat notifications to the front
+    zoneRendererPanel.setComponentZOrder(getChatTypingPanel(), 0);
+    zoneRendererPanel.setComponentZOrder(getChatActionLabel(), 0);
 
     zoneRendererPanel.revalidate();
     zoneRendererPanel.doLayout();

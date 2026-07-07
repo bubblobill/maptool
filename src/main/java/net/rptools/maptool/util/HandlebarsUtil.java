@@ -27,7 +27,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.rptools.maptool.model.library.Library;
@@ -38,14 +37,14 @@ import org.apache.logging.log4j.Logger;
 /**
  * Utility class to apply a Handlebars template given a bean.
  *
- * @param <T> The type of the bean to apply the template to.
+ * @param <T> The Bean type to apply the template to.
  */
 public class HandlebarsUtil<T> {
   private static final HighConcurrencyTemplateCache HIGH_CONCURRENCY_TEMPLATE_CACHE =
       new HighConcurrencyTemplateCache();
 
   /**
-   * Use this to obtain an instance of Handlebars instead of creating one separately.
+   * Use this to get an instance of Handlebars instead of creating one separately.
    *
    * <p>Specify a TemplateLoader if the default ClassPathTemplateLoader is not required.
    *
@@ -82,7 +81,7 @@ public class HandlebarsUtil<T> {
   private static final Logger log = LogManager.getLogger(HandlebarsUtil.class);
 
   /** Handlebars partial template source that uses Add-On files */
-  private static record LibraryTemplateSource(@Nonnull Library library, @Nonnull String filename)
+  private record LibraryTemplateSource(@Nonnull Library library, @Nonnull String filename)
       implements TemplateSource {
     @Override
     public long lastModified() {
@@ -107,7 +106,7 @@ public class HandlebarsUtil<T> {
 
   /** Handlebars partial template loader that uses Add-On Library URIs */
   private static class LibraryTemplateLoader extends AbstractTemplateLoader {
-    /** Path to template being resolved, relative paths are resolved relative to its parent. */
+    /** Path to template being resolved, relative paths are resolved against its parent. */
     @Nonnull final URI current;
 
     @Nonnull final Library library;
@@ -122,7 +121,10 @@ public class HandlebarsUtil<T> {
       setSuffix(TemplateLoader.DEFAULT_SUFFIX);
     }
 
-    /** Resolve possibly relative uri to a new location relative to current rooted below prefix */
+    /**
+     * Resolve (possibly relative) uri to a new relative location against "current" rooted below
+     * prefix
+     */
     @Override
     @Nonnull
     public String resolve(@Nonnull final String path) {
@@ -145,14 +147,14 @@ public class HandlebarsUtil<T> {
    *
    * @param stringTemplate The template to compile.
    * @param loader The template loader for loading included partial templates
-   * @throws IOException If there is an error compiling the template.
+   * @throws IOException when compiling the template throws an error.
    */
   private HandlebarsUtil(String stringTemplate, TemplateLoader loader) throws IOException {
     Handlebars handlebars = getHandlebarsInstance(loader);
     try {
       template = handlebars.compileInline(stringTemplate);
     } catch (IOException e) {
-      log.error("Handlebars Error: {}", e.getMessage());
+      log.error("Handlebars Compile Error: {}", e.getMessage());
       throw e;
     }
   }
@@ -161,8 +163,8 @@ public class HandlebarsUtil<T> {
    * Creates a new instance of the utility class.
    *
    * @param stringTemplate The template to compile.
-   * @param entry The lib:// URL of the template to load partial templates relative to
-   * @throws IOException If there is an error compiling the template.
+   * @param entry The base lib:// URL of the template for relative partial templates
+   * @throws IOException when compiling the template throws an error.
    */
   public HandlebarsUtil(String stringTemplate, URL entry) throws IOException {
     this(
@@ -177,7 +179,7 @@ public class HandlebarsUtil<T> {
    * Creates a new instance of the utility class.
    *
    * @param stringTemplate The template to compile.
-   * @throws IOException If there is an error compiling the template.
+   * @throws IOException when compiling the template throws an error.
    */
   public HandlebarsUtil(String stringTemplate) throws IOException {
     this(stringTemplate, new ClassPathTemplateLoader());
@@ -188,14 +190,14 @@ public class HandlebarsUtil<T> {
    *
    * @param bean The bean to apply the template to.
    * @return The result of applying the template to the bean.
-   * @throws IOException If there is an error applying the template.
+   * @throws IOException when applying the template throws an error.
    */
   public String apply(T bean) throws IOException {
     try {
       var context = Context.newBuilder(bean).resolver(JavaBeanValueResolver.INSTANCE).build();
       return template.apply(context);
     } catch (IOException e) {
-      log.error("Handlebars Error: {}", e.getMessage());
+      log.error("Handlebars Apply Error: {}", e.getMessage());
       throw e;
     }
   }
