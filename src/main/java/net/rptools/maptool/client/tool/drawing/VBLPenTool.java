@@ -15,10 +15,8 @@
 package net.rptools.maptool.client.tool.drawing;
 
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
-import java.awt.Shape;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -66,6 +64,9 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   private final TopologyTool.MaskOverlay maskOverlay;
   private static final RadiusPanel RADIUS_PANEL = new RadiusPanel();
 
+  private final Area currentArea = new Area();
+
+  /** Non-null whenever we are drawing. */
   private @Nullable ZonePoint lastPoint;
 
   public VBLPenTool(TopologyModeSelectionPanel modePanel) {
@@ -95,10 +96,18 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
 
   @Override
   protected void resetTool() {
+    var isCurrentlyDrawing = lastPoint != null;
+
     lastPoint = null;
+    currentArea.reset();
     setIsEraser(false);
+
+    // Allow escape to cancel uncommitted drawing without going back to pointer tool.
+    if (!isCurrentlyDrawing) {
+      super.resetTool();
+    }
+
     renderer.repaint();
-    super.resetTool();
   }
 
   @Override
@@ -124,11 +133,11 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
     super.keyReleased(e);
   }
 
-  private void submit(Shape shape) {
-    if (shape == null) {
+  private void submit(Area area) {
+    if (area.isEmpty()) {
       return;
     }
-    Area area = new Area(shape);
+
     for (var type : AppStatePersisted.getTopologyTypes()) {
       MapTool.serverCommand().updateMaskTopology(getZone(), area, isEraser(), type);
     }
@@ -142,6 +151,12 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
     Graphics2D g2 = (Graphics2D) g.create();
     g2.transform(zoneScale.toScreenTransform());
 
+    var color = isEraser() ? AppStyle.topologyRemoveColor : AppStyle.topologyAddColor;
+    g2.setPaint(color);
+
+    // Paint the temporary stuff.
+    g2.fill(currentArea);
+
     int thickness = AppStatePersisted.getVblPenRadius();
     double radius = thickness / 2.0;
 
@@ -151,8 +166,6 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
       ZonePoint zp =
           getPoint(new MouseEvent(renderer, 0, 0, 0, mousePoint.x, mousePoint.y, 0, false));
       Ellipse2D circle = new Ellipse2D.Double(zp.x - radius, zp.y - radius, thickness, thickness);
-      Color color = isEraser() ? AppStyle.topologyRemoveColor : AppStyle.topologyAddColor;
-      g2.setColor(color);
       g2.fill(circle);
       g2.setStroke(new BasicStroke(1 / (float) zoneScale.getScale()));
       g2.draw(circle);
@@ -165,37 +178,38 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   public void mousePressed(MouseEvent e) {
     if (SwingUtilities.isLeftMouseButton(e)) {
       setIsEraser(isEraser(e));
-      lastPoint = getPoint(e);
-      addPointToTopology(lastPoint);
-      renderer.repaint();
+      addPointToTopology(getPoint(e));
     }
     super.mousePressed(e);
+    renderer.repaint();
   }
 
   @Override
   public void mouseDragged(MouseEvent e) {
-    if (lastPoint != null && SwingUtilities.isLeftMouseButton(e)) {
+    if (SwingUtilities.isLeftMouseButton(e) && lastPoint != null) {
       cancelMapDrag();
       setIsEraser(isEraser(e));
       ZonePoint point = getPoint(e);
-      if (!point.equals(lastPoint)) {
-        addPointToTopology(point);
-        lastPoint = point;
-        renderer.repaint();
-      }
+      addPointToTopology(point);
     } else {
       super.mouseDragged(e);
     }
+
+    renderer.repaint();
   }
 
   @Override
   public void mouseReleased(MouseEvent e) {
-    if (lastPoint != null && SwingUtilities.isLeftMouseButton(e)) {
+    if (SwingUtilities.isLeftMouseButton(e)) {
       setIsEraser(isEraser(e));
+
+      submit(currentArea);
+
+      currentArea.reset();
       lastPoint = null;
-      renderer.repaint();
     }
     super.mouseReleased(e);
+    renderer.repaint();
   }
 
   @Override
@@ -232,7 +246,9 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
             point.x, point.y);
 
     BasicStroke stroke = new BasicStroke(thickness, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-    submit(stroke.createStrokedShape(line));
+    currentArea.add(new Area(stroke.createStrokedShape(line)));
+
+    lastPoint = point;
   }
 
   private static class RadiusPanel extends JPanel {
