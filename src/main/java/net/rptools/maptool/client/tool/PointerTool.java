@@ -650,7 +650,8 @@ public class PointerTool extends DefaultTool {
                     oldTokenUnderMouse,
                     getZone(),
                     SwingUtil.isShiftDown(keysDown),
-                    SwingUtil.isControlDown(keysDown)));
+                    SwingUtil.isControlDown(keysDown),
+                    SwingUtil.isAltDown(keysDown)));
       }
     } else if (tokenUnderMouse != oldTokenUnderMouse) {
       statSheet = null;
@@ -662,7 +663,8 @@ public class PointerTool extends DefaultTool {
                     oldTokenUnderMouse,
                     getZone(),
                     SwingUtil.isShiftDown(keysDown),
-                    SwingUtil.isControlDown(keysDown)));
+                    SwingUtil.isControlDown(keysDown),
+                    SwingUtil.isAltDown(keysDown)));
       }
       new MapToolEventBus()
           .getMainEventBus()
@@ -671,7 +673,8 @@ public class PointerTool extends DefaultTool {
                   tokenUnderMouse,
                   getZone(),
                   SwingUtil.isShiftDown(keysDown),
-                  SwingUtil.isControlDown(keysDown)));
+                  SwingUtil.isControlDown(keysDown),
+                  SwingUtil.isAltDown(keysDown)));
     }
     Marker marker = renderer.getViewModel().getMarkerAt(mouseX, mouseY);
     if (marker != markerUnderMouse && marker != null) {
