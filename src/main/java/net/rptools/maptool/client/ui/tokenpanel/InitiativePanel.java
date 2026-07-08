@@ -33,6 +33,7 @@ import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.swing.SwingUtil;
+import net.rptools.maptool.client.ui.MapToolFrame;
 import net.rptools.maptool.client.ui.theme.Icons;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
@@ -137,7 +138,17 @@ public class InitiativePanel extends JPanel
   private boolean initPanelButtonsDisabled;
 
   /** Frame used in docking manager */
-  private DockableFrame dockableFrame;
+  private DockableFrame dockableFrame = null;
+
+  /** Custom title component for {@link #dockableFrame} */
+  private final JLabel dockableFrameTitleComponent = new JLabel();
+
+  /** Display text used in {@link #dockableFrameTitleComponent} & {@link #dockableFrame} titles */
+  private static final String TITLE_LABEL_TEXT = "%s (%d, %d)";
+
+  /** Tooltip text used in {@link #dockableFrameTitleComponent} */
+  private static final String TITLE_LABEL_TOOLTIP_TEXT =
+      "<html><b>%s: </b>%d<br><b>%s: </b>%d</html>";
 
   /*---------------------------------------------------------------------------------------------
    * Constructor
@@ -273,6 +284,7 @@ public class InitiativePanel extends JPanel
    * GM's and Player's properly
    */
   public void updateView() {
+    updateFrameTitle();
     displayList.setDragEnabled(hasGMPermission());
 
     // Set up the buttons
@@ -565,65 +577,68 @@ public class InitiativePanel extends JPanel
 
   public DockableFrame getDockableFrame() {
     if (dockableFrame == null) {
-      dockableFrame = MapTool.getFrame().getFrame(INITIATIVE);
-      dockableFrame.addDockableFrameListener(
-          new DockableFrameAdapter() {
-            private String oldStatusMessage;
+      MapToolFrame mapToolFrame = MapTool.getFrame();
+      if (mapToolFrame == null) { // this happens on startup before everything gets loaded
+        return null;
+      }
+      dockableFrame = mapToolFrame.getFrame(INITIATIVE);
+      if (dockableFrame != null) {
+        dockableFrame.setTitleLabelComponent(dockableFrameTitleComponent);
 
-            @Override
-            public void dockableFrameActivated(DockableFrameEvent dockableFrameEvent) {
-              oldStatusMessage = MapTool.getFrame().getStatusMessage();
-              updateStatusBar();
-            }
+        dockableFrame.addDockableFrameListener(
+            new DockableFrameAdapter() {
+              @Override
+              public void dockableFrameAdded(DockableFrameEvent dockableFrameEvent) {
+                super.dockableFrameAdded(dockableFrameEvent);
+                updateFrameTitle();
+              }
 
-            @Override
-            public void dockableFrameDeactivated(DockableFrameEvent dockableFrameEvent) {
-              MapTool.getFrame().setStatusMessage(oldStatusMessage);
-              oldStatusMessage = null;
-            }
-          });
+              @Override
+              public void dockableFrameShown(DockableFrameEvent dockableFrameEvent) {
+                super.dockableFrameShown(dockableFrameEvent);
+                updateFrameTitle();
+              }
+
+              @Override
+              public void dockableFrameTabShown(DockableFrameEvent dockableFrameEvent) {
+                super.dockableFrameTabShown(dockableFrameEvent);
+                updateFrameTitle();
+              }
+            });
+      }
     }
     return dockableFrame;
   }
 
-  private void updateStatusBar() {
-    if (!getDockableFrame().isActive()) {
+  private void updateFrameTitle() {
+    if (!MapTool.getPlayer().isGM() || getDockableFrame() == null) {
       return;
     }
     SwingUtilities.invokeLater(
         () -> {
+          int pc = 0, npc = 0;
           if (list != null && list.getSize() > 0 && MapTool.getPlayer().isGM()) {
-            // PCs/NPCs: {0}/{1}, Current: {2}, Round/Phase {3}/{4}
-            int pc = 0, npc = 0;
-            TokenInitiative last = null;
-            boolean sorted = true;
-            Comparator<TokenInitiative> comparator = list.getComparator();
             for (TokenInitiative ti : list.getTokens()) {
-              if (last != null && sorted && !ti.isHolding()) {
-                int comp = comparator.compare(ti, last);
-                if ((initUseReverseSort && comp > 0) || (!initUseReverseSort && comp < 0)) {
-                  sorted = false;
-                }
-              }
-              last = ti;
               if (ti.getToken().getType().equals(Type.PC)) {
                 pc++;
               } else {
                 npc++;
               }
             }
-            TokenInitiative current = list.getCurrentTokenInitiative();
-            MapTool.getFrame()
-                .setStatusMessage(
-                    I18N.getText(
-                        "initiative.status.summary",
-                        pc,
-                        npc,
-                        current == null ? "*" : current.getToken().getName(),
-                        list.getRound(),
-                        current == null ? -1 : current.getState(),
-                        sorted));
           }
+
+          String text = String.format(TITLE_LABEL_TEXT, I18N.getText("panel.Initiative"), pc, npc);
+          String tooltip =
+              String.format(
+                  TITLE_LABEL_TOOLTIP_TEXT,
+                  I18N.getText("Token.Type.PC"),
+                  pc,
+                  I18N.getText("Token.Type.NPC"),
+                  npc);
+          dockableFrameTitleComponent.setText(text);
+          dockableFrameTitleComponent.setToolTipText(tooltip);
+          dockableFrame.setSideTitle(text);
+          dockableFrame.setTabTitle(text);
         });
   }
 
@@ -683,7 +698,7 @@ public class InitiativePanel extends JPanel
    */
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
-    updateStatusBar();
+    updateFrameTitle();
     switch (evt.getPropertyName()) {
       case InitiativeList.ROUND_PROP -> updateRound();
       case InitiativeList.CURRENT_PROP -> {
