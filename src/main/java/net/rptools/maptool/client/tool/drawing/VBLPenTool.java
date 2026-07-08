@@ -35,6 +35,7 @@ import javax.swing.border.BevelBorder;
 import net.rptools.maptool.client.AppStatePersisted;
 import net.rptools.maptool.client.AppStyle;
 import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.swing.TopologyModeSelectionPanel;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
@@ -51,6 +52,7 @@ import net.rptools.maptool.model.ZonePoint;
  * TopologyModeSelectionPanel} for layer selection.
  *
  * <p><b>Interactions:</b>
+ *
  * <ul>
  *   <li>LClick+Drag: Incremental draw/erase.
  *   <li>Shift: Toggle Eraser mode (real-time indicator update).
@@ -209,12 +211,12 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
 
   @Override
   public void mouseWheelMoved(MouseWheelEvent e) {
-    if (net.rptools.maptool.client.swing.SwingUtil.isControlDown(e)) {
+    if (SwingUtil.isAltDown(e)) {
       int thickness = AppStatePersisted.getVblPenRadius();
       // Increase/decrease by 1 or more depending on rotation.
       // Scrolling down (positive) decreases, up (negative) increases.
       thickness -= e.getWheelRotation();
-      thickness = Math.max(1, Math.min(300, thickness));
+      thickness = Math.clamp(thickness, 1, 300);
 
       AppStatePersisted.setVblPenRadius(thickness);
       RADIUS_PANEL.updateSpinner(thickness);
