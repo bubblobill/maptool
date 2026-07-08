@@ -65,7 +65,6 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   private static final RadiusPanel RADIUS_PANEL = new RadiusPanel();
 
   private ZonePoint lastPoint;
-  private boolean shiftDown;
 
   public VBLPenTool(TopologyModeSelectionPanel modePanel) {
     super("tool.vblpen.instructions", "tool.vblpen.tooltip");
@@ -95,14 +94,9 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   @Override
   protected void resetTool() {
     lastPoint = null;
-    shiftDown = false;
+    setIsEraser(false);
     renderer.repaint();
     super.resetTool();
-  }
-
-  @Override
-  protected boolean isEraser() {
-    return shiftDown;
   }
 
   @Override
@@ -113,7 +107,7 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   @Override
   public void keyPressed(KeyEvent e) {
     if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-      shiftDown = true;
+      setIsEraser(true);
       renderer.repaint();
     }
     super.keyPressed(e);
@@ -122,7 +116,7 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   @Override
   public void keyReleased(KeyEvent e) {
     if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-      shiftDown = false;
+      setIsEraser(false);
       renderer.repaint();
     }
     super.keyReleased(e);
@@ -168,7 +162,7 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   @Override
   public void mousePressed(MouseEvent e) {
     if (SwingUtilities.isLeftMouseButton(e)) {
-      shiftDown = e.isShiftDown();
+      setIsEraser(isEraser(e));
       lastPoint = getPoint(e);
       addPointToTopology(lastPoint);
       renderer.repaint();
@@ -180,7 +174,7 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   public void mouseDragged(MouseEvent e) {
     if (lastPoint != null && SwingUtilities.isLeftMouseButton(e)) {
       cancelMapDrag();
-      shiftDown = e.isShiftDown();
+      setIsEraser(isEraser(e));
       ZonePoint point = getPoint(e);
       if (!point.equals(lastPoint)) {
         addPointToTopology(point);
@@ -195,7 +189,7 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   @Override
   public void mouseReleased(MouseEvent e) {
     if (lastPoint != null && SwingUtilities.isLeftMouseButton(e)) {
-      shiftDown = e.isShiftDown();
+      setIsEraser(isEraser(e));
       lastPoint = null;
       renderer.repaint();
     }
@@ -205,7 +199,7 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   @Override
   public void mouseMoved(MouseEvent e) {
     super.mouseMoved(e);
-    shiftDown = e.isShiftDown();
+    setIsEraser(isEraser(e));
     renderer.repaint(); // Repaint to update the pen preview.
   }
 
