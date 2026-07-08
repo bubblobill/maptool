@@ -24,7 +24,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.Path2D;
+import java.awt.geom.Line2D;
+import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -222,22 +223,15 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
 
   private void addPointToTopology(ZonePoint point) {
     int thickness = AppStatePersisted.getVblPenRadius();
-    double radius = thickness / 2.0;
 
-    Path2D segmentPath = new Path2D.Double();
-    Ellipse2D circle =
-        new Ellipse2D.Double(point.x - radius, point.y - radius, thickness, thickness);
-    segmentPath.append(circle, false);
+    var previousPoint = Objects.requireNonNullElse(lastPoint, point);
+    var line =
+        new Line2D.Double(
+            previousPoint.x, previousPoint.y,
+            point.x, point.y);
 
-    if (lastPoint != null) {
-      BasicStroke stroke =
-          new BasicStroke(thickness, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-      Path2D line = new Path2D.Double();
-      line.moveTo(lastPoint.x, lastPoint.y);
-      line.lineTo(point.x, point.y);
-      segmentPath.append(stroke.createStrokedShape(line), false);
-    }
-    submit(segmentPath);
+    BasicStroke stroke = new BasicStroke(thickness, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+    submit(stroke.createStrokedShape(line));
   }
 
   private static class RadiusPanel extends JPanel {
