@@ -26,6 +26,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.util.Objects;
+import javax.annotation.Nullable;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -65,7 +66,7 @@ public final class VBLPenTool extends AbstractDrawingLikeTool {
   private final TopologyTool.MaskOverlay maskOverlay;
   private static final RadiusPanel RADIUS_PANEL = new RadiusPanel();
 
-  private ZonePoint lastPoint;
+  private @Nullable ZonePoint lastPoint;
 
   public VBLPenTool(TopologyModeSelectionPanel modePanel) {
     super("tool.vblpen.instructions", "tool.vblpen.tooltip");
