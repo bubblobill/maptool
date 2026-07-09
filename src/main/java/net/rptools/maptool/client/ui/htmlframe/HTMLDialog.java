@@ -451,26 +451,24 @@ public class HTMLDialog extends JDialog implements HTMLPanelContainer {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    if (e instanceof HTMLActionEvent.FormActionEvent) {
+    if (e instanceof HTMLActionEvent.FormActionEvent fae) {
       if (input) {
         closeRequest();
       }
-      HTMLActionEvent.FormActionEvent fae = (HTMLActionEvent.FormActionEvent) e;
       MacroLinkFunction.runMacroLink(fae.getAction() + fae.getData());
     }
-    if (e instanceof HTMLActionEvent.ChangeTitleActionEvent) {
-      this.setTitle(((HTMLActionEvent.ChangeTitleActionEvent) e).getNewTitle());
+    if (e instanceof HTMLActionEvent.ChangeTitleActionEvent ctae) {
+      this.setTitle(ctae.getNewTitle());
     }
-    if (e instanceof HTMLActionEvent.RegisterMacroActionEvent) {
-      HTMLActionEvent.RegisterMacroActionEvent rmae = (HTMLActionEvent.RegisterMacroActionEvent) e;
+    if (e instanceof HTMLActionEvent.RegisterMacroActionEvent rmae) {
       macroCallbacks.put(rmae.getType(), rmae.getMacro());
     }
     if (e instanceof HTMLActionEvent.ChangeIconActionEvent ciae) {
       updateIcon(ciae.getNewIconRef());
     }
-    if (e instanceof HTMLActionEvent.MetaTagActionEvent) {
-      String name = ((HTMLActionEvent.MetaTagActionEvent) e).getName();
-      String content = ((HTMLActionEvent.MetaTagActionEvent) e).getContent();
+    if (e instanceof HTMLActionEvent.MetaTagActionEvent mtae) {
+      String name = mtae.getName();
+      String content = mtae.getContent();
       if (name.equalsIgnoreCase("input")) {
         input = Boolean.parseBoolean(content);
       } else if (name.equalsIgnoreCase("closebutton")) {

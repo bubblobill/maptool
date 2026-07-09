@@ -474,24 +474,21 @@ public class HTMLFrame extends DockableFrame implements HTMLPanelContainer {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    if (e instanceof HTMLActionEvent.FormActionEvent) {
-      HTMLActionEvent.FormActionEvent fae = (HTMLActionEvent.FormActionEvent) e;
+    if (e instanceof HTMLActionEvent.FormActionEvent fae) {
       MacroLinkFunction.runMacroLink(fae.getAction() + fae.getData());
     }
-    if (e instanceof HTMLActionEvent.RegisterMacroActionEvent) {
-      HTMLActionEvent.RegisterMacroActionEvent rmae = (HTMLActionEvent.RegisterMacroActionEvent) e;
+    if (e instanceof HTMLActionEvent.RegisterMacroActionEvent rmae) {
       macroCallbacks.put(rmae.getType(), rmae.getMacro());
     }
-    if (e instanceof HTMLActionEvent.ChangeTitleActionEvent) {
-      String newTitle = ((HTMLActionEvent.ChangeTitleActionEvent) e).getNewTitle();
+    if (e instanceof HTMLActionEvent.ChangeTitleActionEvent ctae) {
+      String newTitle = ctae.getNewTitle();
       this.setTitle(newTitle);
       this.setTabTitle(newTitle);
     }
     if (e instanceof HTMLActionEvent.ChangeIconActionEvent ciae) {
       updateIcon(ciae.getNewIconRef());
     }
-    if (e instanceof HTMLActionEvent.MetaTagActionEvent) {
-      HTMLActionEvent.MetaTagActionEvent mtae = (HTMLActionEvent.MetaTagActionEvent) e;
+    if (e instanceof HTMLActionEvent.MetaTagActionEvent mtae) {
       if (mtae.getName().equalsIgnoreCase("onChangeToken")
           || mtae.getName().equalsIgnoreCase("onChangeSelection")
           || mtae.getName().equalsIgnoreCase("onChangeImpersonated")) {
