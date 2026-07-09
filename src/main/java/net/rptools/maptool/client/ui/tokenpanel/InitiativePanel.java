@@ -137,6 +137,12 @@ public class InitiativePanel extends JPanel
    */
   private boolean initPanelButtonsDisabled;
 
+  /** Flag indicating that additional information should be shown in the title bar. */
+  private boolean showTitleInfo = AppPreferences.initiativePanelShowsInfoInTitle.get();
+
+  /** Flag indicating that title bar change needs action. */
+  private boolean showTitleInfoPending = true;
+
   /** Frame used in docking manager */
   private DockableFrame dockableFrame = null;
 
@@ -258,6 +264,7 @@ public class InitiativePanel extends JPanel
         "initPanel.warnWhenResettingRoundCounter", TOGGLE_WARN_WHEN_RESETTING_COUNTER_ACTION);
     I18N.setAction("initPanel.next", NEXT_ACTION);
     I18N.setAction("initPanel.prev", PREV_ACTION);
+    I18N.setAction("initPanel.showTokenCountInTitle", SHOW_TOKEN_COUNT_IN_TITLE);
 
     updateView();
 
@@ -348,6 +355,12 @@ public class InitiativePanel extends JPanel
       popupMenu.addSeparator();
       popupMenu.add(new JMenuItem(REMOVE_TOKEN_ACTION));
     } // endif
+    if (MapTool.getPlayer().isGM()) {
+      popupMenu.addSeparator();
+      JCheckBoxMenuItem showTitleInfoCB = new JCheckBoxMenuItem(SHOW_TOKEN_COUNT_IN_TITLE);
+      showTitleInfoCB.setSelected(AppPreferences.initiativePanelShowsInfoInTitle.get());
+      popupMenu.add(showTitleInfoCB);
+    }
     valueChanged(null);
   }
 
@@ -419,6 +432,13 @@ public class InitiativePanel extends JPanel
    */
   public boolean isShowInitState() {
     return showInitState;
+  }
+
+  /**
+   * @return Getter for showTitleInfo
+   */
+  public boolean isShowTitleInfo() {
+    return showTitleInfo;
   }
 
   /**
@@ -611,34 +631,45 @@ public class InitiativePanel extends JPanel
   }
 
   private void updateFrameTitle() {
-    if (!MapTool.getPlayer().isGM() || getDockableFrame() == null) {
+    if (!MapTool.getPlayer().isGM() || getDockableFrame() == null && !showTitleInfoPending) {
       return;
     }
     SwingUtilities.invokeLater(
         () -> {
-          int pc = 0, npc = 0;
-          if (list != null && list.getSize() > 0 && MapTool.getPlayer().isGM()) {
-            for (TokenInitiative ti : list.getTokens()) {
-              if (ti.getToken().getType().equals(Type.PC)) {
-                pc++;
-              } else {
-                npc++;
+          String tooltip, text;
+          if (isShowTitleInfo()) {
+            int pc = 0, npc = 0;
+            if (list != null && list.getSize() > 0 && MapTool.getPlayer().isGM()) {
+              for (TokenInitiative ti : list.getTokens()) {
+                if (ti.getToken().getType().equals(Type.PC)) {
+                  pc++;
+                } else {
+                  npc++;
+                }
               }
             }
-          }
 
-          String text = String.format(TITLE_LABEL_TEXT, I18N.getText("panel.Initiative"), pc, npc);
-          String tooltip =
-              String.format(
-                  TITLE_LABEL_TOOLTIP_TEXT,
-                  I18N.getText("Token.Type.PC"),
-                  pc,
-                  I18N.getText("Token.Type.NPC"),
-                  npc);
-          dockableFrameTitleComponent.setText(text);
-          dockableFrameTitleComponent.setToolTipText(tooltip);
-          dockableFrame.setSideTitle(text);
-          dockableFrame.setTabTitle(text);
+            text = String.format(TITLE_LABEL_TEXT, I18N.getText("panel.Initiative"), pc, npc);
+            tooltip =
+                String.format(
+                    TITLE_LABEL_TOOLTIP_TEXT,
+                    I18N.getText("Token.Type.PC"),
+                    pc,
+                    I18N.getText("Token.Type.NPC"),
+                    npc);
+            dockableFrameTitleComponent.setText(text);
+            dockableFrameTitleComponent.setToolTipText(tooltip);
+            dockableFrame.setSideTitle(text);
+            dockableFrame.setTabTitle(text);
+          } else {
+            text = I18N.getText("panel.Initiative");
+            tooltip = I18N.getText("panel.Initiative.description");
+            dockableFrameTitleComponent.setText(text);
+            dockableFrameTitleComponent.setToolTipText(tooltip);
+            dockableFrame.setSideTitle(text);
+            dockableFrame.setTabTitle(text);
+            showTitleInfoPending = false;
+          }
         });
   }
 
@@ -789,6 +820,18 @@ public class InitiativePanel extends JPanel
               new InitiativeListCellRenderer(
                   InitiativePanel.this)); // Regenerates the size of each row.
           AppPreferences.initiativePanelShowsTokenImage.set(showTokens);
+        }
+      };
+
+  /** This action toggles the display of token counts in the title bar. */
+  public final Action SHOW_TOKEN_COUNT_IN_TITLE =
+      new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          showTitleInfo = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+          showTitleInfoPending = true;
+          AppPreferences.initiativePanelShowsInfoInTitle.set(showTitleInfo);
+          updateFrameTitle();
         }
       };
 
