@@ -603,19 +603,12 @@ public class TokenBarController
         } // endif
 
         // Handle images
-        MD5Key[] assetIds = null;
-        if (bar instanceof TwoImageBarTokenOverlay) {
-          assetIds =
-              new MD5Key[] {
-                ((TwoImageBarTokenOverlay) bar).getBottomAssetId(),
-                ((TwoImageBarTokenOverlay) bar).getTopAssetId()
-              };
+        var assetIds = bar.getAssets();
+        if (bar instanceof TwoImageBarTokenOverlay two) {
           type = 0;
-        } else if (bar instanceof SingleImageBarTokenOverlay) {
-          assetIds = new MD5Key[] {((SingleImageBarTokenOverlay) bar).getAssetId()};
+        } else if (bar instanceof SingleImageBarTokenOverlay one) {
           type = 1;
-        } else if (bar instanceof MultipleImageBarTokenOverlay) {
-          assetIds = ((MultipleImageBarTokenOverlay) bar).getAssetIds();
+        } else if (bar instanceof MultipleImageBarTokenOverlay many) {
           type = 2;
         }
         DefaultListModel<MD5Key> model = new DefaultListModel<>();
