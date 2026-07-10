@@ -18,6 +18,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import net.rptools.lib.AwtUtil;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.model.Token;
@@ -74,6 +75,11 @@ public final class FlowImageTokenOverlay extends BooleanTokenOverlay {
 
   public MD5Key getAssetId() {
     return assetId;
+  }
+
+  @Override
+  public List<MD5Key> getAssets() {
+    return List.of(assetId);
   }
 
   /**

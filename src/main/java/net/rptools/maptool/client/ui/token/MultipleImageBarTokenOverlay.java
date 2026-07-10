@@ -21,6 +21,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import net.rptools.lib.AwtUtil;
 import net.rptools.lib.MD5Key;
@@ -119,6 +120,11 @@ public class MultipleImageBarTokenOverlay extends BarTokenOverlay {
    */
   public void setAssetIds(MD5Key[] theAssetIds) {
     this.assetIds = theAssetIds;
+  }
+
+  @Override
+  public List<MD5Key> getAssets() {
+    return List.of(assetIds);
   }
 
   public static BarTokenOverlay fromDto(BarTokenOverlayDto dto) {
