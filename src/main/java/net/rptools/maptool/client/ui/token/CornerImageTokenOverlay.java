@@ -18,7 +18,6 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.List;
 import net.rptools.lib.AwtUtil;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.model.Token;
@@ -32,10 +31,7 @@ import net.rptools.maptool.util.ImageManager;
  *
  * @author Jay
  */
-public final class CornerImageTokenOverlay extends BooleanTokenOverlay {
-
-  /** ID of the image displayed in the overlay. */
-  private MD5Key assetId;
+public final class CornerImageTokenOverlay extends AbstractImageTokenOverlay {
 
   /** The corner where the image is placed */
   private Quadrant corner;
@@ -48,29 +44,18 @@ public final class CornerImageTokenOverlay extends BooleanTokenOverlay {
    * @param corner Corner that contains the image.
    */
   public CornerImageTokenOverlay(String name, MD5Key assetId, Quadrant corner) {
-    super(name);
-    this.assetId = assetId;
+    super(name, assetId);
     this.corner = corner;
   }
 
   public CornerImageTokenOverlay(CornerImageTokenOverlay other) {
     super(other);
-    this.assetId = other.assetId;
     this.corner = other.corner;
   }
 
   @Override
   public CornerImageTokenOverlay clone() {
     return new CornerImageTokenOverlay(this);
-  }
-
-  public MD5Key getAssetId() {
-    return assetId;
-  }
-
-  @Override
-  public List<MD5Key> getAssets() {
-    return List.of(assetId);
   }
 
   /**
@@ -108,7 +93,7 @@ public final class CornerImageTokenOverlay extends BooleanTokenOverlay {
 
   @Override
   public void paintOverlay(Graphics2D g, Token token, Rectangle bounds) {
-    BufferedImage image = ImageManager.getImageAndWait(assetId);
+    BufferedImage image = ImageManager.getImageAndWait(getAssetId());
     Rectangle2D imageBounds = new Rectangle2D.Double(0, 0, image.getWidth(), image.getHeight());
     AwtUtil.fitInto(imageBounds, bounds);
     imageBounds = getBounds(imageBounds);
@@ -124,7 +109,7 @@ public final class CornerImageTokenOverlay extends BooleanTokenOverlay {
 
   public CornerImageTokenOverlayDto toCornerImageDto() {
     var dto = CornerImageTokenOverlayDto.newBuilder();
-    dto.setAssetId(assetId.toString());
+    dto.setAssetId(getAssetId().toString());
     dto.setQuadrant(QuadrantDto.valueOf(corner.name()));
     return dto.build();
   }

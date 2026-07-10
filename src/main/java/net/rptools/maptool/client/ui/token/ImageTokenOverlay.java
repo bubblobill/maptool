@@ -17,7 +17,6 @@ package net.rptools.maptool.client.ui.token;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.List;
 import net.rptools.lib.AwtUtil;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.model.Token;
@@ -29,10 +28,7 @@ import net.rptools.maptool.util.ImageManager;
  *
  * @author Jay
  */
-public final class ImageTokenOverlay extends BooleanTokenOverlay {
-
-  /** ID of the image displayed in the overlay. */
-  private MD5Key assetId;
+public final class ImageTokenOverlay extends AbstractImageTokenOverlay {
 
   /**
    * Create the complete image overlay.
@@ -41,13 +37,11 @@ public final class ImageTokenOverlay extends BooleanTokenOverlay {
    * @param assetId ID of the image displayed in the new token overlay.
    */
   public ImageTokenOverlay(String name, MD5Key assetId) {
-    super(name);
-    this.assetId = assetId;
+    super(name, assetId);
   }
 
   public ImageTokenOverlay(ImageTokenOverlay other) {
     super(other);
-    this.assetId = other.assetId;
   }
 
   @Override
@@ -55,21 +49,9 @@ public final class ImageTokenOverlay extends BooleanTokenOverlay {
     return new ImageTokenOverlay(this);
   }
 
-  /**
-   * @return Getter for assetId
-   */
-  public MD5Key getAssetId() {
-    return assetId;
-  }
-
-  @Override
-  public List<MD5Key> getAssets() {
-    return List.of(assetId);
-  }
-
   @Override
   public void paintOverlay(Graphics2D g, Token token, Rectangle bounds) {
-    BufferedImage image = ImageManager.getImageAndWait(assetId);
+    BufferedImage image = ImageManager.getImageAndWait(getAssetId());
 
     var imageBounds = new Rectangle2D.Double(0, 0, image.getWidth(), image.getHeight());
     AwtUtil.fitInto(imageBounds, bounds);
@@ -85,7 +67,7 @@ public final class ImageTokenOverlay extends BooleanTokenOverlay {
 
   public ImageTokenOverlayDto toImageDto() {
     var dto = ImageTokenOverlayDto.newBuilder();
-    dto.setAssetId(assetId.toString());
+    dto.setAssetId(getAssetId().toString());
     return dto.build();
   }
 
