@@ -108,23 +108,16 @@ public class MultipleImageBarTokenOverlay extends BarTokenOverlay {
     g.setComposite(tempComposite);
   }
 
-  /**
-   * @return Getter for bottomAssetId
-   */
-  public MD5Key[] getAssetIds() {
-    return assetIds;
+  @Override
+  public List<MD5Key> getAssetIds() {
+    return List.of(assetIds);
   }
 
   /**
    * @param theAssetIds Setter for bottomAssetId
    */
-  public void setAssetIds(MD5Key[] theAssetIds) {
-    this.assetIds = theAssetIds;
-  }
-
-  @Override
-  public List<MD5Key> getAssets() {
-    return List.of(assetIds);
+  public void setAssetIds(List<MD5Key> theAssetIds) {
+    this.assetIds = theAssetIds.toArray(MD5Key[]::new);
   }
 
   public static BarTokenOverlay fromDto(BarTokenOverlayDto dto) {

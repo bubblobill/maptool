@@ -603,7 +603,7 @@ public class TokenBarController
         } // endif
 
         // Handle images
-        var assetIds = bar.getAssets();
+        var assetIds = bar.getAssetIds();
         if (bar instanceof TwoImageBarTokenOverlay two) {
           type = 0;
         } else if (bar instanceof SingleImageBarTokenOverlay one) {

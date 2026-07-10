@@ -262,7 +262,7 @@ public abstract class AbstractTokenOverlay implements Cloneable {
   /**
    * @return The keys for all assets required by the overlay.
    */
-  public List<MD5Key> getAssets() {
+  public List<MD5Key> getAssetIds() {
     return List.of();
   }
 

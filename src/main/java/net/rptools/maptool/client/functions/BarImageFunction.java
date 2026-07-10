@@ -78,11 +78,11 @@ public class BarImageFunction extends AbstractFunction {
       }
     } else if (over instanceof MultipleImageBarTokenOverlay many) {
       int increment = 0;
-      int max_increments = many.getAssets().size();
+      int max_increments = many.getAssetIds().size();
       if (value != null) {
         increment = Math.clamp(over.findIncrement(value.doubleValue()), 0, max_increments);
       }
-      assetId.append(many.getAssets().get(increment).toString());
+      assetId.append(many.getAssetIds().get(increment).toString());
     } else {
       throw new ParserException(
           I18N.getText("macro.function.barImage.notImage", functionName, barName));

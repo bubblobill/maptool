@@ -141,7 +141,7 @@ public class SingleImageBarTokenOverlay extends BarTokenOverlay {
   }
 
   @Override
-  public List<MD5Key> getAssets() {
+  public List<MD5Key> getAssetIds() {
     return List.of(assetId);
   }
 

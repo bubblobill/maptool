@@ -665,12 +665,12 @@ public class CampaignProperties implements Serializable {
 
     // States have images as well
     for (BooleanTokenOverlay overlay : getTokenStatesMap().values()) {
-      set.addAll(overlay.getAssets());
+      set.addAll(overlay.getAssetIds());
     }
 
     // Bars
     for (BarTokenOverlay overlay : getTokenBarsMap().values()) {
-      set.addAll(overlay.getAssets());
+      set.addAll(overlay.getAssetIds());
     }
     return set;
   }
