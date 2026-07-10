@@ -341,9 +341,11 @@ public class HTMLFrameFactory {
         // if we have an asset, convert it to an icon and scale it
         if (asset != null) {
           ImageIcon imageIcon = new ImageIcon(RessourceManager.getImage(Images.BROKEN));
-          byte[] imageBytes = asset.getData();
-          if (imageBytes != null && imageBytes.length > 0) {
-            imageIcon = new ImageIcon(imageBytes);
+          if (asset.getType() == Asset.Type.IMAGE) {
+            byte[] imageBytes = asset.getData();
+            if (imageBytes != null && imageBytes.length > 0) {
+              imageIcon = new ImageIcon(imageBytes);
+            }
           }
           Image scaledImage = imageIcon.getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH);
           scaledImage.getWidth(null); // force completion
