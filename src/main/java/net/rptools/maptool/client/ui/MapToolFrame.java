@@ -411,7 +411,6 @@ public class MapToolFrame extends DefaultDockableHolder implements WindowListene
     currentRenderPanel = zoneRendererPanel;
 
     zoneRendererPanel.add(getChatTypingPanel(), PositionalLayout.Position.NW);
-    zoneRendererPanel.add(getChatActionLabel(), PositionalLayout.Position.SW);
 
     commandPanel = new CommandPanel();
 
@@ -422,6 +421,9 @@ public class MapToolFrame extends DefaultDockableHolder implements WindowListene
 
     zoneRendererPanel.add(overlayPanel, PositionalLayout.Position.CENTER, 0);
     overlayPanel.setVisible(false); // disabled by default
+
+    // chat action label should be above overlays, otherwise unclickable when overlays visible
+    zoneRendererPanel.add(getChatActionLabel(), PositionalLayout.Position.SW, 0);
 
     pointerToolOverlay = new PointerToolOverlay();
     zoneRendererPanel.add(pointerToolOverlay, PositionalLayout.Position.CENTER, 0);
