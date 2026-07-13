@@ -31,6 +31,7 @@ import net.rptools.lib.MD5Key;
 import net.rptools.lib.StringUtil;
 import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.AppPreferences;
+import net.rptools.maptool.client.MapToolUtil;
 import net.rptools.maptool.client.swing.AbeillePanel;
 import net.rptools.maptool.client.swing.ColorWell;
 import net.rptools.maptool.client.ui.PreviewPanelFileChooser;
@@ -679,6 +680,8 @@ public class TokenStatesController
       BooleanTokenOverlay overlay = (BooleanTokenOverlay) model.getElementAt(i);
       overlay.setOrder(i);
       states.put(overlay.getName(), overlay);
+
+      MapToolUtil.uploadAssetIds(overlay.getAssetIds());
     }
     campaign.getTokenStatesMap().clear();
     campaign.getTokenStatesMap().putAll(states);
