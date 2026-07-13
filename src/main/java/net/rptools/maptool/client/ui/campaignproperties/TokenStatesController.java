@@ -513,69 +513,79 @@ public class TokenStatesController
 
       // Get most of the colors and all of the widths from the XTokenOverlay
       OverlayType type;
-      // Handle the
       switch (s) {
-        case CornerImageTokenOverlay cornerImageTokenOverlay -> {
-          type = OverlayType.CornerImage;
-          formPanel
-              .getComboBox(CORNER)
-              .setSelectedIndex(cornerImageTokenOverlay.getCorner().ordinal());
-        }
-        case FlowImageTokenOverlay flowImageTokenOverlay -> {
-          type = OverlayType.GridImage;
-          int size = flowImageTokenOverlay.getGrid(); // Still need grid size
-          formPanel.getSpinner(FLOW_GRID).setValue(size + "x" + size);
-        }
-        case ImageTokenOverlay imageTokenOverlay -> {
-          type = OverlayType.Image;
-        }
         case ColorDotTokenOverlay colorDotTokenOverlay -> {
           type = OverlayType.Dot;
+          ((ColorWell) formPanel.getComponent(COLOR)).setColor(colorDotTokenOverlay.getColor());
           formPanel
               .getComboBox(CORNER)
               .setSelectedIndex(colorDotTokenOverlay.getCorner().ordinal());
-        }
-        case OTokenOverlay oTokenOverlay -> {
-          type = OverlayType.Circle;
         }
         case ShadedTokenOverlay shadedTokenOverlay -> {
           type = OverlayType.Shaded;
           ((ColorWell) formPanel.getComponent(COLOR)).setColor(shadedTokenOverlay.getColor());
         }
-        case CrossTokenOverlay crossTokenOverlay -> {
-          type = OverlayType.Cross;
+
+        // region AbstractImageTokenOverlay
+
+        case AbstractImageTokenOverlay imageTokenOverlay0 -> {
+          switch (imageTokenOverlay0) {
+            case ImageTokenOverlay imageTokenOverlay -> {
+              type = OverlayType.Image;
+            }
+            case CornerImageTokenOverlay cornerImageTokenOverlay -> {
+              type = OverlayType.CornerImage;
+              formPanel
+                  .getComboBox(CORNER)
+                  .setSelectedIndex(cornerImageTokenOverlay.getCorner().ordinal());
+            }
+            case FlowImageTokenOverlay flowImageTokenOverlay -> {
+              type = OverlayType.GridImage;
+              int size = flowImageTokenOverlay.getGrid(); // Still need grid size
+              formPanel.getSpinner(FLOW_GRID).setValue(size + "x" + size);
+            }
+          }
         }
-        case DiamondTokenOverlay diamondTokenOverlay -> {
-          type = OverlayType.Diamond;
-        }
-        case FlowDiamondTokenOverlay flowDiamondTokenOverlay -> {
-          type = OverlayType.GridDiamond;
-        }
-        case YieldTokenOverlay yieldTokenOverlay -> {
-          type = OverlayType.Yield;
-        }
-        case FlowYieldTokenOverlay flowYieldTokenOverlay -> {
-          type = OverlayType.GridYield;
-        }
-        case TriangleTokenOverlay triangleTokenOverlay -> {
-          type = OverlayType.Triangle;
-        }
-        case FlowTriangleTokenOverlay flowTriangleTokenOverlay -> {
-          type = OverlayType.GridTriangle;
-        }
-        case FlowColorSquareTokenOverlay flowColorSquareTokenOverlay -> {
-          type = OverlayType.GridSquare;
-        }
-        case FlowColorDotTokenOverlay flowColorDotTokenOverlay -> {
-          type = OverlayType.GridDot;
-          int size = flowColorDotTokenOverlay.getGrid();
+
+        // endregion
+
+        // region AbstractFlowShapeTokenOverlay
+
+        case AbstractFlowShapeTokenOverlay flowShapeTokenOverlay -> {
+          int size = flowShapeTokenOverlay.getGrid();
           formPanel.getSpinner(FLOW_GRID).setValue(size + "x" + size);
+
+          type =
+              switch (flowShapeTokenOverlay) {
+                case FlowColorDotTokenOverlay flowColorDotTokenOverlay -> OverlayType.GridDot;
+                case FlowColorSquareTokenOverlay flowColorSquareTokenOverlay ->
+                    OverlayType.GridSquare;
+                case FlowDiamondTokenOverlay flowDiamondTokenOverlay -> OverlayType.GridDiamond;
+                case FlowTriangleTokenOverlay flowTriangleTokenOverlay -> OverlayType.GridTriangle;
+                case FlowYieldTokenOverlay flowYieldTokenOverlay -> OverlayType.GridYield;
+              };
         }
-        case XTokenOverlay xTokenOverlay -> {
-          type = OverlayType.X;
-          formPanel.getSpinner(WIDTH).setValue(xTokenOverlay.getWidth());
-          ((ColorWell) formPanel.getComponent(COLOR)).setColor(xTokenOverlay.getColor());
+
+        // endregion
+
+        // region AbstractShapeTokenOverlay
+
+        case AbstractShapeTokenOverlay shapeTokenOverlay -> {
+          formPanel.getSpinner(WIDTH).setValue(shapeTokenOverlay.getWidth());
+          ((ColorWell) formPanel.getComponent(COLOR)).setColor(shapeTokenOverlay.getColor());
+
+          type =
+              switch (shapeTokenOverlay) {
+                case CrossTokenOverlay crossTokenOverlay -> OverlayType.Cross;
+                case DiamondTokenOverlay diamondTokenOverlay -> OverlayType.Diamond;
+                case OTokenOverlay oTokenOverlay -> OverlayType.Circle;
+                case TriangleTokenOverlay triangleTokenOverlay -> OverlayType.Triangle;
+                case YieldTokenOverlay yieldTokenOverlay -> OverlayType.Yield;
+                case XTokenOverlay xTokenOverlay -> OverlayType.X;
+              };
         }
+
+          // endregion
       }
 
       // Set the type and change components
