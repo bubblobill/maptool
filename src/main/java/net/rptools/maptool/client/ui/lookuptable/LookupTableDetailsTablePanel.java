@@ -43,6 +43,9 @@ public class LookupTableDetailsTablePanel extends JPanel {
     // enable row sorting by clicking on the row headers
     detailsTable.setAutoCreateRowSorter(true);
 
+    // enable the horizontal scroll bar
+    detailsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
     // prevent reordering columns
     detailsTable.getTableHeader().setReorderingAllowed(false);
 
@@ -156,6 +159,10 @@ public class LookupTableDetailsTablePanel extends JPanel {
         tableColumn.setMinWidth(preferredWidth);
         tableColumn.setMaxWidth(preferredWidth);
       }
+
+      // render header specifics
+      tableColumn.setHeaderRenderer(
+          LookupTableDetailsTableHeaderRenderers.forColumn(detailsTable, column));
 
       // render column specifics
       tableColumn.setCellRenderer(

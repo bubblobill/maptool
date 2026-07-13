@@ -21,6 +21,7 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.client.ui.theme.Icons;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.LookupTable;
 
@@ -29,20 +30,20 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
 
   private List<LookupTable> tables = List.of();
 
-  /** Defines the details view columns visible for GMs */
+  /** Defines the details view columns visible for GMs and their sequence */
   private static final List<DetailsTableColumn> GM_COLUMNS =
       List.of(
           DetailsTableColumn.IMAGE,
           DetailsTableColumn.NAME,
           DetailsTableColumn.ROLL,
-          DetailsTableColumn.COUNT_ENTRIES,
-          DetailsTableColumn.COUNT_VALUES,
-          DetailsTableColumn.COUNT_IMAGES,
           DetailsTableColumn.PLAYER_VISIBLE,
           DetailsTableColumn.ALLOW_LOOKUP,
-          DetailsTableColumn.PICK_ONCE);
+          DetailsTableColumn.PICK_ONCE,
+          DetailsTableColumn.COUNT_ENTRIES,
+          DetailsTableColumn.COUNT_VALUES,
+          DetailsTableColumn.COUNT_IMAGES);
 
-  /** Defines the details view columns visible for non-GMs */
+  /** Defines the details view columns visible for non-GMs and their sequence */
   private static final List<DetailsTableColumn> PLAYER_COLUMNS =
       List.of(DetailsTableColumn.IMAGE, DetailsTableColumn.NAME);
 
@@ -72,7 +73,10 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
         I18N.getText("Label.table.image"),
         LookupTable.class,
         SwingConstants.CENTER,
-        60) {
+        60,
+        null,
+        null,
+        null) {
       @Override
       Object getValue(LookupTable table) {
         return table;
@@ -83,7 +87,10 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
         I18N.getText("lookuptable.description"),
         String.class,
         SwingConstants.LEFT,
-        300) {
+        200,
+        Icons.WINDOW_TABLES,
+        null,
+        null) {
       @Override
       Object getValue(LookupTable table) {
         return table.getName();
@@ -94,18 +101,67 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
         I18N.getText("lookuptable.description"),
         String.class,
         SwingConstants.CENTER,
-        80) {
+        50,
+        null,
+        null,
+        null) {
       @Override
       Object getValue(LookupTable table) {
         return table.getRoll();
       }
     },
+    PLAYER_VISIBLE(
+        null,
+        I18N.getText("EditLookupTablePanel.showplayer"),
+        Boolean.class,
+        SwingConstants.CENTER,
+        40,
+        Icons.TABLEPANEL_TABLE_PLAYER_VISIBLE,
+        Icons.TABLEPANEL_TABLE_PLAYER_VISIBLE,
+        null) {
+      @Override
+      Object getValue(LookupTable table) {
+        return table.getVisible();
+      }
+    },
+    ALLOW_LOOKUP(
+        null,
+        I18N.getText("EditLookupTablePanel.lookup"),
+        Boolean.class,
+        SwingConstants.CENTER,
+        40,
+        Icons.TABLEPANEL_TABLE_PLAYER_LOOKUP,
+        Icons.TABLEPANEL_TABLE_PLAYER_LOOKUP,
+        null) {
+      @Override
+      Object getValue(LookupTable table) {
+        return table.getAllowLookup();
+      }
+    },
+    PICK_ONCE(
+        null,
+        I18N.getText("EditLookupTablePanel.pickOnce"),
+        Boolean.class,
+        SwingConstants.CENTER,
+        40,
+        Icons.TABLEPANEL_TABLE_PICK_ONCE,
+        Icons.TABLEPANEL_TABLE_PICK_ONCE,
+        null) {
+      @Override
+      Object getValue(LookupTable table) {
+        return table.getPickOnce();
+      }
+    },
+
     COUNT_ENTRIES(
         I18N.getText("LookupTablePanel.countEntries"),
         I18N.getText("LookupTablePanel.countEntries.tooltip"),
         Integer.class,
         SwingConstants.CENTER,
-        80) {
+        50,
+        null,
+        null,
+        null) {
       @Override
       Object getValue(LookupTable table) {
         return table.getEntryCount();
@@ -116,7 +172,10 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
         I18N.getText("LookupTablePanel.countValues.tooltip"),
         Integer.class,
         SwingConstants.CENTER,
-        80) {
+        50,
+        null,
+        null,
+        null) {
       @Override
       Object getValue(LookupTable table) {
         return table.getEntryValueCount();
@@ -127,43 +186,13 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
         I18N.getText("LookupTablePanel.countImages.tooltip"),
         Integer.class,
         SwingConstants.CENTER,
-        80) {
+        50,
+        null,
+        null,
+        null) {
       @Override
       Object getValue(LookupTable table) {
         return table.getEntryImageCount();
-      }
-    },
-    PLAYER_VISIBLE(
-        I18N.getText("EditLookupTablePanel.showplayer"),
-        I18N.getText("EditLookupTablePanel.tooltip.visible"),
-        Boolean.class,
-        SwingConstants.CENTER,
-        40) {
-      @Override
-      Object getValue(LookupTable table) {
-        return table.getVisible();
-      }
-    },
-    ALLOW_LOOKUP(
-        I18N.getText("EditLookupTablePanel.lookup"),
-        I18N.getText("EditLookupTablePanel.tooltip.allowLookup"),
-        Boolean.class,
-        SwingConstants.CENTER,
-        40) {
-      @Override
-      Object getValue(LookupTable table) {
-        return table.getAllowLookup();
-      }
-    },
-    PICK_ONCE(
-        I18N.getText("EditLookupTablePanel.pickOnce"),
-        I18N.getText("EditLookupTablePanel.tooltip.pickOnce"),
-        Boolean.class,
-        SwingConstants.CENTER,
-        40) {
-      @Override
-      Object getValue(LookupTable table) {
-        return table.getPickOnce();
       }
     };
 
@@ -172,14 +201,27 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
     private final Class<?> columnClass;
     private final int alignment;
     private final int preferredWidth;
+    private final Icons iconHeader;
+    private final Icons iconTrue;
+    private final Icons iconFalse;
 
     DetailsTableColumn(
-        String title, String tooltip, Class<?> columnClass, int alignment, int preferredWidth) {
+        String title,
+        String tooltip,
+        Class<?> columnClass,
+        int alignment,
+        int preferredWidth,
+        Icons iconHeader,
+        Icons iconTrue,
+        Icons iconFalse) {
       this.title = title;
       this.tooltip = tooltip;
       this.columnClass = columnClass;
       this.alignment = alignment;
       this.preferredWidth = preferredWidth;
+      this.iconHeader = iconHeader;
+      this.iconTrue = iconTrue;
+      this.iconFalse = iconFalse;
     }
 
     public String getTitle() {
@@ -200,6 +242,18 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
 
     public int getPreferredWidth() {
       return preferredWidth;
+    }
+
+    public Icons getIconHeader() {
+      return iconHeader;
+    }
+
+    public Icons getIconTrue() {
+      return iconTrue;
+    }
+
+    public Icons getIconFalse() {
+      return iconFalse;
     }
 
     abstract Object getValue(LookupTable table);

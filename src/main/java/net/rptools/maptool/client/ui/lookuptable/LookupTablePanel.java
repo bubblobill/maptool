@@ -367,14 +367,14 @@ public class LookupTablePanel extends AbeillePanel<LookupTableImagePanelModel> {
     viewIconsToggleButton.setMargin(new Insets(0, 0, 0, 0));
     viewDetailsToggleButton.setMargin(new Insets(0, 0, 0, 0));
 
-    var iconViewIcon = RessourceManager.getSmallIcon(Icons.PANEL_VIEW_ICONS);
+    var iconViewIcon = RessourceManager.getSmallIcon(Icons.TABLEPANEL_VIEW_ICONS);
     if (iconViewIcon != null) {
       viewIconsToggleButton.setIcon(iconViewIcon);
       viewIconsToggleButton.setText("");
     } else {
       viewIconsToggleButton.setText(I18N.getText("LookupTablePanel.viewIcons"));
     }
-    var iconViewDetails = RessourceManager.getSmallIcon(Icons.PANEL_VIEW_DETAILS);
+    var iconViewDetails = RessourceManager.getSmallIcon(Icons.TABLEPANEL_VIEW_DETAILS);
     if (iconViewDetails != null) {
       viewDetailsToggleButton.setIcon(iconViewDetails);
       viewDetailsToggleButton.setText("");

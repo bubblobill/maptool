@@ -16,6 +16,7 @@ package net.rptools.maptool.client.ui.lookuptable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
+import net.rptools.maptool.client.ui.theme.RessourceManager;
 
 /** For a given column decide which renderer to use. */
 public final class LookupTableDetailsTableColumnRenderers {
@@ -28,9 +29,17 @@ public final class LookupTableDetailsTableColumnRenderers {
       return new TableColumnIconRenderer(column.getPreferredWidth(), rowHeight);
     }
 
-    // checkboxes are disabled as the details view is read-only
+    // boolean columns can optionally display icons, or default to a checkbox
     if (column.getColumnClass() == Boolean.class) {
-      return new TableColumnDisabledBooleanRenderer();
+      Icon iconTrue = RessourceManager.getSmallIcon(column.getIconTrue());
+      Icon iconFalse = RessourceManager.getSmallIcon(column.getIconFalse());
+
+      if (iconTrue != null || iconFalse != null) {
+        // n.b. if one of the icons is null nothing will be displayed for that boolean value
+        return new TableColumnBooleanIconRenderer(iconTrue, iconFalse, true);
+      } else {
+        return new TableColumnBooleanRenderer(false);
+      }
     }
 
     // otherwise just align the cell values as specified in the column enum

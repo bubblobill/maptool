@@ -42,6 +42,8 @@ import net.rptools.maptool.client.swing.GenericDialog;
 import net.rptools.maptool.client.swing.GenericDialogFactory;
 import net.rptools.maptool.client.swing.ImageChooserDialog;
 import net.rptools.maptool.client.ui.ImageAssetPanel;
+import net.rptools.maptool.client.ui.theme.Icons;
+import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.AssetManager;
 import net.rptools.maptool.model.LookupTable;
@@ -90,6 +92,12 @@ public class EditLookupTablePanel extends AbeillePanel<LookupTable> {
             ? I18N.getString("LookupTablePanel.msg.titleNew")
             : I18N.getString("LookupTablePanel.msg.titleEdit");
     dialogFactory.setDialogTitle(title);
+
+    view.getIsVisibleIcon()
+        .setIcon(RessourceManager.getSmallIcon(Icons.TABLEPANEL_TABLE_PLAYER_VISIBLE));
+    view.getAllowLookupIcon()
+        .setIcon(RessourceManager.getSmallIcon(Icons.TABLEPANEL_TABLE_PLAYER_LOOKUP));
+    view.getPickOnceIcon().setIcon(RessourceManager.getSmallIcon(Icons.TABLEPANEL_TABLE_PICK_ONCE));
 
     bind(lookupTable);
 

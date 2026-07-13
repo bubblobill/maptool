@@ -16,20 +16,28 @@ package net.rptools.maptool.client.ui.lookuptable;
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.table.DefaultTableCellRenderer;
 
-public class TableColumnDisabledBooleanRenderer extends JCheckBox implements TableCellRenderer {
+public class TableColumnBooleanIconRenderer extends DefaultTableCellRenderer {
 
-  public TableColumnDisabledBooleanRenderer() {
+  private final Icon trueIcon;
+  private final Icon falseIcon;
+
+  public TableColumnBooleanIconRenderer(Icon trueIcon, Icon falseIcon, boolean isEnabled) {
+    this.trueIcon = trueIcon;
+    this.falseIcon = falseIcon;
+
     setHorizontalAlignment(SwingConstants.CENTER);
-    setEnabled(false);
+    setEnabled(isEnabled);
   }
 
   @Override
   public Component getTableCellRendererComponent(
       JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
-    setSelected(Boolean.TRUE.equals(value));
+    super.getTableCellRendererComponent(table, null, isSelected, hasFocus, row, column);
+    setIcon(Boolean.TRUE.equals(value) ? trueIcon : falseIcon);
+
     return this;
   }
 }
