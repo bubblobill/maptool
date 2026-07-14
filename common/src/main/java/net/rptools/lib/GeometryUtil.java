@@ -16,6 +16,8 @@ package net.rptools.lib;
 
 import java.awt.Shape;
 import java.awt.geom.Area;
+import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -120,6 +122,37 @@ public class GeometryUtil {
     }
 
     return areas.getFirst();
+  }
+
+  /**
+   * Converts a {@link PathIterator} to an equivalent {@link Path2D}.
+   *
+   * @param it The {@link PathIterator} to consume.
+   * @return A {@link Path2D} representing the same path as {@code it}.
+   */
+  public static Path2D toPath(PathIterator it) {
+    var path = new Path2D.Double(it.getWindingRule());
+    var cs = new double[6];
+    while (!it.isDone()) {
+      var type = it.currentSegment(cs);
+      it.next();
+
+      switch (type) {
+        case PathIterator.SEG_MOVETO -> path.moveTo(cs[0], cs[1]);
+        case PathIterator.SEG_LINETO -> path.lineTo(cs[0], cs[1]);
+        case PathIterator.SEG_QUADTO -> path.quadTo(cs[0], cs[1], cs[2], cs[3]);
+        case PathIterator.SEG_CUBICTO -> path.curveTo(cs[0], cs[1], cs[2], cs[3], cs[4], cs[5]);
+        case PathIterator.SEG_CLOSE -> path.closePath();
+        default -> {
+          log.warn(
+              "Found unknown path segment type {}. Treating as {} (SEG_MOVETO)",
+              type,
+              PathIterator.SEG_MOVETO);
+          path.moveTo(cs[0], cs[1]);
+        }
+      }
+    }
+    return path;
   }
 
   public static PrecisionModel getPrecisionModel() {
