@@ -35,10 +35,10 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
       List.of(
           DetailsTableColumn.IMAGE,
           DetailsTableColumn.NAME,
-          DetailsTableColumn.ROLL,
           DetailsTableColumn.PLAYER_VISIBLE,
           DetailsTableColumn.ALLOW_LOOKUP,
           DetailsTableColumn.PICK_ONCE,
+          DetailsTableColumn.ROLL,
           DetailsTableColumn.COUNT_ENTRIES,
           DetailsTableColumn.COUNT_VALUES,
           DetailsTableColumn.COUNT_IMAGES);
@@ -96,20 +96,6 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
         return table.getName();
       }
     },
-    ROLL(
-        I18N.getText("Label.roll"),
-        I18N.getText("lookuptable.description"),
-        String.class,
-        SwingConstants.CENTER,
-        50,
-        null,
-        null,
-        null) {
-      @Override
-      Object getValue(LookupTable table) {
-        return table.getRoll();
-      }
-    },
     PLAYER_VISIBLE(
         null,
         I18N.getText("EditLookupTablePanel.showplayer"),
@@ -152,7 +138,20 @@ public class LookupTableDetailsTablePanelModel extends AbstractTableModel {
         return table.getPickOnce();
       }
     },
-
+    ROLL(
+        I18N.getText("Label.roll"),
+        I18N.getText("lookuptable.description"),
+        String.class,
+        SwingConstants.CENTER,
+        50,
+        null,
+        null,
+        null) {
+      @Override
+      Object getValue(LookupTable table) {
+        return table.getRoll();
+      }
+    },
     COUNT_ENTRIES(
         I18N.getText("LookupTablePanel.countEntries"),
         I18N.getText("LookupTablePanel.countEntries.tooltip"),
