@@ -105,6 +105,7 @@ def modulesToOpen = [
         'java.desktop/sun.java2d',
         'java.desktop/javax.swing',
         'java.desktop/sun.awt.shell',
+        'java.desktop/com.sun.java.swing.plaf.windows'
 ]
 def jarManifestAttributes = [
         'Implementation-Title': project.name + developerRelease,
