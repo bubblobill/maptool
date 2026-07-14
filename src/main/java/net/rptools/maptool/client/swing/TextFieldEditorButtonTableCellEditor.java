@@ -40,6 +40,7 @@ public class TextFieldEditorButtonTableCellEditor extends AbstractCellEditor
     textField.addActionListener(l -> fireEditingStopped());
     panel.add(textField);
     JButton button = new JButton("...");
+
     button.addActionListener(
         l ->
             MacroEditorDialog.createModalDialog(

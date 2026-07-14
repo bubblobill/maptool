@@ -56,6 +56,8 @@ import net.rptools.maptool.server.proto.CampaignPropertiesDto;
 import net.rptools.maptool.server.proto.HaloListDto;
 import net.rptools.maptool.server.proto.LightSourceListDto;
 import net.rptools.maptool.server.proto.TokenPropertyListDto;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.CaseUtils;
 
 public class CampaignProperties implements Serializable {
 
@@ -143,9 +145,9 @@ public class CampaignProperties implements Serializable {
 
   public CampaignProperties(CampaignProperties properties) {
     for (Entry<String, List<TokenProperty>> entry : properties.tokenTypeMap.entrySet()) {
-      List<TokenProperty> typeList = new ArrayList<>(properties.tokenTypeMap.get(entry.getKey()));
+      List<TokenProperty> typeProperties = new ArrayList<>(properties.tokenTypeMap.get(entry.getKey()));
 
-      tokenTypeMap.put(entry.getKey(), typeList);
+      tokenTypeMap.put(entry.getKey(), typeProperties);
     }
     tokenTypeStatSheetMap.putAll(properties.tokenTypeStatSheetMap);
 
@@ -204,7 +206,7 @@ public class CampaignProperties implements Serializable {
   }
 
   /**
-   * Returns the default stat sheet details for a token property type.
+   * Returns the default stat sheet details for a token's type properties.
    *
    * @param propertyType the token property type to get the details for.
    * @return the stat sheet details.
@@ -592,46 +594,26 @@ public class CampaignProperties implements Serializable {
     }
 
     List<TokenProperty> list = new ArrayList<>();
-    list.add(
-        new TokenProperty(
-            I18N.getText(PROP_PREFIX + "strength"), I18N.getText(SHORT_PROP_PREFIX + "strength")));
-    list.add(
-        new TokenProperty(
-            I18N.getText(PROP_PREFIX + "dexterity"),
-            I18N.getText(SHORT_PROP_PREFIX + "dexterity")));
-    list.add(
-        new TokenProperty(
-            I18N.getText(PROP_PREFIX + "constitution"),
-            I18N.getText(SHORT_PROP_PREFIX + "constitution")));
-    list.add(
-        new TokenProperty(
-            I18N.getText(PROP_PREFIX + "intelligence"),
-            I18N.getText(SHORT_PROP_PREFIX + "intelligence")));
-    list.add(
-        new TokenProperty(
-            I18N.getText(PROP_PREFIX + "wisdom"), I18N.getText(SHORT_PROP_PREFIX + "wisdom")));
-    list.add(
-        new TokenProperty(
-            I18N.getText(PROP_PREFIX + "charisma"), I18N.getText(SHORT_PROP_PREFIX + "charisma")));
-    list.add(new TokenProperty(I18N.getText(PROP_PREFIX + "hp"), true, true, false));
-    list.add(new TokenProperty(I18N.getText(PROP_PREFIX + "ac"), true, true, false));
-    list.add(
-        new TokenProperty(
-            I18N.getText(PROP_PREFIX + "defense"), I18N.getText(SHORT_PROP_PREFIX + "defense")));
-    list.add(
-        new TokenProperty(
-            I18N.getText(PROP_PREFIX + "movement"), I18N.getText(SHORT_PROP_PREFIX + "movement")));
-    list.add(
-        new TokenProperty(
-            I18N.getText(PROP_PREFIX + "elevation"),
-            I18N.getText(SHORT_PROP_PREFIX + "elevation"),
-            true,
-            false,
-            false));
-    list.add(
-        new TokenProperty(
-            I18N.getText(PROP_PREFIX + "description"),
-            I18N.getText(SHORT_PROP_PREFIX + "description")));
+    final String[] basicPropNames = new String[]{"strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hp", "ac", "defense", "movement", "elevation", "description"};
+    for(String propName : basicPropNames){
+      PermissionsScope visibility = switch (propName){
+        case "hp", "ac" -> PermissionsScope.OWNER;
+        case "elevation", "description" -> PermissionsScope.ALL;
+        default -> PermissionsScope.NONE;
+      };
+
+      String displayName = I18N.getText(PROP_PREFIX + propName);
+      TokenProperty tp = new TokenProperty(
+              CaseUtils.toCamelCase(displayName, false),
+              I18N.getText(SHORT_PROP_PREFIX + propName),
+              displayName,
+              propName.equals("description") ? VariableType.STRING : VariableType.NUMBER,
+              visibility
+      );
+
+
+      list.add(tp);
+    }
 
     tokenTypeMap.put(getDefaultTokenPropertyType(), list);
   }

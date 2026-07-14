@@ -32,6 +32,9 @@ import net.rptools.maptool.client.MapToolVariableResolver;
 import net.rptools.maptool.client.events.TokenHoverEnter;
 import net.rptools.maptool.client.ui.token.AbstractTokenOverlay;
 import net.rptools.maptool.client.ui.token.BarTokenOverlay;
+import net.rptools.maptool.model.PermissionsScope;
+import net.rptools.maptool.model.Token;
+import net.rptools.maptool.model.TokenProperty;
 import net.rptools.maptool.model.player.Player;
 import net.rptools.maptool.util.HTMLUtil;
 import net.rptools.maptool.util.ImageManager;
@@ -164,19 +167,19 @@ public class StatSheetContext {
   /** The notes of the token. */
   private final String notes;
 
-  /** The notes type of the token. */
+  /** The token notes type. */
   private final String notesType;
 
   /** The GM notes of the token. */
   private final String gmNotes;
 
-  /** The GM notes type of the token. */
+  /** The token's GM notes type. */
   private final String gmNotesType;
 
   /** The speech name of the token. */
   private final String speechName;
 
-  /** The type of the token. */
+  /** The token type. */
   private final String tokenType;
 
   /** True if the player is a GM. */
@@ -247,21 +250,10 @@ public class StatSheetContext {
         .getTokenPropertyList(token.getPropertyType())
         .forEach(
             tp -> {
-              if (tp.isShowOnStatSheet()) {
-                if (tp.isGMOnly() && !playerIsGm) {
-                  return;
-                }
-
-                if (tp.isOwnerOnly() && !playerOwns) {
-                  return;
-                }
-
+              if (isPermitted(token, player, tp)) {
                 Object value = token.getEvaluatedProperty(resolver, tp.getName());
-                if (value == null) {
-                  return;
-                }
-
-                if (value instanceof String sValue && sValue.isBlank()) {
+                //noinspection ConstantValue
+                if (value == null || value instanceof String sValue && sValue.isBlank()) {
                   return;
                 }
                 properties.add(
@@ -295,6 +287,46 @@ public class StatSheetContext {
           case LEFT -> "statSheet-left";
           case RIGHT -> "statSheet-right";
         };
+  }
+
+  /**
+   * Simplistic check for alliance based on GM vs. players. With all players are on the same side,
+   * all PCs and player-owned NPCs are on the same side.
+   *
+   * @param token to check is ally
+   * @param player whose side we are checking for
+   * @return if token belongs to the same side
+   */
+  private boolean isAllied(Token token, Player player) {
+    if (!player.isGM() && token.getType().equals(Token.Type.PC)) {
+      return true;
+    } else {
+      List<Player> teamMates = MapTool.getPlayerList().stream()
+              .dropWhile(p -> p.isGM() != player.isGM())
+              .toList();
+      final Set<String> owners = token.getOwners();
+      return !teamMates.stream().filter(p -> owners.contains(p.getName())).toList().isEmpty();
+    }
+  }
+
+  private boolean isPermitted(Token token, Player player, Object checkThis) {
+    if (checkThis instanceof TokenProperty tp) {
+      PermissionsScope permission = tp.getVisibilityPermission();
+      return switch (permission) {
+        case ALL -> true;
+        case NONE -> false;
+        case GM -> player.isGM();
+        case OWNER -> player.isGM() || token.isOwner(player.getName());
+        case ALLIED -> player.isGM() || token.isOwner(player.getName()) || isAllied(token, player);
+        case OWNER_ONLY -> !player.isGM() && token.isOwner(player.getName());
+        case ALLIED_ONLY -> !player.isGM() && !token.isOwner(player.getName()) && isAllied(token, player);
+        case OPPONENT_ONLY -> !player.isGM() && !token.isOwner(player.getName()) && !isAllied(token, player);
+        case null -> false;
+      };
+    } else {
+      // not yet implemented
+      return false;
+    }
   }
 
   private static final Function<MD5Key, Dimension> getImageDimensions =
@@ -433,6 +465,14 @@ public class StatSheetContext {
   public String getPortrait() {
     return portraitAsset != null ? "asset://" + portraitAsset : null;
   }
+/**
+   * Returns the handout asset of the token.
+   *
+   * @return The portrait asset of the token.
+   */
+  public String getHandout() {
+    return handoutAsset != null ? "asset://" + handoutAsset : null;
+  }
 
   /**
    * Returns the label of the token.
@@ -515,9 +555,9 @@ public class StatSheetContext {
   }
 
   /**
-   * Returns the type of the token.
+   * Returns the token type.
    *
-   * @return The type of the token.
+   * @return The token type.
    */
   public String getTokenType() {
     return tokenType;
