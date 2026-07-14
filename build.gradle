@@ -91,6 +91,7 @@ ext {
     // vendor, tagVersion, appSemVer, and DSNs defaults are set in gradle.properties
     println "OS Detected: " + osdetector.os
 }
+
 def modulesToOpen = [
         'java.desktop/java.awt',
         'java.desktop/java.awt.geom',
@@ -104,9 +105,8 @@ def modulesToOpen = [
         'java.desktop/sun.java2d',
         'java.desktop/javax.swing',
         'java.desktop/sun.awt.shell',
-        'java.desktop/com.sun.java.swing.plaf.windows',
+        'java.desktop/com.sun.java.swing.plaf.windows'
 ]
-
 def jarManifestAttributes = [
         'Implementation-Title': project.name + developerRelease,
         'Implementation-Version': tagVersion,
