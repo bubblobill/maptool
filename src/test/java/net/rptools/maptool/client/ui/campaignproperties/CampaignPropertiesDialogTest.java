@@ -27,15 +27,12 @@ import net.rptools.maptool.language.I18N;
 import org.junit.jupiter.api.Test;
 
 public class CampaignPropertiesDialogTest {
-  {
-    com.jidesoft.utils.Lm.verifyLicense(
-        "Trevor Croft", "rptools", "5MfIVe:WXJBDrToeLWPhMv3kI2s3VFo");
-  }
-
   @Test
   public void importPredefinedButton() throws InterruptedException, InvocationTargetException {
     SwingUtilities.invokeAndWait(
         () -> {
+          com.jidesoft.utils.Lm.verifyLicense(
+              "Trevor Croft", "rptools", "5MfIVe:WXJBDrToeLWPhMv3kI2s3VFo");
           CampaignPropertiesDialog cpd = new CampaignPropertiesDialog();
 
           JButton button = cpd.getImportPredefinedButton();
@@ -50,6 +47,8 @@ public class CampaignPropertiesDialogTest {
       throws InterruptedException, InvocationTargetException {
     SwingUtilities.invokeAndWait(
         () -> {
+          com.jidesoft.utils.Lm.verifyLicense(
+              "Trevor Croft", "rptools", "5MfIVe:WXJBDrToeLWPhMv3kI2s3VFo");
           CampaignPropertiesDialog cpd =
               new CampaignPropertiesDialog() {
                 @Override
@@ -69,6 +68,8 @@ public class CampaignPropertiesDialogTest {
       throws InterruptedException, InvocationTargetException {
     SwingUtilities.invokeAndWait(
         () -> {
+          com.jidesoft.utils.Lm.verifyLicense(
+              "Trevor Croft", "rptools", "5MfIVe:WXJBDrToeLWPhMv3kI2s3VFo");
           String one = new String("a" + AppConstants.CAMPAIGN_PROPERTIES_FILE_EXTENSION);
           String two = new String("b" + AppConstants.CAMPAIGN_PROPERTIES_FILE_EXTENSION);
 
