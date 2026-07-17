@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.client.swing.table;
 
-import com.formdev.flatlaf.ui.FlatUIUtils;
 import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
