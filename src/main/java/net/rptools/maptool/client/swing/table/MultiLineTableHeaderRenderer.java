@@ -30,8 +30,17 @@ public class MultiLineTableHeaderRenderer implements TableCellRenderer {
 
   static {
     Color mixWith = UIManager.getColor(FlatIconColors.OBJECTS_BLACK_TEXT.key);
-    HEADER_ALTERNATE_BACKGROUND = ColorFunctions.mix(HEADER_BACKGROUND, mixWith, 0.94f);
-    HEADER_ALTERNATE_FOREGROUND = ColorFunctions.mix(HEADER_FOREGROUND, mixWith, 0.31f);
+    // this is so tests can be passed as they do not install the LaF
+    Color c1, c2;
+    try {
+      c1 = ColorFunctions.mix(HEADER_BACKGROUND, mixWith, 0.94f);
+      c2 = ColorFunctions.mix(HEADER_FOREGROUND, mixWith, 0.31f);
+    } catch (Exception e) {
+      c1 = Color.decode("#dfddd2");
+      c2 =  Color.BLACK;
+    }
+    HEADER_ALTERNATE_BACKGROUND = c1;
+    HEADER_ALTERNATE_FOREGROUND = c2;
   }
 
   public MultiLineTableHeaderRenderer() {}

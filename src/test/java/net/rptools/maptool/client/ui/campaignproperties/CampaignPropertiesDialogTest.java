@@ -15,7 +15,7 @@
 package net.rptools.maptool.client.ui.campaignproperties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import net.rptools.maptool.client.swing.table.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import javax.swing.JButton;

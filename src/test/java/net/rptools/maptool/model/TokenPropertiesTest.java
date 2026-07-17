@@ -37,8 +37,8 @@ public class TokenPropertiesTest {
   @BeforeEach
   public void setUp() {
     propsList = new ArrayList<>();
-    propsList.add(new TokenProperty("prop1", null, null, null, "10"));
-    propsList.add(new TokenProperty("prop2", null, null, Permissions.ALL, "{prop2=prop1}"));
+    propsList.add(new TokenProperty("prop1", null, null, true, false, Permissions.NONE, "10"));
+    propsList.add(new TokenProperty("prop2", null, null, false, Permissions.ALL, "{prop2=prop1}"));
     propsList.add(
         new TokenProperty(
             "jsonObj1", null, Permissions.ALL, "{\"sampleKey\": 5, \"otherKey\": \"theValue\"}"));
