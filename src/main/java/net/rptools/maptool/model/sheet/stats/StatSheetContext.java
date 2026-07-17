@@ -32,9 +32,6 @@ import net.rptools.maptool.client.MapToolVariableResolver;
 import net.rptools.maptool.client.events.TokenHoverEnter;
 import net.rptools.maptool.client.ui.token.AbstractTokenOverlay;
 import net.rptools.maptool.client.ui.token.BarTokenOverlay;
-import net.rptools.maptool.model.PermissionsScope;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.TokenProperty;
 import net.rptools.maptool.model.player.Player;
 import net.rptools.maptool.util.HTMLUtil;
 import net.rptools.maptool.util.ImageManager;
@@ -250,7 +247,7 @@ public class StatSheetContext {
         .getTokenPropertyList(token.getPropertyType())
         .forEach(
             tp -> {
-              if (isPermitted(token, player, tp)) {
+              if (tp.getStatSheetViewPermission().hasPermission(player, token)) {
                 Object value = token.getEvaluatedProperty(resolver, tp.getName());
                 //noinspection ConstantValue
                 if (value == null || value instanceof String sValue && sValue.isBlank()) {
@@ -287,46 +284,6 @@ public class StatSheetContext {
           case LEFT -> "statSheet-left";
           case RIGHT -> "statSheet-right";
         };
-  }
-
-  /**
-   * Simplistic check for alliance based on GM vs. players. With all players are on the same side,
-   * all PCs and player-owned NPCs are on the same side.
-   *
-   * @param token to check is ally
-   * @param player whose side we are checking for
-   * @return if token belongs to the same side
-   */
-  private boolean isAllied(Token token, Player player) {
-    if (!player.isGM() && token.getType().equals(Token.Type.PC)) {
-      return true;
-    } else {
-      List<Player> teamMates = MapTool.getPlayerList().stream()
-              .dropWhile(p -> p.isGM() != player.isGM())
-              .toList();
-      final Set<String> owners = token.getOwners();
-      return !teamMates.stream().filter(p -> owners.contains(p.getName())).toList().isEmpty();
-    }
-  }
-
-  private boolean isPermitted(Token token, Player player, Object checkThis) {
-    if (checkThis instanceof TokenProperty tp) {
-      PermissionsScope permission = tp.getVisibilityPermission();
-      return switch (permission) {
-        case ALL -> true;
-        case NONE -> false;
-        case GM -> player.isGM();
-        case OWNER -> player.isGM() || token.isOwner(player.getName());
-        case ALLIED -> player.isGM() || token.isOwner(player.getName()) || isAllied(token, player);
-        case OWNER_ONLY -> !player.isGM() && token.isOwner(player.getName());
-        case ALLIED_ONLY -> !player.isGM() && !token.isOwner(player.getName()) && isAllied(token, player);
-        case OPPONENT_ONLY -> !player.isGM() && !token.isOwner(player.getName()) && !isAllied(token, player);
-        case null -> false;
-      };
-    } else {
-      // not yet implemented
-      return false;
-    }
   }
 
   private static final Function<MD5Key, Dimension> getImageDimensions =
@@ -465,7 +422,8 @@ public class StatSheetContext {
   public String getPortrait() {
     return portraitAsset != null ? "asset://" + portraitAsset : null;
   }
-/**
+
+  /**
    * Returns the handout asset of the token.
    *
    * @return The portrait asset of the token.

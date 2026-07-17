@@ -21,9 +21,8 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.table.AbstractTableModel;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.PermissionsScope;
+import net.rptools.maptool.model.Permissions;
 import net.rptools.maptool.model.TokenProperty;
-import net.rptools.maptool.model.VariableType;
 
 /** Table model for the token properties type table. */
 public class TokenPropertiesTableModel extends AbstractTableModel {
@@ -76,9 +75,9 @@ public class TokenPropertiesTableModel extends AbstractTableModel {
       case 1 -> property.getShortName();
       case 2 -> property.getDisplayName();
       case 3 -> property.getDefaultValue();
-      case 4 -> property.isPlayerEditable();
-      case 5 -> property.getVariableType();
-      case 6 -> property.getVisibilityPermission();
+      case 4 -> property.getEditorViewPermission().equals(Permissions.OWNER);
+      case 5 -> property.getEditorEditPermission().equals(Permissions.OWNER);
+      case 6 -> property.getStatSheetViewPermission();
       default -> null;
     };
   }
@@ -89,8 +88,8 @@ public class TokenPropertiesTableModel extends AbstractTableModel {
       case 1 -> I18N.getText("campaignPropertiesTable.column.shortName.description");
       case 2 -> I18N.getText("campaignPropertiesTable.column.displayName.description");
       case 3 -> I18N.getText("campaignPropertiesTable.column.default.description");
-      case 4 -> I18N.getText("campaignPropertiesTable.column.statSheet.playerEditable");
-      case 5 -> I18N.getText("campaignPropertiesTable.column.valueType.description");
+      case 4 -> I18N.getText("campaignPropertiesTable.column.playerViewable.description");
+      case 5 -> I18N.getText("campaignPropertiesTable.column.playerEditable.description");
       case 6 -> I18N.getText("campaignPropertiesTable.column.statSheet.description");
       default -> "";
     };
@@ -103,8 +102,8 @@ public class TokenPropertiesTableModel extends AbstractTableModel {
       case 1 -> I18N.getText("campaignPropertiesTable.column.shortName");
       case 2 -> I18N.getText("campaignPropertiesTable.column.displayName");
       case 3 -> I18N.getText("campaignPropertiesTable.column.defaultValue");
-      case 4 -> I18N.getText("campaignPropertiesTable.column.playerEditable");
-      case 5 -> I18N.getText("campaignPropertiesTable.column.valueType");
+      case 4 -> I18N.getText("campaignPropertiesTable.column.playerViewable");
+      case 5 -> I18N.getText("campaignPropertiesTable.column.playerEditable");
       case 6 -> I18N.getText("campaignPropertiesTable.column.statSheetVisibility");
       default -> "";
     };
@@ -115,18 +114,16 @@ public class TokenPropertiesTableModel extends AbstractTableModel {
     return switch (columnIndex) {
       case 0, 1, 2 -> String.class;
       case 3 -> LargeEditableText.class;
-      case 4 -> Boolean.class;
-      case 5 -> VariableType.class;
-      case 6 -> PermissionsScope.class;
+      case 4, 5 -> Boolean.class;
+      case 6 -> Permissions.class;
       default -> null;
     };
   }
 
   @Override
   public boolean isCellEditable(int rowIndex, int columnIndex) {
-    if(columnIndex == 5) {
-      List<TokenProperty> properties = tokenTypeMap.get(tokenType);
-      return properties.get(rowIndex).isPlayerEditable();
+    if (columnIndex == 5) {
+      return (boolean) getValueAt(rowIndex, 4);
     }
     return true;
   }
@@ -141,9 +138,9 @@ public class TokenPropertiesTableModel extends AbstractTableModel {
       case 1 -> tokenProperty.setShortName((String) aValue);
       case 2 -> tokenProperty.setDisplayName((String) aValue);
       case 3 -> tokenProperty.setDefaultValue((String) aValue);
-      case 4 -> tokenProperty.setPlayerEditable((boolean) aValue);
-      case 5 -> tokenProperty.setVariableType((VariableType) aValue);
-      case 6 -> tokenProperty.setVisibilityPermission((PermissionsScope) aValue);
+      case 4 -> tokenProperty.setEditorViewPermission((boolean) aValue);
+      case 5 -> tokenProperty.setEditorEditPermission((boolean) aValue);
+      case 6 -> tokenProperty.setStatSheetViewPermission((Permissions) aValue);
     }
   }
 

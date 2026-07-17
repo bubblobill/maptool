@@ -14,6 +14,7 @@
  */
 package net.rptools.maptool.client.ui.campaignproperties;
 
+import com.jidesoft.grid.TableUtils;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -26,13 +27,11 @@ import javax.swing.*;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
-
 import net.rptools.CaseInsensitiveHashMap;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.swing.AbeillePanel;
-import net.rptools.maptool.client.swing.MultiLineTableHeaderRenderer;
-import net.rptools.maptool.client.swing.TextFieldEditorButtonTableCellEditor;
+import net.rptools.maptool.client.swing.table.MultiLineTableHeaderRenderer;
+import net.rptools.maptool.client.swing.table.TextFieldEditorButtonTableCellEditor;
 import net.rptools.maptool.client.ui.campaignproperties.TokenPropertiesTableModel.LargeEditableText;
 import net.rptools.maptool.client.ui.sheet.stats.StatSheetComboBoxRenderer;
 import net.rptools.maptool.client.ui.theme.Icons;
@@ -60,7 +59,6 @@ public class TokenPropertiesManagementPanel extends AbeillePanel<CampaignPropert
 
   public TokenPropertiesManagementPanel() {
     super(new TokenPropertiesManagementPanelView().getRootComponent());
-
     panelInit();
   }
 
@@ -83,7 +81,6 @@ public class TokenPropertiesManagementPanel extends AbeillePanel<CampaignPropert
   }
 
   public void copyUIToCampaign(Campaign campaign) {
-
     campaign.getTokenTypeMap().clear();
     campaign.getTokenTypeMap().putAll(tokenTypeMap);
     campaign
@@ -147,7 +144,7 @@ public class TokenPropertiesManagementPanel extends AbeillePanel<CampaignPropert
     return (JComboBox) getComponent("statSheetLocationComboBox");
   }
 
-  public JComboBox getStatSheetComboBox() {
+  public JComboBox<StatSheet> getStatSheetComboBox() {
     return (JComboBox) getComponent("statSheetComboBox");
   }
 
@@ -380,10 +377,7 @@ public class TokenPropertiesManagementPanel extends AbeillePanel<CampaignPropert
         LargeEditableText.class, new TextFieldEditorButtonTableCellEditor());
 
     propertyTable.setDefaultEditor(
-        VariableType.class, new DefaultCellEditor(new JComboBox<>(VariableType.values())));
-
-    propertyTable.setDefaultEditor(
-        PermissionsScope.class, new DefaultCellEditor(new JComboBox<>(PermissionsScope.values())));
+        Permissions.class, new DefaultCellEditor(new JComboBox<>(Permissions.values())));
 
     propertyTable.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
     propertyTable
@@ -443,7 +437,6 @@ public class TokenPropertiesManagementPanel extends AbeillePanel<CampaignPropert
   }
 
   public void initTypeList() {
-
     getTokenTypeList()
         .addListSelectionListener(
             e -> {
@@ -612,7 +605,7 @@ public class TokenPropertiesManagementPanel extends AbeillePanel<CampaignPropert
       String original, line;
       while ((original = reader.readLine()) != null) {
         line = original = original.trim();
-        if (line.length() == 0) {
+        if (line.isEmpty()) {
           continue;
         }
 
@@ -621,17 +614,17 @@ public class TokenPropertiesManagementPanel extends AbeillePanel<CampaignPropert
         // Prefix
         while (true) {
           if (line.startsWith("*")) {
-            property.setVisibilityPermission(PermissionsScope.ALL);
+            property.setStatSheetViewPermission(Permissions.ALL);
             line = line.substring(1);
             continue;
           }
           if (line.startsWith("@")) {
-            property.setVisibilityPermission(PermissionsScope.OWNER);
+            property.setStatSheetViewPermission(Permissions.OWNER);
             line = line.substring(1);
             continue;
           }
           if (line.startsWith("#")) {
-            property.setVisibilityPermission(PermissionsScope.GM);
+            property.setStatSheetViewPermission(Permissions.GM);
             line = line.substring(1);
             continue;
           }
@@ -742,9 +735,9 @@ public class TokenPropertiesManagementPanel extends AbeillePanel<CampaignPropert
 
     for (int i = 0; i < propertyTable.getColumnCount(); i++) {
       TableColumn column = propertyTable.getColumnModel().getColumn(i);
-        column.setHeaderRenderer(customHeaderRenderer);
+      column.setHeaderRenderer(customHeaderRenderer);
     }
-
+    TableUtils.autoResizeColumn(propertyTable, 3);
     propertyTable.doLayout();
   }
 

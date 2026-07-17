@@ -56,7 +56,6 @@ import net.rptools.maptool.server.proto.CampaignPropertiesDto;
 import net.rptools.maptool.server.proto.HaloListDto;
 import net.rptools.maptool.server.proto.LightSourceListDto;
 import net.rptools.maptool.server.proto.TokenPropertyListDto;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.CaseUtils;
 
 public class CampaignProperties implements Serializable {
@@ -145,7 +144,8 @@ public class CampaignProperties implements Serializable {
 
   public CampaignProperties(CampaignProperties properties) {
     for (Entry<String, List<TokenProperty>> entry : properties.tokenTypeMap.entrySet()) {
-      List<TokenProperty> typeProperties = new ArrayList<>(properties.tokenTypeMap.get(entry.getKey()));
+      List<TokenProperty> typeProperties =
+          new ArrayList<>(properties.tokenTypeMap.get(entry.getKey()));
 
       tokenTypeMap.put(entry.getKey(), typeProperties);
     }
@@ -594,23 +594,36 @@ public class CampaignProperties implements Serializable {
     }
 
     List<TokenProperty> list = new ArrayList<>();
-    final String[] basicPropNames = new String[]{"strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hp", "ac", "defense", "movement", "elevation", "description"};
-    for(String propName : basicPropNames){
-      PermissionsScope visibility = switch (propName){
-        case "hp", "ac" -> PermissionsScope.OWNER;
-        case "elevation", "description" -> PermissionsScope.ALL;
-        default -> PermissionsScope.NONE;
-      };
+    final String[] basicPropNames =
+        new String[] {
+          "strength",
+          "dexterity",
+          "constitution",
+          "intelligence",
+          "wisdom",
+          "charisma",
+          "hp",
+          "ac",
+          "defense",
+          "movement",
+          "elevation",
+          "description"
+        };
+    for (String propName : basicPropNames) {
+      Permissions visibility =
+          switch (propName) {
+            case "hp", "ac" -> Permissions.OWNER;
+            case "elevation", "description" -> Permissions.ALL;
+            default -> Permissions.NONE;
+          };
 
       String displayName = I18N.getText(PROP_PREFIX + propName);
-      TokenProperty tp = new TokenProperty(
+      TokenProperty tp =
+          new TokenProperty(
               CaseUtils.toCamelCase(displayName, false),
               I18N.getText(SHORT_PROP_PREFIX + propName),
               displayName,
-              propName.equals("description") ? VariableType.STRING : VariableType.NUMBER,
-              visibility
-      );
-
+              visibility);
 
       list.add(tp);
     }

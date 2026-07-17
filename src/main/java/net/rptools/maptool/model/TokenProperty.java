@@ -15,343 +15,343 @@
 package net.rptools.maptool.model;
 
 import com.google.protobuf.StringValue;
-
 import java.io.Serializable;
 import java.util.Objects;
-
 import net.rptools.maptool.server.proto.TokenPropertyDto;
 
 public class TokenProperty implements DisplayNames, Serializable {
-    private String name;
-    private String shortName;
-    private String displayName;
-    private boolean playerEditable = true;
-    private PermissionsScope visibilityPermission = PermissionsScope.NONE;
-    private VariableType variableType = VariableType.UNDEFINED;
-    private String defaultValue = "";
+  private String name;
+  private String shortName;
+  private String displayName;
+  private String defaultValue = "";
 
-    public TokenProperty() {
-        // For serialization
+  // old stat-sheet permissions
+  @Deprecated private boolean highPriority; // showOnStatSheet; so that 1.3b28 files load in 1.3b29
+  @Deprecated private boolean ownerOnly;
+  @Deprecated private boolean gmOnly;
+
+  // new permissions
+  private Permissions editorViewPermission = Permissions.OWNER;
+  private Permissions editorEditPermission = Permissions.OWNER;
+  private Permissions statSheetViewPermission = Permissions.NONE;
+
+  public TokenProperty() {
+    // For serialization
+  }
+
+  public TokenProperty(String name) {
+    this(name, null, (String) null);
+  }
+
+  public TokenProperty(String name, String shortName) {
+    this(name, shortName, (String) null);
+  }
+
+  public TokenProperty(String name, String shortName, String displayName) {
+    this.name = name;
+    this.shortName = shortName;
+    this.displayName = displayName;
+  }
+
+  public TokenProperty(String name, boolean playerEditable) {
+    this(name, null, null, playerEditable, Permissions.NONE, null);
+  }
+
+  public TokenProperty(String name, Permissions statSheetViewPermission) {
+    this(name, null, null, true, statSheetViewPermission, null);
+  }
+
+  public TokenProperty(String name, String shortName, boolean playerEditable) {
+    this(name, shortName, null, playerEditable, Permissions.NONE, null);
+  }
+
+  public TokenProperty(String name, String shortName, String displayName, boolean playerEditable) {
+    this(name, shortName, displayName, playerEditable, Permissions.NONE, null);
+  }
+
+  public TokenProperty(String name, boolean playerEditable, Permissions statSheetViewPermission) {
+    this(name, null, null, playerEditable, statSheetViewPermission, null);
+  }
+
+  public TokenProperty(String name, String shortName, Permissions statSheetViewPermission) {
+    this(name, shortName, null, true, statSheetViewPermission, null);
+  }
+
+  public TokenProperty(
+      String name, String shortName, boolean playerEditable, Permissions statSheetViewPermission) {
+    this(name, shortName, null, playerEditable, statSheetViewPermission, null);
+  }
+
+  public TokenProperty(
+      String name, String shortName, Permissions statSheetViewPermission, String defaultValue) {
+    this(name, shortName, null, true, statSheetViewPermission, defaultValue);
+  }
+
+  public TokenProperty(
+      String name,
+      String shortName,
+      boolean playerEditable,
+      Permissions statSheetViewPermission,
+      String defaultValue) {
+    this(name, shortName, null, playerEditable, statSheetViewPermission, defaultValue);
+  }
+
+  public TokenProperty(
+      String name, String shortName, String displayName, Permissions statSheetViewPermission) {
+    this(name, shortName, displayName, true, statSheetViewPermission, null);
+  }
+
+  public TokenProperty(
+      String name,
+      String shortName,
+      String displayName,
+      boolean playerEditable,
+      Permissions statSheetViewPermission) {
+    this(name, shortName, displayName, playerEditable, statSheetViewPermission, null);
+  }
+
+  public TokenProperty(
+      String name,
+      String shortName,
+      String displayName,
+      boolean playerEditable,
+      Permissions statSheetViewPermission,
+      String defaultValue) {
+    this(
+        name,
+        shortName,
+        displayName,
+        playerEditable,
+        playerEditable,
+        statSheetViewPermission,
+        defaultValue);
+  }
+
+  public TokenProperty(
+      String name,
+      String shortName,
+      boolean highPriority,
+      boolean isOwnerOnly,
+      boolean isGMOnly,
+      String defaultValue) {
+    this.name = name;
+    this.shortName = shortName;
+    this.highPriority = highPriority;
+    this.ownerOnly = isOwnerOnly;
+    this.gmOnly = isGMOnly;
+    this.defaultValue = defaultValue;
+  }
+
+  public TokenProperty(
+      String name,
+      String shortName,
+      String displayName,
+      boolean playerViewable,
+      boolean playerEditable,
+      Permissions statSheetViewPermission,
+      String defaultValue) {
+    this.name = name;
+    this.shortName = shortName;
+    this.displayName = displayName;
+    this.editorEditPermission = playerEditable ? Permissions.OWNER : Permissions.GM;
+    this.editorViewPermission = playerViewable ? Permissions.OWNER : Permissions.GM;
+    if (statSheetViewPermission != null) {
+      this.statSheetViewPermission = statSheetViewPermission;
     }
+    this.defaultValue = defaultValue;
+  }
 
-    public TokenProperty(String name) {
-        this(name, null, (String) null);
+  /**
+   * Creates a new <code>TokenProperty</code> that's a copy of another.
+   *
+   * @param prop the property to copy the values from.
+   */
+  @SuppressWarnings("CopyConstructorMissesField")
+  public TokenProperty(TokenProperty prop) {
+    this.name = prop.getName();
+    this.shortName = prop.getShortName();
+    this.displayName = prop.getDisplayName();
+    this.defaultValue = prop.getDefaultValue();
+
+    if (prop.highPriority) {
+      if (prop.ownerOnly) {
+        setStatSheetViewPermission(Permissions.OWNER);
+      } else if (prop.gmOnly) {
+        setStatSheetViewPermission(Permissions.GM);
+      } else {
+        setStatSheetViewPermission(Permissions.ALL);
+      }
+    } else if (prop.hasStatSheetViewPermission()) {
+      setStatSheetViewPermission(prop.getStatSheetViewPermission());
     }
+    // because these getters substitute nulls for defaults
+    setEditorEditPermission(prop.getEditorEditPermission());
+    setEditorViewPermission(prop.getEditorViewPermission());
+  }
 
-    public TokenProperty(String name, String shortName) {
-        this(name, shortName, (String) null);
+  public boolean isShowOnStatSheet() {
+    return statSheetViewPermission != null && !statSheetViewPermission.equals(Permissions.NONE);
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public boolean hasDisplayName() {
+    return displayName != null && !displayName.isBlank();
+  }
+
+  public boolean hasShortName() {
+    return shortName != null && !shortName.isBlank();
+  }
+
+  public boolean hasDefaultValue() {
+    return defaultValue != null && !defaultValue.isBlank();
+  }
+
+  public boolean hasEditorViewPermission() {
+    return editorViewPermission != null;
+  }
+
+  public boolean hasEditorEditPermission() {
+    return editorEditPermission != null;
+  }
+
+  public boolean hasStatSheetViewPermission() {
+    return statSheetViewPermission != null;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
+
+  public String getShortName() {
+    return shortName;
+  }
+
+  public void setShortName(String shortName) {
+    this.shortName = shortName;
+  }
+
+  public Permissions getStatSheetViewPermission() {
+    if (!hasStatSheetViewPermission()) {
+      statSheetViewPermission = Permissions.NONE;
     }
-    public TokenProperty(String name, String shortName, String displayName) {
-        this.name = name;
-        this.shortName = shortName;
-        this.displayName = displayName;
+    return statSheetViewPermission;
+  }
+
+  public void setStatSheetViewPermission(Permissions statSheetViewPermission) {
+    this.statSheetViewPermission = statSheetViewPermission;
+  }
+
+  public boolean isGMOnly() {
+    return statSheetViewPermission.equals(Permissions.GM);
+  }
+
+  public boolean isOwnerOnly() {
+    return statSheetViewPermission.equals(Permissions.OWNER);
+  }
+
+  public String getDefaultValue() {
+    return this.defaultValue;
+  }
+
+  public void setDefaultValue(String defaultValue) {
+    this.defaultValue = defaultValue;
+  }
+
+  public Permissions getEditorViewPermission() {
+    if (!hasEditorViewPermission()) {
+      this.editorViewPermission = Permissions.OWNER;
     }
-    public TokenProperty(String name, VariableType variableType) {
-        this(name, null, null, true, variableType, PermissionsScope.NONE, null);
+    return editorViewPermission;
+  }
+
+  public void setEditorViewPermission(Permissions editorViewPermission) {
+    this.editorViewPermission = editorViewPermission;
+  }
+
+  public void setEditorViewPermission(boolean value) {
+    if (value) {
+      setEditorViewPermission(Permissions.OWNER);
+    } else {
+      setEditorViewPermission(Permissions.GM);
+      setEditorEditPermission(Permissions.GM);
     }
+  }
 
-    public TokenProperty(String name, boolean playerEditable) {
-        this(name, null, null, playerEditable, null, PermissionsScope.NONE, null);
+  public Permissions getEditorEditPermission() {
+    if (!hasEditorEditPermission()) {
+      this.editorEditPermission = Permissions.OWNER;
     }
+    return editorEditPermission;
+  }
 
-    public TokenProperty(String name, PermissionsScope visibilityPermission) {
-        this(name, null, null, true, null, visibilityPermission, null);
+  public void setEditorEditPermission(boolean value) {
+    setEditorEditPermission(value ? Permissions.OWNER : Permissions.GM);
+  }
+
+  public void setEditorEditPermission(Permissions editorEditPermission) {
+    this.editorEditPermission = editorEditPermission;
+  }
+
+  public static TokenProperty fromDto(TokenPropertyDto dto) {
+    var prop = new TokenProperty();
+    prop.name = dto.getName();
+    prop.shortName = dto.hasShortName() ? dto.getShortName().getValue() : null;
+
+    prop.editorEditPermission =
+        dto.hasEditorEditPermission()
+            ? Permissions.valueOf(dto.getEditorEditPermission())
+            : Permissions.OWNER;
+    prop.editorViewPermission =
+        dto.hasEditorViewPermission()
+            ? Permissions.valueOf(dto.getEditorViewPermission())
+            : Permissions.OWNER;
+    prop.statSheetViewPermission = Permissions.valueOf(dto.getStatSheetViewPermission());
+
+    prop.defaultValue = dto.hasDefaultValue() ? dto.getDefaultValue().getValue() : null;
+    prop.displayName = dto.hasDisplayName() ? dto.getDisplayName().getValue() : null;
+    return prop;
+  }
+
+  public TokenPropertyDto toDto() {
+    var dto = TokenPropertyDto.newBuilder();
+    dto.setName(name);
+    dto.setEditorEditPermission(
+        Objects.requireNonNullElse(editorEditPermission, Permissions.OWNER).name());
+    dto.setEditorViewPermission(
+        Objects.requireNonNullElse(editorViewPermission, Permissions.OWNER).name());
+    // for campaigns pre 1.19
+    if (highPriority || ownerOnly || gmOnly) {
+      if (ownerOnly) {
+        dto.setStatSheetViewPermission(Permissions.OWNER.name());
+      } else if (gmOnly) {
+        dto.setStatSheetViewPermission(Permissions.GM.name());
+      } else {
+        dto.setStatSheetViewPermission(Permissions.ALL.name());
+      }
+    } else {
+      dto.setStatSheetViewPermission(
+          Objects.requireNonNullElse(statSheetViewPermission, Permissions.NONE).name());
     }
-
-    public TokenProperty(String name, boolean playerEditable, VariableType variableType) {
-        this(name, null, null, playerEditable, variableType, PermissionsScope.NONE, null);
+    if (hasShortName()) {
+      dto.setShortName(StringValue.of(shortName));
     }
-
-    public TokenProperty(String name, String shortName, VariableType variableType) {
-        this(name, shortName, null, true, variableType, PermissionsScope.NONE, null);
+    if (hasDisplayName()) {
+      dto.setDisplayName(StringValue.of(displayName));
     }
-
-    public TokenProperty(String name, String shortName, boolean playerEditable) {
-        this(name, shortName, null, playerEditable, null, PermissionsScope.NONE, null);
+    if (hasDefaultValue()) {
+      dto.setDefaultValue(StringValue.of(defaultValue));
     }
-
-    public TokenProperty(String name, String shortName, boolean playerEditable, VariableType variableType) {
-        this(name, shortName, null, playerEditable, variableType, PermissionsScope.NONE, null);
-    }
-
-
-    public TokenProperty(String name, String shortName, String displayName, VariableType variableType) {
-        this(name, shortName, displayName, true, variableType, PermissionsScope.NONE, null);
-    }
-
-    public TokenProperty(String name, String shortName, String displayName, boolean playerEditable) {
-        this(name, shortName, displayName, playerEditable, null, PermissionsScope.NONE, null);
-    }
-
-    public TokenProperty(String name, String shortName, String displayName, boolean playerEditable, VariableType variableType) {
-        this(name, shortName, displayName, playerEditable, variableType, PermissionsScope.NONE, null);
-    }
-
-    public TokenProperty(String name, VariableType variableType, PermissionsScope visibilityPermission) {
-        this(name, null, null, true, variableType, visibilityPermission, null);
-    }
-
-    public TokenProperty(String name, boolean playerEditable, PermissionsScope visibilityPermission) {
-        this(name, null, null, playerEditable, null, visibilityPermission, null);
-    }
-
-    public TokenProperty(String name, boolean playerEditable, VariableType variableType, PermissionsScope visibilityPermission) {
-        this(name, null, null, playerEditable, variableType, visibilityPermission, null);
-    }
-
-    public TokenProperty(String name, String shortName, PermissionsScope visibilityPermission) {
-        this(name, shortName, null, true, null, visibilityPermission, null);
-    }
-
-    public TokenProperty(String name, String shortName, VariableType variableType, PermissionsScope visibilityPermission) {
-        this(name, shortName, null, true, variableType, visibilityPermission, null);
-    }
-
-    public TokenProperty(
-            String name,
-            String shortName,
-            boolean playerEditable,
-            PermissionsScope visibilityPermission) {
-        this(name, shortName, null, playerEditable, null, visibilityPermission, null);
-    }
-
-    public TokenProperty(
-            String name,
-            String shortName,
-            boolean playerEditable,
-            VariableType variableType,
-            PermissionsScope visibilityPermission) {
-        this(name, shortName, null, playerEditable, variableType, visibilityPermission, null);
-    }
-
-    public TokenProperty(
-            String name, String shortName, PermissionsScope visibilityPermission, String defaultValue) {
-        this(name, shortName, null, true, null, visibilityPermission, defaultValue);
-    }
-
-    public TokenProperty(
-            String name, String shortName, VariableType variableType, PermissionsScope visibilityPermission, String defaultValue) {
-        this(name, shortName, null, true, variableType, visibilityPermission, defaultValue);
-    }
-
-    public TokenProperty(
-            String name,
-            String shortName,
-            boolean playerEditable,
-            PermissionsScope visibilityPermission,
-            String defaultValue) {
-        this(name, shortName, null, playerEditable, null, visibilityPermission, defaultValue);
-    }
-
-    public TokenProperty(
-            String name,
-            String shortName,
-            boolean playerEditable,
-            VariableType variableType,
-            PermissionsScope visibilityPermission,
-            String defaultValue) {
-        this(name, shortName, null, playerEditable, variableType, visibilityPermission, defaultValue);
-    }
-
-    public TokenProperty(
-            String name, String shortName, String displayName, PermissionsScope visibilityPermission) {
-        this(name, shortName, displayName, true, null, visibilityPermission, null);
-    }
-
-    public TokenProperty(
-            String name, String shortName, String displayName, VariableType variableType, PermissionsScope visibilityPermission) {
-        this(name, shortName, displayName, true, variableType, visibilityPermission, null);
-    }
-
-    public TokenProperty(
-            String name,
-            String shortName,
-            String displayName,
-            boolean playerEditable,
-            PermissionsScope visibilityPermission) {
-        this(name, shortName, displayName, playerEditable, null, visibilityPermission, null);
-    }
-
-    public TokenProperty(
-            String name,
-            String shortName,
-            String displayName,
-            boolean playerEditable,
-            VariableType variableType,
-            PermissionsScope visibilityPermission) {
-        this(name, shortName, displayName, playerEditable, variableType, visibilityPermission, null);
-    }
-
-    public TokenProperty(
-            String name,
-            String shortName,
-            String displayName,
-            boolean playerEditable,
-            VariableType variableType,
-            PermissionsScope visibilityPermission,
-            String defaultValue) {
-        this.name = name;
-        this.shortName = shortName;
-        this.displayName = displayName;
-        this.playerEditable = playerEditable;
-        if (variableType != null) {
-            this.variableType = variableType;
-        }
-        if (visibilityPermission != null) {
-            this.visibilityPermission = visibilityPermission;
-        }
-        this.defaultValue = defaultValue;
-    }
-
-    /**
-     * Creates a new <code>TokenProperty</code> that's a copy of another.
-     *
-     * @param prop the property to copy the values from.
-     */
-    public TokenProperty(TokenProperty prop) {
-        this.name = prop.name;
-        this.shortName = prop.shortName;
-        this.displayName = prop.displayName;
-        this.playerEditable = prop.playerEditable;
-        this.variableType = prop.variableType;
-        this.visibilityPermission = prop.visibilityPermission;
-        this.defaultValue = prop.defaultValue;
-    }
-
-    public static TokenProperty fromDto(TokenPropertyDto dto) {
-        var prop = new TokenProperty();
-        prop.name = dto.getName();
-        prop.shortName = dto.hasShortName() ? dto.getShortName().getValue() : null;
-
-        prop.playerEditable = !dto.hasPlayerEditable() || dto.getPlayerEditable();
-        prop.variableType = !dto.hasVariableType() ? VariableType.UNDEFINED : VariableType.valueOf(dto.getVariableType());
-
-        if (dto.hasPermissions()) {
-            // the new permissions
-            prop.visibilityPermission = PermissionsScope.valueOf(dto.getPermissions());
-        } else if (dto.hasHighPriority() && dto.getHighPriority()) {
-            // the old permissions
-            if (dto.hasGmOnly() && dto.getGmOnly()) {
-                prop.visibilityPermission = PermissionsScope.GM;
-            } else if (dto.hasOwnerOnly() && dto.getOwnerOnly()) {
-                prop.visibilityPermission = PermissionsScope.OWNER;
-            } else {
-                prop.visibilityPermission = PermissionsScope.ALLIED_ONLY;
-            }
-        }
-
-        prop.defaultValue = dto.hasDefaultValue() ? dto.getDefaultValue().getValue() : null;
-        prop.displayName = dto.hasDisplayName() ? dto.getDisplayName().getValue() : null;
-        return prop;
-    }
-
-    public boolean isShowOnStatSheet() {
-        return visibilityPermission != null
-                && !visibilityPermission.equals(PermissionsScope.NONE);
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public boolean hasDisplayName() {
-        return displayName != null && !displayName.isBlank();
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public boolean hasShortName() {
-        return shortName != null && !shortName.isBlank();
-    }
-
-    public String getShortName() {
-        return shortName;
-    }
-
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
-    }
-
-    public boolean isPlayerEditable() {
-        return playerEditable;
-    }
-
-    public void setPlayerEditable(boolean playerEditable) {
-        this.playerEditable = playerEditable;
-    }
-
-    public PermissionsScope getVisibilityPermission() {
-        if(visibilityPermission == null){
-            visibilityPermission = PermissionsScope.NONE;
-        }
-        return visibilityPermission;
-    }
-
-    public void setVisibilityPermission(PermissionsScope visibilityPermission) {
-        this.visibilityPermission = visibilityPermission;
-    }
-
-    public boolean isGMOnly() {
-        return visibilityPermission.equals(PermissionsScope.GM);
-    }
-
-    public boolean isOwnerOnly() {
-        return visibilityPermission.equals(PermissionsScope.OWNER);
-    }
-
-    public boolean isAllyOnly() {
-        return visibilityPermission.equals(PermissionsScope.ALLIED_ONLY);
-    }
-
-    public boolean hasDefaultValue() {
-        return defaultValue != null && !defaultValue.isBlank();
-    }
-
-    public String getDefaultValue() {
-        return this.defaultValue;
-    }
-
-    public void setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue;
-    }
-
-
-    public VariableType getVariableType() {
-        if(variableType == null){
-            variableType = VariableType.UNDEFINED;
-        }
-        return variableType;
-    }
-
-    public void setVariableType(VariableType variableType) {
-        this.variableType = variableType;
-    }
-
-    public TokenPropertyDto toDto() {
-        var dto = TokenPropertyDto.newBuilder();
-        dto.setName(name);
-        dto.setPlayerEditable(playerEditable);
-        dto.setVariableType(Objects.requireNonNullElse(variableType, VariableType.UNDEFINED).name());
-        dto.setPermissions(Objects.requireNonNullElse(visibilityPermission, PermissionsScope.NONE).name());
-        if (hasShortName()) {
-            dto.setShortName(StringValue.of(shortName));
-        }
-        if (hasDisplayName()) {
-            dto.setDisplayName(StringValue.of(displayName));
-        }
-        if (hasDefaultValue()) {
-            dto.setDefaultValue(StringValue.of(defaultValue));
-        }
-        return dto.build();
-    }
+    return dto.build();
+  }
 }
