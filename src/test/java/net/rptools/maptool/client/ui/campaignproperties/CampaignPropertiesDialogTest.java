@@ -24,15 +24,20 @@ import javax.swing.SwingUtilities;
 import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.swing.table.*;
 import net.rptools.maptool.language.I18N;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class CampaignPropertiesDialogTest {
+  @BeforeAll
+  public static void register() {
+    com.jidesoft.utils.Lm.verifyLicense(
+        "Trevor Croft", "rptools", "5MfIVe:WXJBDrToeLWPhMv3kI2s3VFo");
+  }
+
   @Test
   public void importPredefinedButton() throws InterruptedException, InvocationTargetException {
     SwingUtilities.invokeAndWait(
         () -> {
-          com.jidesoft.utils.Lm.verifyLicense(
-              "Trevor Croft", "rptools", "5MfIVe:WXJBDrToeLWPhMv3kI2s3VFo");
           CampaignPropertiesDialog cpd = new CampaignPropertiesDialog();
 
           JButton button = cpd.getImportPredefinedButton();
@@ -47,8 +52,6 @@ public class CampaignPropertiesDialogTest {
       throws InterruptedException, InvocationTargetException {
     SwingUtilities.invokeAndWait(
         () -> {
-          com.jidesoft.utils.Lm.verifyLicense(
-              "Trevor Croft", "rptools", "5MfIVe:WXJBDrToeLWPhMv3kI2s3VFo");
           CampaignPropertiesDialog cpd =
               new CampaignPropertiesDialog() {
                 @Override
@@ -68,8 +71,6 @@ public class CampaignPropertiesDialogTest {
       throws InterruptedException, InvocationTargetException {
     SwingUtilities.invokeAndWait(
         () -> {
-          com.jidesoft.utils.Lm.verifyLicense(
-              "Trevor Croft", "rptools", "5MfIVe:WXJBDrToeLWPhMv3kI2s3VFo");
           String one = new String("a" + AppConstants.CAMPAIGN_PROPERTIES_FILE_EXTENSION);
           String two = new String("b" + AppConstants.CAMPAIGN_PROPERTIES_FILE_EXTENSION);
 
@@ -77,7 +78,6 @@ public class CampaignPropertiesDialogTest {
               new CampaignPropertiesDialog() {
                 @Override
                 protected File[] getPredefinedPropertyFiles(File propertyDir) {
-
                   return new File[] {new File(one), new File(two)};
                 }
               };
