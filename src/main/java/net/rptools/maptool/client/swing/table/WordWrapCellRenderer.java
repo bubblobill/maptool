@@ -14,6 +14,7 @@
  */
 package net.rptools.maptool.client.swing.table;
 
+import com.formdev.flatlaf.ui.FlatUIUtils;
 import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +42,7 @@ public class WordWrapCellRenderer extends RSyntaxTextArea implements TableCellRe
           new File(AppConstants.THEMES_DIR, AppPreferences.defaultMacroEditorTheme.get() + ".xml");
       Theme theme = Theme.load(new FileInputStream(themeFile));
       theme.apply(this);
-
+      setFont(FlatUIUtils.nonUIResource(UIManager.getFont("monospaced.font")));
       revalidate();
     } catch (IOException e) {
       log.error("Error while loading theme", e);
