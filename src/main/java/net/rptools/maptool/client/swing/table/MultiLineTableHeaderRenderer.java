@@ -37,7 +37,7 @@ public class MultiLineTableHeaderRenderer implements TableCellRenderer {
       c2 = ColorFunctions.mix(HEADER_FOREGROUND, mixWith, 0.31f);
     } catch (Exception e) {
       c1 = Color.decode("#dfddd2");
-      c2 =  Color.BLACK;
+      c2 = Color.BLACK;
     }
     HEADER_ALTERNATE_BACKGROUND = c1;
     HEADER_ALTERNATE_FOREGROUND = c2;

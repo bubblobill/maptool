@@ -15,13 +15,14 @@
 package net.rptools.maptool.client.ui.campaignproperties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import net.rptools.maptool.client.swing.table.*;
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.SwingUtilities;
 import net.rptools.maptool.client.AppConstants;
+import net.rptools.maptool.client.swing.table.*;
 import net.rptools.maptool.language.I18N;
 import org.junit.jupiter.api.Test;
 
