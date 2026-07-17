@@ -27,6 +27,10 @@ import net.rptools.maptool.language.I18N;
 import org.junit.jupiter.api.Test;
 
 public class CampaignPropertiesDialogTest {
+  {
+    com.jidesoft.utils.Lm.verifyLicense(
+        "Trevor Croft", "rptools", "5MfIVe:WXJBDrToeLWPhMv3kI2s3VFo");
+  }
 
   @Test
   public void importPredefinedButton() throws InterruptedException, InvocationTargetException {
