@@ -28,6 +28,7 @@ import javafx.scene.web.WebView;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.client.ui.syntax.Syntax;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.util.HTMLUtil;
 import org.fife.rsta.ac.LanguageSupportFactory;
@@ -54,7 +55,7 @@ public class HtmlEditorSplitGui {
   private RTextScrollPane textScrollPane;
   private RSyntaxTextArea sourceTextArea;
   private JFXPanel jfxPanel;
-  private JComboBox textTypeComboBox;
+  private JComboBox<Syntax> textTypeComboBox;
 
   public JComponent getRootComponent() {
     return rootPanel;
@@ -107,28 +108,11 @@ public class HtmlEditorSplitGui {
     // Otherwise, there will be no line numbers or folding indicators.
     textScrollPane.setFoldIndicatorEnabled(true);
     textScrollPane.setLineNumbersEnabled(true);
-    final Map<String, String> localStrings =
-        new HashMap<>(
-            Map.of(
-                I18N.getText(SyntaxConstants.SYNTAX_STYLE_NONE),
-                SyntaxConstants.SYNTAX_STYLE_NONE,
-                I18N.getText(SyntaxConstants.SYNTAX_STYLE_HTML),
-                SyntaxConstants.SYNTAX_STYLE_HTML,
-                I18N.getText(SyntaxConstants.SYNTAX_STYLE_MARKDOWN),
-                SyntaxConstants.SYNTAX_STYLE_MARKDOWN,
-                SyntaxConstants.SYNTAX_STYLE_NONE,
-                I18N.getText(SyntaxConstants.SYNTAX_STYLE_NONE),
-                SyntaxConstants.SYNTAX_STYLE_HTML,
-                I18N.getText(SyntaxConstants.SYNTAX_STYLE_HTML),
-                SyntaxConstants.SYNTAX_STYLE_MARKDOWN,
-                I18N.getText(SyntaxConstants.SYNTAX_STYLE_MARKDOWN)));
-    textTypeComboBox.addItem(localStrings.get(SyntaxConstants.SYNTAX_STYLE_NONE));
-    textTypeComboBox.addItem(localStrings.get(SyntaxConstants.SYNTAX_STYLE_HTML));
-    textTypeComboBox.addItem(localStrings.get(SyntaxConstants.SYNTAX_STYLE_MARKDOWN));
+    textTypeComboBox.setModel(new DefaultComboBoxModel<>(Syntax.getTokenNoteTypes().toArray(new Syntax[0])));
     textTypeComboBox.addItemListener(
         e -> {
           if (e.getStateChange() == ItemEvent.SELECTED) {
-            setTextStyle(localStrings.get((String) e.getItem()));
+            setTextStyle(((Syntax)e.getItem()).rSyntaxStyle());
           }
         });
 

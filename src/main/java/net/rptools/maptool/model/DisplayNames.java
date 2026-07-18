@@ -21,12 +21,6 @@ public interface DisplayNames {
 
   String getShortName();
 
-  void setName(String value);
-
-  void setDisplayName(String value);
-
-  void setShortName(String value);
-
   boolean hasShortName();
 
   boolean hasDisplayName();
