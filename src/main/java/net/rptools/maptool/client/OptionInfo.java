@@ -41,7 +41,7 @@ class OptionInfo {
   private static final Pattern PATTERN_COMMA = Pattern.compile("^\\s*,\\s*(?!$)");
 
   /** The OptionType enum contains the option type that has been specified for the roll */
-  enum OptionType {
+  public enum OptionType {
     NO_OPTION("", 0, 0),
     // output formats
     EXPANDED("e|expanded", 0, 0),

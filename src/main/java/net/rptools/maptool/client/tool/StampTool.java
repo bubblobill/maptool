@@ -736,7 +736,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
         });
 
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -744,7 +744,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD4, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD4, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -752,7 +752,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -760,7 +760,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -768,7 +768,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -776,7 +776,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -784,7 +784,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD1, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD1, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -792,7 +792,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD3, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD3, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -848,7 +848,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -856,7 +856,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -864,7 +864,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -872,7 +872,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           }
         });
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.SHIFT_MASK),
+        KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.SHIFT_DOWN_MASK),
         new AbstractAction() {
           @Override
           public void actionPerformed(ActionEvent e) {

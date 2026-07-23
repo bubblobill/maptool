@@ -15,8 +15,6 @@
 package net.rptools.maptool.client.swing.htmleditorsplit;
 
 import java.awt.event.*;
-import java.util.HashMap;
-import java.util.Map;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -28,6 +26,7 @@ import javafx.scene.web.WebView;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.client.swing.syntaxTextArea.SyntaxTextArea;
 import net.rptools.maptool.client.ui.syntax.Syntax;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.util.HTMLUtil;
@@ -47,6 +46,25 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 public class HtmlEditorSplitGui {
+  public static final String SELECT_TEXT =
+      "(function getSelectionText() {\n"
+          + "    var text = \"\";\n"
+          + "    if (window.getSelection) {\n"
+          + "        text = window.getSelection().toString();\n"
+          + "    } else if (document.selection && document.selection.type != \"Control\") {\n"
+          + "        text = document.selection.createRange().text;\n"
+          + "    }\n"
+          + "    if (window.getSelection) {\n"
+          + "      if (window.getSelection().empty) {  // Chrome\n"
+          + "        window.getSelection().empty();\n"
+          + "      } else if (window.getSelection().removeAllRanges) {  // Firefox\n"
+          + "        window.getSelection().removeAllRanges();\n"
+          + "      }\n"
+          + "    } else if (document.selection) {  // IE?\n"
+          + "      document.selection.empty();\n"
+          + "    }"
+          + "    return text;\n"
+          + "})()";
   private JPanel rootPanel;
   private JTabbedPane tabPanel;
   private JPanel textTab;
@@ -54,13 +72,9 @@ public class HtmlEditorSplitGui {
   private CollapsibleSectionPanel sectionPanel;
   private RTextScrollPane textScrollPane;
   private RSyntaxTextArea sourceTextArea;
+  private SyntaxTextArea sourceSyntaxTextArea;
   private JFXPanel jfxPanel;
-  private JComboBox<Syntax> textTypeComboBox;
-
-  public JComponent getRootComponent() {
-    return rootPanel;
-  }
-
+  private JComboBox<Syntax> syntaxTypeComboBox;
   private HTMLEditor htmlEditor;
 
   private SearchListener searchListener =
@@ -108,11 +122,11 @@ public class HtmlEditorSplitGui {
     // Otherwise, there will be no line numbers or folding indicators.
     textScrollPane.setFoldIndicatorEnabled(true);
     textScrollPane.setLineNumbersEnabled(true);
-    textTypeComboBox.setModel(new DefaultComboBoxModel<>(Syntax.getTokenNoteTypes().toArray(new Syntax[0])));
-    textTypeComboBox.addItemListener(
+    syntaxTypeComboBox.setModel(new DefaultComboBoxModel<>(Syntax.getTokenNoteTypes()));
+    syntaxTypeComboBox.addItemListener(
         e -> {
           if (e.getStateChange() == ItemEvent.SELECTED) {
-            setTextStyle(((Syntax)e.getItem()).rSyntaxStyle());
+            setTextStyle(((Syntax) e.getItem()));
           }
         });
 
@@ -212,7 +226,40 @@ public class HtmlEditorSplitGui {
             sourceTextArea.setText(doc.body().html());
           }
         });
-    setTextStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
+    setTextStyle(Syntax.NONE);
+  }
+
+  public JComponent getRootComponent() {
+    return rootPanel;
+  }
+
+  public String getTextStyle() {
+    return sourceTextArea.getSyntaxEditingStyle();
+  }
+
+  public void setTextStyle(Syntax style) {
+    switch (style) {
+      case HTML -> {
+        Platform.runLater(() -> htmlEditor.setDisable(false));
+        tabPanel.setEnabledAt(1, true);
+      }
+      case MARKDOWN -> {
+        Platform.runLater(() -> htmlEditor.setDisable(true));
+        tabPanel.setEnabledAt(1, true);
+      }
+      case NONE -> {
+        tabPanel.setSelectedIndex(0);
+        tabPanel.setEnabledAt(1, false);
+      }
+    }
+    sourceTextArea.setSyntaxEditingStyle(style.rSyntaxStyle());
+    syntaxTypeComboBox.setSelectedItem(style);
+  }
+
+  public String getText() {
+    // first select text tab to force conversion of html
+    tabPanel.setSelectedComponent(textTab);
+    return sourceTextArea.getText();
   }
 
   public void setText(String text) {
@@ -225,51 +272,6 @@ public class HtmlEditorSplitGui {
           }
         });
   }
-
-  public void setTextStyle(String style) {
-    if (style.equals(SyntaxConstants.SYNTAX_STYLE_HTML)) {
-      Platform.runLater(() -> htmlEditor.setDisable(false));
-      tabPanel.setEnabledAt(1, true);
-    } else if (style.equals(SyntaxConstants.SYNTAX_STYLE_MARKDOWN)) {
-      Platform.runLater(() -> htmlEditor.setDisable(true));
-      tabPanel.setEnabledAt(1, true);
-    } else {
-      tabPanel.setSelectedIndex(0);
-      tabPanel.setEnabledAt(1, false);
-    }
-    sourceTextArea.setSyntaxEditingStyle(style);
-    textTypeComboBox.setSelectedItem(style);
-  }
-
-  public String getTextStyle() {
-    return sourceTextArea.getSyntaxEditingStyle();
-  }
-
-  public String getText() {
-    // first select text tab to force conversion of html
-    tabPanel.setSelectedComponent(textTab);
-    return sourceTextArea.getText();
-  }
-
-  public static final String SELECT_TEXT =
-      "(function getSelectionText() {\n"
-          + "    var text = \"\";\n"
-          + "    if (window.getSelection) {\n"
-          + "        text = window.getSelection().toString();\n"
-          + "    } else if (document.selection && document.selection.type != \"Control\") {\n"
-          + "        text = document.selection.createRange().text;\n"
-          + "    }\n"
-          + "    if (window.getSelection) {\n"
-          + "      if (window.getSelection().empty) {  // Chrome\n"
-          + "        window.getSelection().empty();\n"
-          + "      } else if (window.getSelection().removeAllRanges) {  // Firefox\n"
-          + "        window.getSelection().removeAllRanges();\n"
-          + "      }\n"
-          + "    } else if (document.selection) {  // IE?\n"
-          + "      document.selection.empty();\n"
-          + "    }"
-          + "    return text;\n"
-          + "})()";
 
   public String getSelectedText() {
     var selectedTab = tabPanel.getSelectedComponent();

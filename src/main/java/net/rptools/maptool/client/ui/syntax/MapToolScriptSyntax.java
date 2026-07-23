@@ -16,9 +16,9 @@ package net.rptools.maptool.client.ui.syntax;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolExpressionParser;
+import net.rptools.maptool.client.MapToolVariableResolver;
 import net.rptools.maptool.client.functions.DefinesSpecialVariables;
 import net.rptools.maptool.client.functions.TokenMoveFunctions;
 import net.rptools.maptool.client.functions.UserDefinedMacroFunctions;
@@ -37,9 +37,15 @@ public class MapToolScriptSyntax extends MapToolScriptTokenMaker {
 
   static volatile TokenMap macroFunctionTokenMap;
 
+  /** Special variables */
   static String[] DATA_TYPES = {
     "bar.name",
     "macro.args",
+    "macro.catchAbort",
+    "macro.catchAssert",
+    "macro.requestHeaders",
+    "macro.responseHeaders",
+    "macro.return",
     "roll.count",
     "roll.result",
     "state.name",
@@ -57,45 +63,11 @@ public class MapToolScriptSyntax extends MapToolScriptTokenMaker {
     InitiativeList.ON_INITIATIVE_CHANGE_DENY_VARIABLE
   };
 
-  static String[] RESERVED_WORDS = {
-    "c",
-    "code",
-    "count",
-    "dialog",
-    "dialog5",
-    "e",
-    "expanded",
-    "for",
-    "foreach",
-    "frame",
-    "frame5",
-    "g",
-    "gm",
-    "gmtt",
-    "gt",
-    "h",
-    "hidden",
-    "hide",
-    "if",
-    "macro",
-    "overlay",
-    "r",
-    "result",
-    "s",
-    "self",
-    "selftt",
-    "st",
-    "switch",
-    "t",
-    "token",
-    "tooltip",
-    "u",
-    "unformatted",
-    "w",
-    "while",
-    "whisper"
-  };
+  /** Roll Options */
+  static final String[] RESERVED_WORDS =
+      MapToolVariableResolver.getRollOptions().toArray(String[]::new);
 
+  /** Event names */
   static String[] RESERVED_WORDS_2 = {
     "onCampaignLoad",
     "onChangeSelection",
@@ -121,8 +93,7 @@ public class MapToolScriptSyntax extends MapToolScriptTokenMaker {
     // Add all defined property names as "Variable"
     for (List<TokenProperty> propsList :
         MapTool.getCampaign().getCampaignProperties().getTokenTypeMap().values()) {
-      List<String> propertyNames =
-          propsList.stream().map(TokenProperty::getName).collect(Collectors.toList());
+      List<String> propertyNames = propsList.stream().map(TokenProperty::getName).toList();
       for (String prop : propertyNames) macroFunctionTokenMap.put(prop, Token.VARIABLE);
     }
 

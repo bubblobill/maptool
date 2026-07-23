@@ -19,9 +19,6 @@ import static net.rptools.lib.OsDetection.withMenuShortcut;
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
@@ -32,17 +29,17 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import net.rptools.maptool.client.AppActions;
 import net.rptools.maptool.client.AppConstants;
-import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolUtil;
 import net.rptools.maptool.client.swing.AbeillePanel;
 import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.swing.preference.WindowPreferences;
+import net.rptools.maptool.client.swing.syntaxTextArea.SyntaxTextArea;
 import net.rptools.maptool.client.ui.ColorComboBoxRenderer;
 import net.rptools.maptool.client.ui.macrobuttons.MacroButtonHotKeyManager;
 import net.rptools.maptool.client.ui.macrobuttons.buttons.MacroButton;
-import net.rptools.maptool.client.ui.syntax.MapToolScriptAutoComplete;
+import net.rptools.maptool.client.ui.syntax.Syntax;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.MacroButtonProperties;
 import net.rptools.maptool.model.Token;
@@ -56,16 +53,9 @@ import org.fife.rsta.ui.search.ReplaceDialog;
 import org.fife.rsta.ui.search.ReplaceToolBar;
 import org.fife.rsta.ui.search.SearchEvent;
 import org.fife.rsta.ui.search.SearchListener;
-import org.fife.ui.autocomplete.AutoCompletion;
-import org.fife.ui.autocomplete.CompletionProvider;
-import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.ErrorStrip;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rsyntaxtextarea.Theme;
-import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
-import org.fife.ui.rsyntaxtextarea.folding.CurlyFoldParser;
-import org.fife.ui.rsyntaxtextarea.folding.FoldParserManager;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
@@ -77,7 +67,15 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
 
   private static final long serialVersionUID = 8228617911117087993L;
   private static final Logger log = LogManager.getLogger(MacroEditorDialog.class);
+  private static final String READY = I18N.getText("Label.ready");
+  private static final String SAVED = I18N.getText("Label.saved");
+  private static final Set<String> openMacroList = new HashSet<String>(4);
   private final AbeillePanel panel;
+  private final SyntaxTextArea syntaxTextArea = new SyntaxTextArea(Syntax.MAPTOOL_SCRIPT);
+  private final RSyntaxTextArea macroEditorRSyntaxTextArea = syntaxTextArea.getEditor();
+  private final boolean modal;
+  private final boolean editingMacroButton;
+  private final Consumer<String> callback;
   private MacroButton button;
   private MacroButtonProperties properties;
   private boolean isTokenMacro = false;
@@ -89,46 +87,12 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
   private Boolean startingCompareAutoExecute;
   private Boolean startingCompareApplyToSelectedTokens;
   private Boolean startingAllowPlayerEdits;
-
-  private final RSyntaxTextArea macroEditorRSyntaxTextArea = new RSyntaxTextArea(2, 2);
   private CollapsibleSectionPanel csp;
   private FindDialog findDialog;
   private ReplaceDialog replaceDialog;
   private FindToolBar findToolBar;
   private ReplaceToolBar replaceToolBar;
   private JLabel status;
-  private static final String READY = I18N.getText("Label.ready");
-  private static final String SAVED = I18N.getText("Label.saved");
-
-  private static final Set<String> openMacroList = new HashSet<String>(4);
-
-  private final boolean modal;
-  private final boolean editingMacroButton;
-
-  private final Consumer<String> callback;
-
-  /**
-   * Creates a non modal MacroEditorDialog for editing the macro text and properties of a macro
-   * button.
-   *
-   * @return the MacroEditorDialog.
-   */
-  public static MacroEditorDialog createMacroButtonDialog() {
-    return new MacroEditorDialog(false, true, s -> {});
-  }
-
-  /**
-   * Creates a modal MacroEditorDialog for editing macros (or values that could potentially hold
-   * macros) that are not macro buttons.
-   *
-   * @param callback a callback to be called when the dialog is closed. The callback will be passed
-   *     the text unless the cancel button is pressed, in which case the callback will be passed
-   *     null.
-   * @return The MacroEditorDialog
-   */
-  public static MacroEditorDialog createModalDialog(@Nonnull Consumer<String> callback) {
-    return new MacroEditorDialog(true, false, callback);
-  }
 
   private MacroEditorDialog(
       boolean isModal, boolean isMacroButton, @Nonnull Consumer<String> callback) {
@@ -161,7 +125,7 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     if (!modal) {
       createMenuBar();
     }
-
+    initToolbar();
     if (!editingMacroButton) {
       // Only first table is useful if not editing macro buttons
       JTabbedPane tabbedPane = (JTabbedPane) panel.getComponent("macroTabs");
@@ -199,6 +163,37 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
         });
   }
 
+  /**
+   * Creates a non-modal MacroEditorDialog for editing the macro text and properties of a macro
+   * button.
+   *
+   * @return the MacroEditorDialog.
+   */
+  public static MacroEditorDialog createMacroButtonDialog() {
+    return new MacroEditorDialog(false, true, s -> {});
+  }
+
+  /**
+   * Creates a modal MacroEditorDialog for editing macros (or values that could potentially hold
+   * macros) that are not macro buttons.
+   *
+   * @param callback a callback to be called when the dialog is closed. The callback will be passed
+   *     the text unless the cancel button is pressed, in which case the callback will be passed
+   *     null.
+   * @return The MacroEditorDialog
+   */
+  public static MacroEditorDialog createModalDialog(@Nonnull Consumer<String> callback) {
+    return new MacroEditorDialog(true, false, callback);
+  }
+
+  /**
+   * @param id the id to look for
+   * @return whether the macro dialog is already opened.
+   */
+  public static boolean isMacroDialogOpen(String id) {
+    return openMacroList.contains(id);
+  }
+
   /** Listens for events from our search dialogs and actually does the dirty work. */
   @Override
   public void searchEvent(SearchEvent e) {
@@ -207,26 +202,23 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     SearchResult result = null;
 
     switch (type) {
-      default: // Prevent FindBugs warning later
-      case MARK_ALL:
-        result = SearchEngine.markAll(macroEditorRSyntaxTextArea, context);
-        break;
-      case FIND:
+      case MARK_ALL -> result = SearchEngine.markAll(macroEditorRSyntaxTextArea, context);
+      case FIND -> {
         result = SearchEngine.find(macroEditorRSyntaxTextArea, context);
         if (!result.wasFound()) {
           UIManager.getLookAndFeel().provideErrorFeedback(macroEditorRSyntaxTextArea);
         }
-        break;
-      case REPLACE:
+      }
+      case REPLACE -> {
         result = SearchEngine.replace(macroEditorRSyntaxTextArea, context);
         if (!result.wasFound()) {
           UIManager.getLookAndFeel().provideErrorFeedback(macroEditorRSyntaxTextArea);
         }
-        break;
-      case REPLACE_ALL:
+      }
+      case REPLACE_ALL -> {
         result = SearchEngine.replaceAll(macroEditorRSyntaxTextArea, context);
         JOptionPane.showMessageDialog(null, result.getCount() + " occurrences replaced.");
-        break;
+      }
     }
 
     String text = null;
@@ -248,14 +240,6 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
   @Override
   public String getSelectedText() {
     return macroEditorRSyntaxTextArea.getSelectedText();
-  }
-
-  /**
-   * @param id the id to look for
-   * @return whether the macro dialog is already opened.
-   */
-  public static boolean isMacroDialogOpen(String id) {
-    return openMacroList.contains(id);
   }
 
   private void installHotKeyCombo() {
@@ -461,51 +445,11 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
   }
 
   private void initCommandTextArea() {
-    AbstractTokenMakerFactory atmf =
-        (AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance();
-    atmf.putMapping(
-        "text/MapToolScript", "net.rptools.maptool.client.ui.syntax.MapToolScriptSyntax");
-
     // Expanding use of tooltip - already accepts HTML so lets show it
     getToolTipTextField().setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
     getToolTipTextField().setLineWrap(true);
     getToolTipTextField().setWrapStyleWord(true);
     getToolTipTextField().setTabSize(2);
-
-    // Macro Editor setup
-    macroEditorRSyntaxTextArea.setUseFocusableTips(false);
-    macroEditorRSyntaxTextArea.setSyntaxEditingStyle("text/MapToolScript");
-    macroEditorRSyntaxTextArea.setInsertPairedCharacters(false);
-    macroEditorRSyntaxTextArea.setEditable(true);
-    macroEditorRSyntaxTextArea.setCodeFoldingEnabled(true);
-    macroEditorRSyntaxTextArea.setLineWrap(true);
-    macroEditorRSyntaxTextArea.setWrapStyleWord(true);
-    macroEditorRSyntaxTextArea.setTabSize(4);
-
-    FoldParserManager.get().addFoldParserMapping("text/MapToolScript", new CurlyFoldParser());
-
-    // https://stackoverflow.com/questions/39613186/how-to-add-keywords-for-rsyntaxtextarea-for-syntax-highlighting
-    CompletionProvider provider = new MapToolScriptAutoComplete().get();
-    AutoCompletion ac = new AutoCompletion(provider);
-    ac.setAutoCompleteEnabled(true);
-    ac.setAutoActivationEnabled(true);
-    ac.setAutoActivationDelay(500);
-    ac.setShowDescWindow(true);
-    ac.setAutoCompleteSingleChoices(false);
-    ac.install(macroEditorRSyntaxTextArea);
-
-    // Set the color style via Theme
-    try {
-      File themeFile =
-          new File(AppConstants.THEMES_DIR, AppPreferences.defaultMacroEditorTheme.get() + ".xml");
-      Theme theme = Theme.load(new FileInputStream(themeFile));
-      theme.apply(macroEditorRSyntaxTextArea);
-      theme.apply(getToolTipTextField());
-
-      macroEditorRSyntaxTextArea.revalidate();
-    } catch (IOException e) {
-      log.error("Error while loading macro editor theme", e);
-    }
 
     // Listen for changes in the text
     macroEditorRSyntaxTextArea
@@ -529,11 +473,11 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
             });
 
     csp = new CollapsibleSectionPanel();
-    ((JPanel) panel.getComponent("macroEditorPanel")).add(csp);
+    ((JPanel) panel.getComponent("macroEditorPanel")).add(csp, BorderLayout.CENTER);
 
     csp.add(new ErrorStrip(macroEditorRSyntaxTextArea), BorderLayout.LINE_END);
 
-    RTextScrollPane macroEditorRTextScrollPane = new RTextScrollPane(macroEditorRSyntaxTextArea);
+    RTextScrollPane macroEditorRTextScrollPane = syntaxTextArea.getScrollPane();
     macroEditorRTextScrollPane.setLineNumbersEnabled(true);
 
     csp.add(new ErrorStrip(getToolTipTextField()), BorderLayout.LINE_END);
@@ -546,8 +490,7 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     findDialog = new FindDialog(this, this);
     replaceDialog = new ReplaceDialog(this, this);
 
-    // This ties the properties of the two dialogs together (match case,
-    // regex, etc.).
+    // This ties the properties of the two dialogs together (match case, regex, etc.).
     SearchContext context = findDialog.getSearchContext();
     replaceDialog.setSearchContext(context);
 
@@ -557,6 +500,15 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     replaceToolBar.setSearchContext(context);
 
     status = (JLabel) panel.getComponent("statusBarLabel");
+  }
+
+  private void initToolbar() {
+    JToolBar toolBar = new JToolBar(SwingConstants.VERTICAL);
+    toolBar.add(new ShowFindDialogAction(this));
+    toolBar.add(new ShowReplaceDialogAction(this));
+    toolBar.add(new GoToLineAction());
+
+    csp.add(toolBar, 0);
   }
 
   /**
@@ -572,6 +524,7 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
    */
   private void createMenuBar() {
     JMenuBar mb = MapTool.getFrame().getJMenuBar();
+
     for (int i = 0; i < mb.getMenuCount(); i++) {
       JMenu menu = mb.getMenu(i);
       if (menu.getText().equalsIgnoreCase(I18N.getText("menu.edit"))) {
@@ -584,7 +537,7 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
   }
 
   /**
-   * Is a utility method that adds all of the menu items.
+   * Is a utility method that adds all the menu items.
    *
    * @param menu
    */
@@ -656,71 +609,6 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
           // it, and we're done.
           menu.remove(max - 1);
           return;
-        }
-      }
-    }
-  }
-
-  private class ShowFindDialogAction extends AppActions.TranslatedClientAction {
-    private final MacroEditorDialog callingDialog;
-
-    public ShowFindDialogAction(MacroEditorDialog macroButtonDialog) {
-      super("action.macroEditor.searchFind", withMenuShortcut(KeyStroke.getKeyStroke("F")));
-      callingDialog = macroButtonDialog;
-    }
-
-    @Override
-    protected void executeAction() {
-      if (replaceDialog.isVisible()) {
-        replaceDialog.setVisible(false);
-      }
-      SwingUtil.centerOver(findDialog, callingDialog);
-      findDialog.setVisible(true);
-    }
-  }
-
-  private class ShowReplaceDialogAction extends AppActions.TranslatedClientAction {
-    private final MacroEditorDialog callingDialog;
-
-    public ShowReplaceDialogAction(MacroEditorDialog macroButtonDialog) {
-      super("action.macroEditor.searchReplace", withMenuShortcut(KeyStroke.getKeyStroke("H")));
-      callingDialog = macroButtonDialog;
-    }
-
-    @Override
-    protected void executeAction() {
-      if (findDialog.isVisible()) {
-        findDialog.setVisible(false);
-      }
-      SwingUtil.centerOver(replaceDialog, callingDialog);
-      replaceDialog.setVisible(true);
-    }
-  }
-
-  private class GoToLineAction extends AppActions.TranslatedClientAction {
-    public GoToLineAction() {
-      super("action.macroEditor.gotoLine", withMenuShortcut(KeyStroke.getKeyStroke("L")));
-    }
-
-    @Override
-    protected void executeAction() {
-      if (findDialog.isVisible()) {
-        findDialog.setVisible(false);
-      }
-      if (replaceDialog.isVisible()) {
-        replaceDialog.setVisible(false);
-      }
-      GoToDialog dialog = new GoToDialog(MacroEditorDialog.this);
-      dialog.setMaxLineNumberAllowed(macroEditorRSyntaxTextArea.getLineCount());
-      dialog.setVisible(true);
-      int line = dialog.getLineNumber();
-      if (line > 0) {
-        try {
-          macroEditorRSyntaxTextArea.setCaretPosition(
-              macroEditorRSyntaxTextArea.getLineStartOffset(line - 1));
-        } catch (BadLocationException ble) { // Never happens
-          log.error("Error while setting cursor to start of line", ble);
-          UIManager.getLookAndFeel().provideErrorFeedback(macroEditorRSyntaxTextArea);
         }
       }
     }
@@ -935,8 +823,6 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     return (RSyntaxTextArea) panel.getComponent("toolTip");
   }
 
-  // Begin comparison customization
-
   private JCheckBox getCompareIncludeLabelCheckBox() {
     return panel.getCheckBox("commonUseIncludeLabel");
   }
@@ -949,6 +835,8 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     return panel.getCheckBox("commonUseApplyToSelectedTokens");
   }
 
+  // Begin comparison customization
+
   private JCheckBox getCompareGroupCheckBox() {
     return panel.getCheckBox("commonUseGroup");
   }
@@ -959,6 +847,71 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
 
   private JCheckBox getCompareCommandCheckBox() {
     return panel.getCheckBox("commonUseCommand");
+  }
+
+  private class ShowFindDialogAction extends AppActions.TranslatedClientAction {
+    private final MacroEditorDialog callingDialog;
+
+    public ShowFindDialogAction(MacroEditorDialog macroButtonDialog) {
+      super("action.macroEditor.searchFind", withMenuShortcut(KeyStroke.getKeyStroke("F")));
+      callingDialog = macroButtonDialog;
+    }
+
+    @Override
+    protected void executeAction() {
+      if (replaceDialog.isVisible()) {
+        replaceDialog.setVisible(false);
+      }
+      SwingUtil.centerOver(findDialog, callingDialog);
+      findDialog.setVisible(true);
+    }
+  }
+
+  private class ShowReplaceDialogAction extends AppActions.TranslatedClientAction {
+    private final MacroEditorDialog callingDialog;
+
+    public ShowReplaceDialogAction(MacroEditorDialog macroButtonDialog) {
+      super("action.macroEditor.searchReplace", withMenuShortcut(KeyStroke.getKeyStroke("H")));
+      callingDialog = macroButtonDialog;
+    }
+
+    @Override
+    protected void executeAction() {
+      if (findDialog.isVisible()) {
+        findDialog.setVisible(false);
+      }
+      SwingUtil.centerOver(replaceDialog, callingDialog);
+      replaceDialog.setVisible(true);
+    }
+  }
+
+  private class GoToLineAction extends AppActions.TranslatedClientAction {
+    public GoToLineAction() {
+      super("action.macroEditor.gotoLine", withMenuShortcut(KeyStroke.getKeyStroke("L")));
+    }
+
+    @Override
+    protected void executeAction() {
+      if (findDialog.isVisible()) {
+        findDialog.setVisible(false);
+      }
+      if (replaceDialog.isVisible()) {
+        replaceDialog.setVisible(false);
+      }
+      GoToDialog dialog = new GoToDialog(MacroEditorDialog.this);
+      dialog.setMaxLineNumberAllowed(macroEditorRSyntaxTextArea.getLineCount());
+      dialog.setVisible(true);
+      int line = dialog.getLineNumber();
+      if (line > 0) {
+        try {
+          macroEditorRSyntaxTextArea.setCaretPosition(
+              macroEditorRSyntaxTextArea.getLineStartOffset(line - 1));
+        } catch (BadLocationException ble) { // Never happens
+          log.error("Error while setting cursor to start of line", ble);
+          UIManager.getLookAndFeel().provideErrorFeedback(macroEditorRSyntaxTextArea);
+        }
+      }
+    }
   }
 
   // End comparison customization

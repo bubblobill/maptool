@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.client.ui.macrobuttons.dialog;
 
-import java.awt.*;
 import javax.swing.*;
 
 public class MacroButtonDialogView {

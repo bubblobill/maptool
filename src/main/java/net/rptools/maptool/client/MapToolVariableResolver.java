@@ -40,6 +40,17 @@ public class MapToolVariableResolver implements VariableResolver {
   // Logger for this class.
   private static final Logger LOGGER = LogManager.getLogger(MapToolVariableResolver.class);
 
+  public static List<String> getRollOptions() {
+    List<String> options = new ArrayList<>();
+    for (OptionInfo.OptionType ot : OptionInfo.OptionType.values()) {
+      String patternString = ot.getNamePattern().pattern();
+      patternString = patternString.replace("^\\s*", "").replace("\\s*$", "");
+      options.addAll(Arrays.asList(patternString.split("\\|")));
+    }
+    options.removeFirst(); // blank entry
+    return options;
+  }
+
   /** The prefix for querying and setting state values . */
   public static final String BAR_PREFIX = "bar.";
 

@@ -42,6 +42,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okhttp3.ResponseBody.Companion.*;
 import okio.BufferedSource;
 import okio.GzipSource;
 import okio.InflaterSource;
@@ -175,7 +176,7 @@ public class RESTfulFunctions extends AbstractFunction {
     Headers headers = buildHeaders(headerMap);
 
     // Build out the request body
-    RequestBody requestBody = RequestBody.create(mediaType, payload);
+    RequestBody requestBody = RequestBody.Companion.create(payload, mediaType);
 
     // If we need to add headers then build a new request with new headers
 
@@ -301,7 +302,7 @@ public class RESTfulFunctions extends AbstractFunction {
                 responseBuilder.headers(strippedHeaders);
                 var contentType = MediaType.parse(oldResponse.header("Content-Type"));
                 // Construct a new body with an inferred Content-Length
-                var newBody = ResponseBody.create(contentType, -1L, source);
+                var newBody = ResponseBody.Companion.create(source, contentType, -1L);
                 responseBuilder.body(newBody);
               }
 
@@ -325,12 +326,12 @@ public class RESTfulFunctions extends AbstractFunction {
   }
 
   private boolean isLastParamBoolean(List<Object> parameters) {
-    return (parameters.get(parameters.size() - 1) instanceof BigDecimal);
+    return (parameters.getLast() instanceof BigDecimal);
   }
 
   private boolean isFullResponseRequested(List<Object> parameters) {
     if (isLastParamBoolean(parameters)) {
-      return FunctionUtil.getBooleanValue(parameters.get(parameters.size() - 1));
+      return FunctionUtil.getBooleanValue(parameters.getLast());
     } else {
       return false;
     }

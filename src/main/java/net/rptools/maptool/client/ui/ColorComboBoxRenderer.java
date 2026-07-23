@@ -21,6 +21,7 @@ import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import net.rptools.maptool.client.MapToolUtil;
 import net.rptools.maptool.language.I18N;
+import net.rptools.maptool.util.ColourUtil;
 
 /** This class renders the list entries of a color selection combo box. */
 public class ColorComboBoxRenderer extends JLabel implements ListCellRenderer {
@@ -48,13 +49,7 @@ public class ColorComboBoxRenderer extends JLabel implements ListCellRenderer {
    * @return returns the chosen background color, either black or white.
    */
   public static Color selectForegroundColor(Color background) {
-    float[] rgbValues = background.getColorComponents(null);
-    float contrast = 0.299f * rgbValues[0] + 0.587f * rgbValues[1] + 0.114f * rgbValues[2];
-    if (contrast > 0.7) {
-      return Color.black;
-    } else {
-      return Color.white;
-    }
+    return ColourUtil.contrast(background);
   }
 
   /** Creates a new label with an opaque background. */

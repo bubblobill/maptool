@@ -29,6 +29,7 @@ import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Token.TokenShape;
+import net.rptools.maptool.util.ColourUtil;
 import net.rptools.maptool.util.FileUtil;
 import net.rptools.maptool.util.PersistenceUtil;
 import org.apache.logging.log4j.LogManager;
@@ -305,7 +306,7 @@ public abstract class AbstractTokenPopupMenu extends JPopupMenu {
       Set<String> colorNames = MapToolUtil.getColorNames();
       for (String name : colorNames) {
         Color bgColor = MapToolUtil.getColor(name);
-        Color fgColor = ColorComboBoxRenderer.selectForegroundColor(bgColor);
+        Color fgColor = ColourUtil.contrast(bgColor);
         String displayName = I18N.getString("Color.".concat(name));
         if (displayName == null) {
           displayName = name;

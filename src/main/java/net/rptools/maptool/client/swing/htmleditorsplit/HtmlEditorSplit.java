@@ -19,6 +19,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import java.awt.*;
 import java.beans.JavaBean;
 import javax.swing.*;
+import net.rptools.maptool.client.ui.syntax.Syntax;
 
 @JavaBean(defaultProperty = "UI", description = "HTML-Editor that also displays sourcecode")
 public class HtmlEditorSplit extends JPanel {
@@ -57,7 +58,7 @@ public class HtmlEditorSplit extends JPanel {
   }
 
   public void setTextType(String type) {
-    gui.setTextStyle(type);
+    gui.setTextStyle(Syntax.lookup(type));
   }
 
   public String getSelectedText() {
