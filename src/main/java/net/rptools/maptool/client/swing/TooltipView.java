@@ -38,34 +38,48 @@ public class TooltipView extends InlineView {
 
   @Override
   public String getToolTipText(float x, float y, Shape allocation) {
-    AttributeSet attSet;
+    boolean isInsideChat = mlToolTips;
+    boolean showTitleAsTooltip = AppPreferences.suppressToolTipsForMacroLinks.get();
+    boolean isMacroLink = false;
+    AttributeSet attSet = (AttributeSet) getElement().getAttributes().getAttribute(HTML.Tag.A);
+    String href;
+    String title = null;
 
-    attSet = (AttributeSet) getElement().getAttributes().getAttribute(HTML.Tag.A);
     if (attSet != null) {
       Object attribute = attSet.getAttribute(HTML.Attribute.HREF);
-      String href;
-
       if (attribute != null) {
         href = attribute.toString();
+        isMacroLink =
+            href.toLowerCase().startsWith("macro:") || href.toLowerCase().startsWith("lib:");
       } else {
         href = I18N.getString("macroLink.error.tooltip.bad.href");
       }
 
-      if (href.startsWith("macro:")) {
-        boolean isInsideChat = mlToolTips;
-        boolean allowToolTipToShow = !AppPreferences.suppressToolTipsForMacroLinks.get();
-        if (isInsideChat && allowToolTipToShow) {
-          return MacroLinkFunction.getInstance().macroLinkToolTip(href);
+      attribute = attSet.getAttribute(HTML.Attribute.TITLE);
+      if (attribute != null) {
+        title = attribute.toString();
+      }
+
+      if (isInsideChat) {
+        if (isMacroLink) {
+          if (showTitleAsTooltip) {
+            // not using anti-cheat tooltip, i.e. not suppress tooltip
+            return title;
+          } else if (href.toLowerCase().startsWith("macro:")) {
+            // use anti-cheat tooltip, i.e. suppress normal tooltip
+            return MacroLinkFunction.getInstance().macroLinkToolTip(href);
+          } else if (href.toLowerCase().startsWith("lib:")) {
+            // just show the URL
+            return href;
+          }
         }
-        // if we are not displaying macro link tooltips let if fall through so that any span
-        // tooltips will be displayed
-      } else {
-        return href;
       }
     }
 
     attSet = (AttributeSet) getElement().getAttributes().getAttribute(HTML.Tag.SPAN);
-    if (attSet != null) return (String) attSet.getAttribute(HTML.Attribute.TITLE);
+    if (attSet != null) {
+      return (String) attSet.getAttribute(HTML.Attribute.TITLE);
+    }
 
     return null;
   }
