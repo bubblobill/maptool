@@ -23,13 +23,13 @@ import net.rptools.maptool.language.I18N;
 
 public class TooltipView extends InlineView {
 
-  private boolean mlToolTips;
+  private final boolean mlToolTips;
 
   /**
    * Constructs a new view wrapped on an element.
    *
    * @param elem the element
-   * @param macroLinkToolTips if to show macrolinks as tooltips
+   * @param macroLinkToolTips if to show macroLinks as tooltips
    */
   public TooltipView(Element elem, boolean macroLinkToolTips) {
     super(elem);
@@ -47,10 +47,13 @@ public class TooltipView extends InlineView {
 
     if (attSet != null) {
       Object attribute = attSet.getAttribute(HTML.Attribute.HREF);
+
       if (attribute != null) {
         href = attribute.toString();
         isMacroLink =
-            href.toLowerCase().startsWith("macro:") || href.toLowerCase().startsWith("lib:");
+            href.toLowerCase().startsWith("macro:")
+                || (href.toLowerCase().startsWith("lib:")
+                    && href.toLowerCase().contains("/macro/"));
       } else {
         href = I18N.getString("macroLink.error.tooltip.bad.href");
       }
@@ -61,26 +64,30 @@ public class TooltipView extends InlineView {
       }
 
       if (isInsideChat) {
-        if (isMacroLink) {
-          if (showTitleAsTooltip) {
-            // not using anti-cheat tooltip, i.e. not suppress tooltip
+        if (!isMacroLink || showTitleAsTooltip) {
+          // not using anti-cheat tooltip, or not a macroLink, i.e. not suppress tooltip
+          if (title != null) {
             return title;
-          } else if (href.toLowerCase().startsWith("macro:")) {
-            // use anti-cheat tooltip, i.e. suppress normal tooltip
-            return MacroLinkFunction.getInstance().macroLinkToolTip(href);
-          } else if (href.toLowerCase().startsWith("lib:")) {
-            // just show the URL
-            return href;
           }
+        } else if (href.toLowerCase().startsWith("macro:")) {
+          // use anti-cheat tooltip, i.e. suppress normal tooltip
+          return MacroLinkFunction.getInstance().macroLinkToolTip(href);
+        } else if (href.toLowerCase().startsWith("lib:")) {
+          // just show the URL
+          return href;
         }
       }
     }
-
+    // first fallback - use title
+    if (title != null) {
+      return title;
+    }
+    // second fallback - span tag
     attSet = (AttributeSet) getElement().getAttributes().getAttribute(HTML.Tag.SPAN);
     if (attSet != null) {
       return (String) attSet.getAttribute(HTML.Attribute.TITLE);
     }
-
+    // nothing to show
     return null;
   }
 }
