@@ -16,4 +16,4 @@ package net.rptools.maptool.client.events;
 
 import net.rptools.maptool.events.MTEvent;
 
-public record PreferencesChanged()  implements MTEvent {}
+public record PreferencesChanged() implements MTEvent {}

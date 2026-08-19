@@ -28,4 +28,5 @@ import net.rptools.maptool.model.Zone;
  * @param altDown is the alt-key down.
  */
 public record TokenHoverEnter(
-    Token token, Zone zone, boolean shiftDown, boolean controlDown, boolean altDown) implements MTEvent {}
+    Token token, Zone zone, boolean shiftDown, boolean controlDown, boolean altDown)
+    implements MTEvent {}

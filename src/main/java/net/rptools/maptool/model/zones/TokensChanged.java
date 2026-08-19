@@ -15,7 +15,6 @@
 package net.rptools.maptool.model.zones;
 
 import java.util.List;
-
 import net.rptools.maptool.events.MTEvent;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;

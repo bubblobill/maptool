@@ -19,4 +19,5 @@ import net.rptools.lib.MD5Key;
 import net.rptools.maptool.events.MTEvent;
 import net.rptools.maptool.model.Zone;
 
-public record BoardChanged(Zone zone, MD5Key asset, Point position, double scaleX, double scaleY) implements MTEvent {}
+public record BoardChanged(Zone zone, MD5Key asset, Point position, double scaleX, double scaleY)
+    implements MTEvent {}
