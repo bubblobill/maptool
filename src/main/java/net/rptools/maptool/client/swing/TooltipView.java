@@ -73,7 +73,7 @@ public class TooltipView extends InlineView {
           // use anti-cheat tooltip, i.e. suppress normal tooltip
           return MacroLinkFunction.getInstance().macroLinkToolTip(href);
         } else if (href.toLowerCase().startsWith("lib:")) {
-          // just show the URL
+          // no tooltip creation function available yet, just show the URL
           return href;
         }
       }
