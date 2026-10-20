@@ -12,7 +12,7 @@
  * <https://www.gnu.org/licenses/> and specifically the Affero license
  * text at <https://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.client.ui.zone.vbl;
+package net.rptools.maptool.model.topology.util;
 
 import com.google.common.base.Stopwatch;
 import java.awt.Color;
@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.Token;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.util.ImageManager;
 import net.rptools.maptool.util.TokenUtil;
@@ -47,11 +48,11 @@ import org.locationtech.jts.util.GeometricShapeFactory;
 
 /**
  * A utility class that creates and returns an Area based on image pixels. A few convenience methods
- * to handle other Token VBL functions.
+ * to handle other Token topology functions.
  *
  * @author Jamz
  */
-public class TokenVBL {
+public class TokenTopology {
 
   private static final Logger log = LogManager.getLogger();
   private static int sliceSize = 100;
@@ -177,7 +178,7 @@ public class TokenVBL {
   }
 
   public static Area getTopology_underToken(
-      Zone zone, Token token, Zone.TopologyType topologyType) {
+      Zone zone, Token token, Constants.TopologyType topologyType) {
     Area topologyOnMap = zone.getMaskTopology(topologyType);
     Rectangle footprintBounds = token.getImageBounds(zone);
 
@@ -322,7 +323,7 @@ public class TokenVBL {
     private final String displayName;
 
     JTS_SimplifyMethodType() {
-      displayName = I18N.getString("TokenVBL.JTS_SimplifyMethodType." + name());
+      displayName = I18N.getString("TokenTopology.JTS_SimplifyMethodType." + name());
     }
 
     @Override

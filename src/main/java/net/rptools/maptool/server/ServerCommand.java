@@ -30,6 +30,7 @@ import net.rptools.maptool.model.gamedata.proto.GameDataDto;
 import net.rptools.maptool.model.gamedata.proto.GameDataValueDto;
 import net.rptools.maptool.model.library.addon.TransferableAddOnLibrary;
 import net.rptools.maptool.model.player.Player;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.topology.Wall;
 import net.rptools.maptool.model.topology.WallTopology;
 
@@ -49,13 +50,13 @@ public interface ServerCommand {
   void updateWall(Zone zone, Wall wall);
 
   default void updateMaskTopology(
-      Zone zone, Area area, boolean erase, Set<Zone.TopologyType> topologyTypes) {
+      Zone zone, Area area, boolean erase, Set<Constants.TopologyType> topologyTypes) {
     for (var topologyType : topologyTypes) {
       updateMaskTopology(zone, area, erase, topologyType);
     }
   }
 
-  void updateMaskTopology(Zone zone, Area area, boolean erase, Zone.TopologyType topologyType);
+  void updateMaskTopology(Zone zone, Area area, boolean erase, Constants.TopologyType topologyType);
 
   void enforceZoneView(GUID zoneGUID, int x, int y, double scale, int width, int height);
 
@@ -211,7 +212,7 @@ public interface ServerCommand {
    */
   void toggleHaloSourceOnToken(Token token, boolean toggleOn, Halo halo);
 
-  void setTokenMaskTopology(Token token, @Nullable Area area, Zone.TopologyType topologyType);
+  void setTokenMaskTopology(Token token, @Nullable Area area, Constants.TopologyType topologyType);
 
   void updateTokenProperty(Token token, Token.Update update, int value);
 

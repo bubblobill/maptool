@@ -27,10 +27,10 @@ import net.rptools.maptool.client.AppStatePersisted;
 import net.rptools.maptool.client.ui.theme.Icons;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.topology.Constants;
 
 public class TopologyModeSelectionPanel extends JToolBar {
-  private final Map<Zone.TopologyType, JToggleButton> modeButtons;
+  private final Map<Constants.TopologyType, JToggleButton> modeButtons;
 
   public TopologyModeSelectionPanel() {
     setFloatable(false);
@@ -38,35 +38,35 @@ public class TopologyModeSelectionPanel extends JToolBar {
     setBorder(null);
     setBorderPainted(false);
 
-    modeButtons = new EnumMap<>(Zone.TopologyType.class);
+    modeButtons = new EnumMap<>(Constants.TopologyType.class);
 
     var initiallySelectedTypes = AppStatePersisted.getTopologyTypes();
     createAndAddModeButton(
-        Zone.TopologyType.WALL_VBL,
+        Constants.TopologyType.WALL,
         Icons.TOOLBAR_TOPOLOGY_TYPE_VBL_ON,
         Icons.TOOLBAR_TOPOLOGY_TYPE_VBL_OFF,
         "tools.topology_mode_selection.vbl.tooltip",
         initiallySelectedTypes);
     createAndAddModeButton(
-        Zone.TopologyType.HILL_VBL,
+        Constants.TopologyType.HILL,
         Icons.TOOLBAR_TOPOLOGY_TYPE_HILL_ON,
         Icons.TOOLBAR_TOPOLOGY_TYPE_HILL_OFF,
         "tools.topology_mode_selection.hill_vbl.tooltip",
         initiallySelectedTypes);
     createAndAddModeButton(
-        Zone.TopologyType.PIT_VBL,
+        Constants.TopologyType.PIT,
         Icons.TOOLBAR_TOPOLOGY_TYPE_PIT_ON,
         Icons.TOOLBAR_TOPOLOGY_TYPE_PIT_OFF,
         "tools.topology_mode_selection.pit_vbl.tooltip",
         initiallySelectedTypes);
     createAndAddModeButton(
-        Zone.TopologyType.COVER_VBL,
+        Constants.TopologyType.COVER,
         Icons.TOOLBAR_TOPOLOGY_TYPE_COVER_ON,
         Icons.TOOLBAR_TOPOLOGY_TYPE_COVER_OFF,
         "tools.topology_mode_selection.cover_vbl.tooltip",
         initiallySelectedTypes);
     createAndAddModeButton(
-        Zone.TopologyType.MBL,
+        Constants.TopologyType.MOVEMENT,
         Icons.TOOLBAR_TOPOLOGY_TYPE_MBL_ON,
         Icons.TOOLBAR_TOPOLOGY_TYPE_MBL_OFF,
         "tools.topology_mode_selection.mbl.tooltip",
@@ -91,11 +91,11 @@ public class TopologyModeSelectionPanel extends JToolBar {
   }
 
   private void createAndAddModeButton(
-      Zone.TopologyType type,
+      Constants.TopologyType type,
       final Icons icon,
       final Icons offIcon,
       String toolTipKey,
-      Set<Zone.TopologyType> initiallySelectedTypes) {
+      Set<Constants.TopologyType> initiallySelectedTypes) {
     final var button = new JToggleButton();
 
     button.setIcon(RessourceManager.getBigIcon(offIcon));
@@ -115,8 +115,8 @@ public class TopologyModeSelectionPanel extends JToolBar {
         });
   }
 
-  public Set<Zone.TopologyType> getMode() {
-    var result = EnumSet.noneOf(Zone.TopologyType.class);
+  public Set<Constants.TopologyType> getMode() {
+    var result = EnumSet.noneOf(Constants.TopologyType.class);
     for (final var entry : modeButtons.entrySet()) {
       final var topologyType = entry.getKey();
       final var button = entry.getValue();

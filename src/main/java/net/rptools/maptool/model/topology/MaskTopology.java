@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import net.rptools.lib.GeometryUtil;
-import net.rptools.maptool.client.ui.zone.vbl.Facing;
-import net.rptools.maptool.model.Zone.TopologyType;
 import org.locationtech.jts.algorithm.Orientation;
 import org.locationtech.jts.algorithm.RayCrossingCounter;
 import org.locationtech.jts.geom.Coordinate;
@@ -32,17 +30,17 @@ import org.locationtech.jts.geom.Location;
 import org.locationtech.jts.geom.Polygon;
 
 public final class MaskTopology implements Topology {
-  private final TopologyType type;
+  private final Constants.TopologyType type;
   private final Polygon polygon;
 
-  private MaskTopology(TopologyType type, Polygon polygon) {
+  private MaskTopology(Constants.TopologyType type, Polygon polygon) {
     this.type = type;
     this.polygon = polygon;
   }
 
-  public static MaskTopology create(TopologyType type, Polygon polygon) {
+  public static MaskTopology create(Constants.TopologyType type, Polygon polygon) {
     // Build a new polygon with the same rings, but with orientation enforced.
-    // Exterior much be counterclockwise, while holes must be clockwise.
+    // Exterior must be counterclockwise, while holes must be clockwise.
     var boundary = polygon.getExteriorRing();
     if (Orientation.isCCW(boundary.getCoordinateSequence())) {
       boundary = boundary.reverse();
@@ -61,7 +59,7 @@ public final class MaskTopology implements Topology {
     return new MaskTopology(type, polygon);
   }
 
-  public static List<MaskTopology> createFromLegacy(TopologyType type, Area area) {
+  public static List<MaskTopology> createFromLegacy(Constants.TopologyType type, Area area) {
     var masks = new ArrayList<MaskTopology>();
     if (area == null || area.isEmpty()) {
       return masks;
@@ -74,7 +72,7 @@ public final class MaskTopology implements Topology {
     return masks;
   }
 
-  public TopologyType getType() {
+  public Constants.TopologyType getType() {
     return type;
   }
 
@@ -83,13 +81,13 @@ public final class MaskTopology implements Topology {
   }
 
   @Override
-  public VisionResult addSegments(
-      VisibilityType visibilityType,
+  public Constants.VisionResult addSegments(
+      Constants.VisibilityType visibilityType,
       Coordinate origin,
       Envelope bounds,
       Consumer<Coordinate[]> sink) {
     // Convenience for adding rings to the result.
-    BiConsumer<LinearRing, Facing> add =
+    BiConsumer<LinearRing, Constants.Facing> add =
         (ring, facing) ->
             getFacingSegments(ring.getCoordinateSequence(), facing, origin, bounds, sink);
 
@@ -102,25 +100,25 @@ public final class MaskTopology implements Topology {
 
     if (!isInside) {
       switch (this.type) {
-        case WALL_VBL -> {
+        case WALL -> {
           // Just the frontside of the exterior needs to be added.
-          add.accept(polygon.getExteriorRing(), Facing.OCEAN_SIDE_FACES_ORIGIN);
+          add.accept(polygon.getExteriorRing(), Constants.Facing.OCEAN_SIDE_FACES_ORIGIN);
         }
-        case HILL_VBL -> {
+        case HILL -> {
           // Frontside of holes and backside of interior will block. All handled the same.
-          add.accept(polygon.getExteriorRing(), Facing.ISLAND_SIDE_FACES_ORIGIN);
+          add.accept(polygon.getExteriorRing(), Constants.Facing.ISLAND_SIDE_FACES_ORIGIN);
           for (var i = 0; i < polygon.getNumInteriorRing(); ++i) {
-            add.accept(polygon.getInteriorRingN(i), Facing.ISLAND_SIDE_FACES_ORIGIN);
+            add.accept(polygon.getInteriorRingN(i), Constants.Facing.ISLAND_SIDE_FACES_ORIGIN);
           }
         }
-        case PIT_VBL -> {
+        case PIT -> {
           // Pit VBL does nothing when looked at from the outside.
         }
-        case COVER_VBL -> {
+        case COVER -> {
           // Works just like Wall VBL when viewed from outside.
-          add.accept(polygon.getExteriorRing(), Facing.OCEAN_SIDE_FACES_ORIGIN);
+          add.accept(polygon.getExteriorRing(), Constants.Facing.OCEAN_SIDE_FACES_ORIGIN);
         }
-        case MBL -> {
+        case MOVEMENT -> {
           // MBL does not take part in vision.
         }
       }
@@ -139,60 +137,60 @@ public final class MaskTopology implements Topology {
       }
 
       switch (this.type) {
-        case WALL_VBL -> {
+        case WALL -> {
           if (holeIndex < 0) {
             // Point is not in any hole, so vision is completely blocked.
-            return VisionResult.CompletelyObscured;
+            return Constants.VisionResult.CompletelyObscured;
           } else {
             // Point is in a hole, so vision is blocked by the boundary of that hole.
-            add.accept(polygon.getInteriorRingN(holeIndex), Facing.OCEAN_SIDE_FACES_ORIGIN);
+            add.accept(polygon.getInteriorRingN(holeIndex), Constants.Facing.OCEAN_SIDE_FACES_ORIGIN);
           }
         }
-        case HILL_VBL -> {
+        case HILL -> {
           // If not in a hole, no blocking. If in a hole, blocks by the frontside of all other holes
           // as well as the exterior.
           if (holeIndex >= 0) {
-            add.accept(polygon.getExteriorRing(), Facing.ISLAND_SIDE_FACES_ORIGIN);
+            add.accept(polygon.getExteriorRing(), Constants.Facing.ISLAND_SIDE_FACES_ORIGIN);
             for (int i = 0; i < polygon.getNumInteriorRing(); ++i) {
               if (i != holeIndex) {
-                add.accept(polygon.getInteriorRingN(i), Facing.ISLAND_SIDE_FACES_ORIGIN);
+                add.accept(polygon.getInteriorRingN(i), Constants.Facing.ISLAND_SIDE_FACES_ORIGIN);
               }
             }
           }
         }
-        case PIT_VBL -> {
+        case PIT -> {
           // Not blocking if in a hole. Otherwise, block by the boundary and each hole.
           if (holeIndex < 0) {
-            add.accept(polygon.getExteriorRing(), Facing.ISLAND_SIDE_FACES_ORIGIN);
+            add.accept(polygon.getExteriorRing(), Constants.Facing.ISLAND_SIDE_FACES_ORIGIN);
             for (int i = 0; i < polygon.getNumInteriorRing(); ++i) {
-              add.accept(polygon.getInteriorRingN(i), Facing.ISLAND_SIDE_FACES_ORIGIN);
+              add.accept(polygon.getInteriorRingN(i), Constants.Facing.ISLAND_SIDE_FACES_ORIGIN);
             }
           }
         }
-        case COVER_VBL -> {
+        case COVER -> {
           // If in a hole, block by the boundary of that hole. If not in any hole, only block by the
           // exterior in cases of peninsulas and block by the backside of any hole.
           if (holeIndex < 0) {
-            add.accept(polygon.getExteriorRing(), Facing.OCEAN_SIDE_FACES_ORIGIN);
+            add.accept(polygon.getExteriorRing(), Constants.Facing.OCEAN_SIDE_FACES_ORIGIN);
             for (int i = 0; i < polygon.getNumInteriorRing(); ++i) {
-              add.accept(polygon.getInteriorRingN(i), Facing.OCEAN_SIDE_FACES_ORIGIN);
+              add.accept(polygon.getInteriorRingN(i), Constants.Facing.OCEAN_SIDE_FACES_ORIGIN);
             }
           } else {
-            add.accept(polygon.getInteriorRingN(holeIndex), Facing.OCEAN_SIDE_FACES_ORIGIN);
+            add.accept(polygon.getInteriorRingN(holeIndex), Constants.Facing.OCEAN_SIDE_FACES_ORIGIN);
           }
         }
-        case MBL -> {
+        case MOVEMENT -> {
           // MBL does not take part in vision.
         }
       }
     }
 
-    return VisionResult.Possible;
+    return Constants.VisionResult.Possible;
   }
 
   private static void getFacingSegments(
       CoordinateSequence vertices,
-      Facing facing,
+      Constants.Facing facing,
       Coordinate origin,
       Envelope bounds,
       Consumer<Coordinate[]> sink) {
@@ -201,7 +199,7 @@ public final class MaskTopology implements Topology {
     }
 
     final var requiredOrientation =
-        facing == Facing.ISLAND_SIDE_FACES_ORIGIN
+        facing == Constants.Facing.ISLAND_SIDE_FACES_ORIGIN
             ? Orientation.CLOCKWISE
             : Orientation.COUNTERCLOCKWISE;
 

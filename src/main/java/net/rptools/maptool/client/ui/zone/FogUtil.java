@@ -31,8 +31,9 @@ import net.rptools.lib.GeometryUtil;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
-import net.rptools.maptool.client.ui.zone.vbl.NodedTopology;
-import net.rptools.maptool.client.ui.zone.vbl.VisibilityProblem;
+import net.rptools.maptool.model.topology.Constants;
+import net.rptools.maptool.model.topology.vbl.NodedTopology;
+import net.rptools.maptool.model.topology.vbl.VisibilityProblem;
 import net.rptools.maptool.model.AbstractPoint;
 import net.rptools.maptool.model.CellPoint;
 import net.rptools.maptool.model.ExposedAreaMetaData;
@@ -44,8 +45,6 @@ import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.ZonePoint;
 import net.rptools.maptool.model.player.Player.Role;
-import net.rptools.maptool.model.topology.VisibilityType;
-import net.rptools.maptool.model.topology.VisionResult;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.locationtech.jts.awt.ShapeWriter;
@@ -69,7 +68,7 @@ public class FogUtil {
    *     {@code null} is returned to indicate no restriction on vision.
    */
   public static @Nullable LinearRing doVisionSweep(
-      VisibilityType visibilityType,
+      Constants.VisibilityType visibilityType,
       Coordinate origin,
       Envelope visionBounds,
       NodedTopology topology) {
@@ -81,7 +80,7 @@ public class FogUtil {
 
     timer.start("accumulate blocking walls");
     var visionResult = topology.getSegments(visibilityType, origin, visionBounds, problem::add);
-    if (visionResult == VisionResult.CompletelyObscured) {
+    if (visionResult == Constants.VisionResult.CompletelyObscured) {
       // No vision possible.
       return geometryFactory.createLinearRing();
     }
@@ -115,7 +114,7 @@ public class FogUtil {
    *     vision is not possible.
    */
   public static @Nonnull Area calculateVisibility(
-      VisibilityType visibilityType, Point2D origin, Area vision, NodedTopology topology) {
+          Constants.VisibilityType visibilityType, Point2D origin, Area vision, NodedTopology topology) {
     var timer = CodeTimer.get();
     timer.start("FogUtil::calculateVisibility");
     try {

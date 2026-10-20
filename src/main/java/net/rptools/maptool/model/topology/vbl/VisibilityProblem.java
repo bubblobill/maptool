@@ -12,7 +12,7 @@
  * <https://www.gnu.org/licenses/> and specifically the Affero license
  * text at <https://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.client.ui.zone.vbl;
+package net.rptools.maptool.model.topology.vbl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.TreeSet;
 import javax.annotation.Nonnull;
 import net.rptools.lib.CodeTimer;
+import net.rptools.maptool.model.topology.util.EndpointSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.locationtech.jts.algorithm.Orientation;

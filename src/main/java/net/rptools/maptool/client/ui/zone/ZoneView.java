@@ -32,11 +32,11 @@ import net.rptools.maptool.client.ui.zone.Illumination.LumensLevel;
 import net.rptools.maptool.client.ui.zone.IlluminationModel.ContributedLight;
 import net.rptools.maptool.client.ui.zone.IlluminationModel.LightInfo;
 import net.rptools.maptool.client.ui.zone.Illuminator.LitArea;
-import net.rptools.maptool.client.ui.zone.vbl.NodedTopology;
+import net.rptools.maptool.model.topology.Constants;
+import net.rptools.maptool.model.topology.vbl.NodedTopology;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.player.Player;
-import net.rptools.maptool.model.topology.VisibilityType;
 import net.rptools.maptool.model.zones.MaskTopologyChanged;
 import net.rptools.maptool.model.zones.TokensAdded;
 import net.rptools.maptool.model.zones.TokensChanged;
@@ -309,7 +309,7 @@ public class ZoneView {
   private synchronized NodedTopology prepareNodedTopology() {
     if (nodedTopology == null) {
       var walls = zone.getWalls();
-      var masks = zone.getMasks(EnumSet.allOf(Zone.TopologyType.class), null);
+      var masks = zone.getMasks(EnumSet.allOf(Constants.TopologyType.class), null);
       nodedTopology = NodedTopology.prepare(walls, masks);
     }
     return nodedTopology;
@@ -377,7 +377,7 @@ public class ZoneView {
     if (!lightSource.isIgnoresVBL()) {
       lightSourceVisibleArea =
           FogUtil.calculateVisibility(
-              VisibilityType.Light, p, lightSourceArea, prepareNodedTopology());
+              Constants.VisibilityType.Light, p, lightSourceArea, prepareNodedTopology());
     }
     if (lightSourceVisibleArea.isEmpty()) {
       // Nothing illuminated for this source.
@@ -618,7 +618,7 @@ public class ZoneView {
       Area visibleArea = sight.getVisionShape(token, zone);
       visibleArea.transform(AffineTransform.getTranslateInstance(p.x, p.y));
       tokenVisibleArea =
-          FogUtil.calculateVisibility(VisibilityType.Sight, p, visibleArea, prepareNodedTopology());
+          FogUtil.calculateVisibility(Constants.VisibilityType.Sight, p, visibleArea, prepareNodedTopology());
       tokenVisibleAreaCache.put(token.getId(), tokenVisibleArea);
     }
 
@@ -698,7 +698,7 @@ public class ZoneView {
                   if (!lightSource.isIgnoresVBL()) {
                     visibleArea =
                         FogUtil.calculateVisibility(
-                            VisibilityType.Aura, p, lightSourceArea, prepareNodedTopology());
+                            Constants.VisibilityType.Aura, p, lightSourceArea, prepareNodedTopology());
                   }
 
                   // This needs to be cached somehow

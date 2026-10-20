@@ -71,8 +71,9 @@ import net.rptools.maptool.client.ui.theme.Icons;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.client.ui.token.BarTokenOverlay;
 import net.rptools.maptool.client.ui.token.BooleanTokenOverlay;
-import net.rptools.maptool.client.ui.zone.vbl.TokenVBL;
-import net.rptools.maptool.client.ui.zone.vbl.TokenVBL.JTS_SimplifyMethodType;
+import net.rptools.maptool.model.topology.Constants;
+import net.rptools.maptool.model.topology.util.TokenTopology;
+import net.rptools.maptool.model.topology.util.TokenTopology.JTS_SimplifyMethodType;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Token.TerrainModifierOperation;
@@ -441,31 +442,31 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       }
     }
     getWallVblToggle()
-        .setSelected(getTokenTopologyPanel().isTopologyTypeSelected(Zone.TopologyType.WALL_VBL));
+        .setSelected(getTokenTopologyPanel().isTopologyTypeSelected(Constants.TopologyType.WALL));
     getWallVblToggle()
         .setSelectedIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TOPOLOGY_TYPE_VBL_ON));
     getWallVblToggle().setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TOPOLOGY_TYPE_VBL_ON));
 
     getHillVblToggle()
-        .setSelected(getTokenTopologyPanel().isTopologyTypeSelected(Zone.TopologyType.HILL_VBL));
+        .setSelected(getTokenTopologyPanel().isTopologyTypeSelected(Constants.TopologyType.HILL));
     getHillVblToggle()
         .setSelectedIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TOPOLOGY_TYPE_HILL_ON));
     getHillVblToggle().setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TOPOLOGY_TYPE_HILL_ON));
 
     getPitVblToggle()
-        .setSelected(getTokenTopologyPanel().isTopologyTypeSelected(Zone.TopologyType.PIT_VBL));
+        .setSelected(getTokenTopologyPanel().isTopologyTypeSelected(Constants.TopologyType.PIT));
     getPitVblToggle()
         .setSelectedIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TOPOLOGY_TYPE_PIT_ON));
     getPitVblToggle().setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TOPOLOGY_TYPE_PIT_ON));
 
     getCoverVblToggle()
-        .setSelected(getTokenTopologyPanel().isTopologyTypeSelected(Zone.TopologyType.COVER_VBL));
+        .setSelected(getTokenTopologyPanel().isTopologyTypeSelected(Constants.TopologyType.COVER));
     getCoverVblToggle()
         .setSelectedIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TOPOLOGY_TYPE_COVER_ON));
     getCoverVblToggle().setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TOPOLOGY_TYPE_COVER_ON));
 
     getMblToggle()
-        .setSelected(getTokenTopologyPanel().isTopologyTypeSelected(Zone.TopologyType.MBL));
+        .setSelected(getTokenTopologyPanel().isTopologyTypeSelected(Constants.TopologyType.MOVEMENT));
     getMblToggle().setSelectedIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TOPOLOGY_TYPE_MBL_ON));
     getMblToggle().setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TOPOLOGY_TYPE_MBL_ON));
 
@@ -952,7 +953,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     token.setSnapToGrid(getSnapToGrid().isSelected());
 
     /* OUTLINE */
-    for (final var type : Zone.TopologyType.values()) {
+    for (final var type : Constants.TopologyType.values()) {
       token.setMaskTopology(type, getTokenTopologyPanel().getTopology(type));
     }
     token.setIsAlwaysVisible(getAlwaysVisibleButton().isSelected());
@@ -1347,32 +1348,32 @@ public class EditTokenDialog extends AbeillePanel<Token> {
             e ->
                 getTokenTopologyPanel()
                     .setTopologyTypeSelected(
-                        Zone.TopologyType.WALL_VBL, ((AbstractButton) e.getSource()).isSelected()));
+                        Constants.TopologyType.WALL, ((AbstractButton) e.getSource()).isSelected()));
     getHillVblToggle()
         .addActionListener(
             e ->
                 getTokenTopologyPanel()
                     .setTopologyTypeSelected(
-                        Zone.TopologyType.HILL_VBL, ((AbstractButton) e.getSource()).isSelected()));
+                        Constants.TopologyType.HILL, ((AbstractButton) e.getSource()).isSelected()));
     getPitVblToggle()
         .addActionListener(
             e ->
                 getTokenTopologyPanel()
                     .setTopologyTypeSelected(
-                        Zone.TopologyType.PIT_VBL, ((AbstractButton) e.getSource()).isSelected()));
+                        Constants.TopologyType.PIT, ((AbstractButton) e.getSource()).isSelected()));
     getCoverVblToggle()
         .addActionListener(
             e ->
                 getTokenTopologyPanel()
                     .setTopologyTypeSelected(
-                        Zone.TopologyType.COVER_VBL,
+                        Constants.TopologyType.COVER,
                         ((AbstractButton) e.getSource()).isSelected()));
     getMblToggle()
         .addActionListener(
             e ->
                 getTokenTopologyPanel()
                     .setTopologyTypeSelected(
-                        Zone.TopologyType.MBL, ((AbstractButton) e.getSource()).isSelected()));
+                        Constants.TopologyType.MOVEMENT, ((AbstractButton) e.getSource()).isSelected()));
 
     getAutoGenerateTopologyButton()
         .addActionListener(
@@ -1411,7 +1412,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
                   }
                 }
 
-                for (final var type : Zone.TopologyType.values()) {
+                for (final var type : Constants.TopologyType.values()) {
                   final var topology = getTokenTopologyPanel().getTopology(type);
                   if (topology != null) {
                     MapTool.serverCommand()
@@ -1441,9 +1442,9 @@ public class EditTokenDialog extends AbeillePanel<Token> {
               var token = getTokenTopologyPanel().getToken();
               final boolean removeFromMap = getCopyOrMoveCheckbox().isSelected();
               for (final var type : getTokenTopologyPanel().getSelectedTopologyTypes()) {
-                Area mapTopology = TokenVBL.getTopology_underToken(zone, token, type);
+                Area mapTopology = TokenTopology.getTopology_underToken(zone, token, type);
                 Area newTokenTopology =
-                    TokenVBL.transformTopology_toToken(zone, token, mapTopology);
+                    TokenTopology.transformTopology_toToken(zone, token, mapTopology);
 
                 getTokenTopologyPanel().putCustomTopology(type, newTokenTopology);
 
@@ -2068,7 +2069,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     protected Void doInBackground() {
       if (regenerate || !getTokenTopologyPanel().hasAnyOriginalTopologySet()) {
         final var generatedTopology =
-            TokenVBL.createTopologyAreaFromToken(
+            TokenTopology.createTopologyAreaFromToken(
                 getTokenTopologyPanel().getToken(),
                 getTokenTopologyPanel().getColorSensitivity(),
                 getTokenTopologyPanel().isInverseTopology(),
@@ -2085,7 +2086,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       if (!isCancelled()) {
         final var newArea = areaChunk.getLast();
         final var optimizedArea =
-            TokenVBL.simplifyArea(
+            TokenTopology.simplifyArea(
                 newArea,
                 getTokenTopologyPanel().getJtsDistanceTolerance(),
                 getTokenTopologyPanel().getJtsMethod());

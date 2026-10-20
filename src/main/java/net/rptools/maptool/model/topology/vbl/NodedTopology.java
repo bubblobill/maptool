@@ -12,7 +12,7 @@
  * <https://www.gnu.org/licenses/> and specifically the Affero license
  * text at <https://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.client.ui.zone.vbl;
+package net.rptools.maptool.model.topology.vbl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,11 +20,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import net.rptools.lib.CodeTimer;
 import net.rptools.lib.GeometryUtil;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.topology.MaskTopology;
 import net.rptools.maptool.model.topology.Topology;
-import net.rptools.maptool.model.topology.VisibilityType;
-import net.rptools.maptool.model.topology.VisionResult;
 import net.rptools.maptool.model.topology.Wall;
 import net.rptools.maptool.model.topology.WallTopology;
 import org.locationtech.jts.geom.Coordinate;
@@ -46,19 +44,19 @@ public class NodedTopology {
     this.preparedParts = preparedParts;
   }
 
-  public VisionResult getSegments(
-      VisibilityType visibilityType,
+  public Constants.VisionResult getSegments(
+      Constants.VisibilityType visibilityType,
       Coordinate origin,
       Envelope bounds,
       Consumer<Coordinate[]> sink) {
     for (var preparedPart : preparedParts) {
       var maskResult = preparedPart.addSegments(visibilityType, origin, bounds, sink);
-      if (maskResult == VisionResult.CompletelyObscured) {
+      if (maskResult == Constants.VisionResult.CompletelyObscured) {
         return maskResult;
       }
     }
 
-    return VisionResult.Possible;
+    return Constants.VisionResult.Possible;
   }
 
   /**
@@ -175,7 +173,7 @@ public class NodedTopology {
   }
 
   private static final class TempMask {
-    public final Zone.TopologyType type;
+    public final Constants.TopologyType type;
     public final NodedSegmentString boundary;
     public final NodedSegmentString[] holes;
 

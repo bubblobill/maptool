@@ -52,6 +52,7 @@ import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.sheet.stats.StatSheetProperties;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.server.Mapper;
 import net.rptools.maptool.server.proto.TerrainModifierOperationDto;
 import net.rptools.maptool.server.proto.TokenDto;
@@ -1452,13 +1453,13 @@ public class Token implements Cloneable {
    * @return the current topology of the token, or {@code null} if the token does not have topology
    *     of type {@code topologyType}.
    */
-  public @Nullable Area getMaskTopology(Zone.TopologyType topologyType) {
+  public @Nullable Area getMaskTopology(Constants.TopologyType topologyType) {
     return switch (topologyType) {
-      case WALL_VBL -> vbl;
-      case HILL_VBL -> hillVbl;
-      case PIT_VBL -> pitVbl;
-      case COVER_VBL -> coverVbl;
-      case MBL -> mbl;
+      case WALL -> vbl;
+      case HILL -> hillVbl;
+      case PIT -> pitVbl;
+      case COVER -> coverVbl;
+      case MOVEMENT -> mbl;
     };
   }
 
@@ -1470,7 +1471,7 @@ public class Token implements Cloneable {
    * @return the transformed topology for the token, or {@code null} if the token does not have
    *     topology of type {@code topologyType}.
    */
-  public @Nullable Area getTransformedMaskTopology(Zone zone, Zone.TopologyType topologyType) {
+  public @Nullable Area getTransformedMaskTopology(Zone zone, Constants.TopologyType topologyType) {
     return getTransformedMaskTopology(zone, getMaskTopology(topologyType));
   }
 
@@ -1482,17 +1483,17 @@ public class Token implements Cloneable {
    * @param topologyType The type of topology to set.
    * @param topology the topology area to set.
    */
-  public void setMaskTopology(Zone.TopologyType topologyType, @Nullable Area topology) {
+  public void setMaskTopology(Constants.TopologyType topologyType, @Nullable Area topology) {
     if (topology != null && topology.isEmpty()) {
       topology = null;
     }
 
     switch (topologyType) {
-      case WALL_VBL -> vbl = topology;
-      case HILL_VBL -> hillVbl = topology;
-      case PIT_VBL -> pitVbl = topology;
-      case COVER_VBL -> coverVbl = topology;
-      case MBL -> mbl = topology;
+      case WALL -> vbl = topology;
+      case HILL -> hillVbl = topology;
+      case PIT -> pitVbl = topology;
+      case COVER -> coverVbl = topology;
+      case MOVEMENT -> mbl = topology;
     }
 
     if (!hasAnyMaskTopology()) {
@@ -1503,8 +1504,8 @@ public class Token implements Cloneable {
   /**
    * @return All types of mask topology attached to the token.
    */
-  public Collection<Zone.TopologyType> getMaskTopologyTypes() {
-    var result = EnumSet.allOf(Zone.TopologyType.class);
+  public Collection<Constants.TopologyType> getMaskTopologyTypes() {
+    var result = EnumSet.allOf(Constants.TopologyType.class);
     result.removeIf(type -> getMaskTopology(type) == null);
     return result;
   }
@@ -1515,7 +1516,7 @@ public class Token implements Cloneable {
    * @return true if the token has any kind of topology.
    */
   public boolean hasAnyMaskTopology() {
-    return Arrays.stream(Zone.TopologyType.values())
+    return Arrays.stream(Constants.TopologyType.values())
         .map(this::getMaskTopology)
         .anyMatch(Objects::nonNull);
   }
@@ -2795,7 +2796,7 @@ public class Token implements Cloneable {
     boolean lightChanged = false;
     boolean macroChanged = false;
     boolean panelLookChanged = false; // appearance of token in a panel changed
-    Zone.TopologyType topologyChangeType = null;
+    Constants.TopologyType topologyChangeType = null;
     switch (update) {
       case setState:
         var state = parameters.get(0).getStringValue();
@@ -2966,7 +2967,7 @@ public class Token implements Cloneable {
         break;
       case setMaskTopology:
         {
-          final var topologyType = Zone.TopologyType.valueOf(parameters.get(0).getTopologyType());
+          final var topologyType = Constants.TopologyType.valueOf(parameters.get(0).getTopologyType());
           setMaskTopology(topologyType, Mapper.map(parameters.get(1).getArea()));
           topologyChangeType = topologyType;
           break;

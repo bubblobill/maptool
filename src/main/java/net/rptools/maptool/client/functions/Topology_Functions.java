@@ -32,8 +32,9 @@ import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolVariableResolver;
 import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
-import net.rptools.maptool.client.ui.zone.vbl.TokenVBL;
-import net.rptools.maptool.client.ui.zone.vbl.TokenVBL.JTS_SimplifyMethodType;
+import net.rptools.maptool.model.topology.Constants;
+import net.rptools.maptool.model.topology.util.TokenTopology;
+import net.rptools.maptool.model.topology.util.TokenTopology.JTS_SimplifyMethodType;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
@@ -267,20 +268,20 @@ public class Topology_Functions extends AbstractFunction {
 
       Shape topologyShape = Shape.valueOf(topologyObject.get("shape").getAsString().toUpperCase());
 
-      Zone.TopologyType topologyType;
+      Constants.TopologyType topologyType;
       if (functionName.equalsIgnoreCase("drawVBL") || functionName.equalsIgnoreCase("eraseVBL")) {
-        topologyType = Zone.TopologyType.WALL_VBL;
+        topologyType = Constants.TopologyType.WALL;
       } else if (functionName.equalsIgnoreCase("drawHillVBL")
           || functionName.equalsIgnoreCase("eraseHillVBL")) {
-        topologyType = Zone.TopologyType.HILL_VBL;
+        topologyType = Constants.TopologyType.HILL;
       } else if (functionName.equalsIgnoreCase("drawPitVBL")
           || functionName.equalsIgnoreCase("erasePitVBL")) {
-        topologyType = Zone.TopologyType.PIT_VBL;
+        topologyType = Constants.TopologyType.PIT;
       } else if (functionName.equalsIgnoreCase("drawCoverVBL")
           || functionName.equalsIgnoreCase("eraseCoverVBL")) {
-        topologyType = Zone.TopologyType.COVER_VBL;
+        topologyType = Constants.TopologyType.COVER;
       } else {
-        topologyType = Zone.TopologyType.MBL;
+        topologyType = Constants.TopologyType.MOVEMENT;
       }
 
       Area newArea =
@@ -302,17 +303,17 @@ public class Topology_Functions extends AbstractFunction {
   private Object childEvaluateGetTopology(String functionName, List<Object> parameters)
       throws ParserException {
     ZoneRenderer renderer = MapTool.getFrame().getCurrentZoneRenderer();
-    Zone.TopologyType topologyType;
+    Constants.TopologyType topologyType;
     if (functionName.equalsIgnoreCase("getVBL")) {
-      topologyType = Zone.TopologyType.WALL_VBL;
+      topologyType = Constants.TopologyType.WALL;
     } else if (functionName.equalsIgnoreCase("getHillVBL")) {
-      topologyType = Zone.TopologyType.HILL_VBL;
+      topologyType = Constants.TopologyType.HILL;
     } else if (functionName.equalsIgnoreCase("getPitVBL")) {
-      topologyType = Zone.TopologyType.PIT_VBL;
+      topologyType = Constants.TopologyType.PIT;
     } else if (functionName.equalsIgnoreCase("getCoverVBL")) {
-      topologyType = Zone.TopologyType.COVER_VBL;
+      topologyType = Constants.TopologyType.COVER;
     } else {
-      topologyType = Zone.TopologyType.MBL;
+      topologyType = Constants.TopologyType.MOVEMENT;
     }
     boolean simpleJSON = false; // If true, send only array of x,y
 
@@ -376,17 +377,17 @@ public class Topology_Functions extends AbstractFunction {
       throws ParserException {
     Token token;
 
-    Zone.TopologyType topologyType;
+    Constants.TopologyType topologyType;
     if (functionName.equalsIgnoreCase("getTokenVBL")) {
-      topologyType = Zone.TopologyType.WALL_VBL;
+      topologyType = Constants.TopologyType.WALL;
     } else if (functionName.equalsIgnoreCase("getTokenHillVBL")) {
-      topologyType = Zone.TopologyType.HILL_VBL;
+      topologyType = Constants.TopologyType.HILL;
     } else if (functionName.equalsIgnoreCase("getTokenPitVBL")) {
-      topologyType = Zone.TopologyType.PIT_VBL;
+      topologyType = Constants.TopologyType.PIT;
     } else if (functionName.equalsIgnoreCase("getTokenCoverVBL")) {
-      topologyType = Zone.TopologyType.COVER_VBL;
+      topologyType = Constants.TopologyType.COVER;
     } else {
-      topologyType = Zone.TopologyType.MBL;
+      topologyType = Constants.TopologyType.MOVEMENT;
     }
 
     if (parameters.size() == 1) {
@@ -425,17 +426,17 @@ public class Topology_Functions extends AbstractFunction {
     int results = -1;
     Token token = null;
 
-    Zone.TopologyType topologyType;
+    Constants.TopologyType topologyType;
     if (functionName.equalsIgnoreCase("setTokenVBL")) {
-      topologyType = Zone.TopologyType.WALL_VBL;
+      topologyType = Constants.TopologyType.WALL;
     } else if (functionName.equalsIgnoreCase("setTokenHillVBL")) {
-      topologyType = Zone.TopologyType.HILL_VBL;
+      topologyType = Constants.TopologyType.HILL;
     } else if (functionName.equalsIgnoreCase("setTokenPitVBL")) {
-      topologyType = Zone.TopologyType.PIT_VBL;
+      topologyType = Constants.TopologyType.PIT;
     } else if (functionName.equalsIgnoreCase("setTokenCoverVBL")) {
-      topologyType = Zone.TopologyType.COVER_VBL;
+      topologyType = Constants.TopologyType.COVER;
     } else {
-      topologyType = Zone.TopologyType.MBL;
+      topologyType = Constants.TopologyType.MOVEMENT;
     }
 
     if (parameters.size() > 2) {
@@ -526,17 +527,17 @@ public class Topology_Functions extends AbstractFunction {
       throws ParserException {
     Token token = null;
 
-    Zone.TopologyType topologyType;
+    Constants.TopologyType topologyType;
     if (functionName.equalsIgnoreCase("transferVBL")) {
-      topologyType = Zone.TopologyType.WALL_VBL;
+      topologyType = Constants.TopologyType.WALL;
     } else if (functionName.equalsIgnoreCase("transferHillVBL")) {
-      topologyType = Zone.TopologyType.HILL_VBL;
+      topologyType = Constants.TopologyType.HILL;
     } else if (functionName.equalsIgnoreCase("transferPitVBL")) {
-      topologyType = Zone.TopologyType.PIT_VBL;
+      topologyType = Constants.TopologyType.PIT;
     } else if (functionName.equalsIgnoreCase("transferCoverVBL")) {
-      topologyType = Zone.TopologyType.COVER_VBL;
+      topologyType = Constants.TopologyType.COVER;
     } else {
-      topologyType = Zone.TopologyType.MBL;
+      topologyType = Constants.TopologyType.MOVEMENT;
     }
 
     if (parameters.size() > 3) {
@@ -603,11 +604,11 @@ public class Topology_Functions extends AbstractFunction {
         MapTool.serverCommand().setTokenMaskTopology(token, null, topologyType);
       }
     } else {
-      Area topology = TokenVBL.getTopology_underToken(zone, token, topologyType);
+      Area topology = TokenTopology.getTopology_underToken(zone, token, topologyType);
 
       MapTool.serverCommand()
           .setTokenMaskTopology(
-              token, TokenVBL.transformTopology_toToken(zone, token, topology), topologyType);
+              token, TokenTopology.transformTopology_toToken(zone, token, topology), topologyType);
       if (delete) {
         MapTool.serverCommand().updateMaskTopology(zone, topology, true, topologyType);
       }
@@ -640,7 +641,7 @@ public class Topology_Functions extends AbstractFunction {
     Color color = new Color(r, g, b, a);
     final boolean inverseTopology = inverse == 1;
 
-    return TokenVBL.createOptimizedTopologyArea(
+    return TokenTopology.createOptimizedTopologyArea(
         token, sensitivity, inverseTopology, color, level, method);
   }
 
@@ -1069,7 +1070,7 @@ public class Topology_Functions extends AbstractFunction {
   private Area getMaskTopology(
       ZoneRenderer renderer,
       JsonObject topologyObject,
-      Zone.TopologyType topologyType,
+      Constants.TopologyType topologyType,
       String funcname)
       throws ParserException {
     // Required Parameters

@@ -25,7 +25,8 @@ import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.ui.zone.PlayerView;
 import net.rptools.maptool.client.ui.zone.ZoneViewModel;
-import net.rptools.maptool.client.ui.zone.vbl.TokenVBL;
+import net.rptools.maptool.model.topology.Constants;
+import net.rptools.maptool.model.topology.util.TokenTopology;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.drawing.DrawableColorPaint;
@@ -340,15 +341,15 @@ public class HaloRenderer {
               grid.getType().isNone() ? null : getHaloFootprintShape(token, grid, concentricOffset);
           case HaloPart.HaloShapeType.OUTLINE -> getHaloOutlineShape(token);
           case HaloPart.HaloShapeType.MBL ->
-              token.getTransformedMaskTopology(zone, Zone.TopologyType.MBL);
+              token.getTransformedMaskTopology(zone, Constants.TopologyType.MOVEMENT);
           case HaloPart.HaloShapeType.VBLCOVER ->
-              token.getTransformedMaskTopology(zone, Zone.TopologyType.COVER_VBL);
+              token.getTransformedMaskTopology(zone, Constants.TopologyType.COVER);
           case HaloPart.HaloShapeType.VBLHILL ->
-              token.getTransformedMaskTopology(zone, Zone.TopologyType.HILL_VBL);
+              token.getTransformedMaskTopology(zone, Constants.TopologyType.HILL);
           case HaloPart.HaloShapeType.VBLPIT ->
-              token.getTransformedMaskTopology(zone, Zone.TopologyType.PIT_VBL);
+              token.getTransformedMaskTopology(zone, Constants.TopologyType.PIT);
           case HaloPart.HaloShapeType.VBLWALL ->
-              token.getTransformedMaskTopology(zone, Zone.TopologyType.WALL_VBL);
+              token.getTransformedMaskTopology(zone, Constants.TopologyType.WALL);
           case HaloPart.HaloShapeType.GRID ->
               getHaloGridShape(position, grid, haloPart, haloFacingAngle, concentricOffset);
           case CIRCLE, ARC, PIE, CHORD, TRIANGLE, SQUARE, POLYGON, STAR -> {
@@ -895,13 +896,13 @@ public class HaloRenderer {
         haloOutlineAreaMap.computeIfAbsent(
             token.getImageAssetId(),
             id2 -> {
-              return TokenVBL.createOptimizedTopologyArea(
+              return TokenTopology.createOptimizedTopologyArea(
                   token,
                   10,
                   true,
                   new Color(0, 0, 0, 0),
                   2,
-                  TokenVBL.JTS_SimplifyMethodType.DOUGLAS_PEUCKER_SIMPLIFIER.name());
+                  TokenTopology.JTS_SimplifyMethodType.DOUGLAS_PEUCKER_SIMPLIFIER.name());
             });
 
     timer.stop("HaloRenderer-getHaloOutlineShape");

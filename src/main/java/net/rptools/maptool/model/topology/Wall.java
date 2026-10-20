@@ -74,7 +74,7 @@ public final class Wall {
       GUID to,
       Direction direction,
       MovementDirectionModifier movementModifier,
-      Map<VisibilityType, DirectionModifier> modifiers) {
+      Map<Constants.VisibilityType, DirectionModifier> modifiers) {
     this(from, to, new Data(direction, movementModifier, modifiers));
   }
 
@@ -314,7 +314,7 @@ public final class Wall {
   public record Data(
       Direction direction,
       MovementDirectionModifier movementModifier,
-      ImmutableMap<VisibilityType, DirectionModifier> modifiers) {
+      ImmutableMap<Constants.VisibilityType, DirectionModifier> modifiers) {
     public Data() {
       this(Direction.Both, MovementDirectionModifier.ForceBoth, Map.of());
     }
@@ -322,11 +322,11 @@ public final class Wall {
     public Data(
         Direction direction,
         MovementDirectionModifier movementModifier,
-        Map<VisibilityType, DirectionModifier> modifiers) {
+        Map<Constants.VisibilityType, DirectionModifier> modifiers) {
       this(direction, movementModifier, Maps.immutableEnumMap(modifiers));
     }
 
-    public DirectionModifier directionModifier(VisibilityType visibilityType) {
+    public DirectionModifier directionModifier(Constants.VisibilityType visibilityType) {
       return Objects.requireNonNullElse(
           modifiers.get(visibilityType), DirectionModifier.SameDirection);
     }
@@ -350,8 +350,8 @@ public final class Wall {
 
       // Nothing for movement direction right now.
       var newMovementModifier = this.movementModifier;
-      var newModifiers = new EnumMap<VisibilityType, DirectionModifier>(VisibilityType.class);
-      for (var visibilityType : VisibilityType.values()) {
+      var newModifiers = new EnumMap<Constants.VisibilityType, DirectionModifier>(Constants.VisibilityType.class);
+      for (var visibilityType : Constants.VisibilityType.values()) {
         var newModifier =
             switch (directionModifier(visibilityType)) {
               case SameDirection -> DirectionModifier.ReverseDirection;
@@ -373,8 +373,8 @@ public final class Wall {
 
       var resultMovementModifier = this.movementModifier.merged(normalizedOther.movementModifier);
 
-      var resultModifiers = new EnumMap<VisibilityType, DirectionModifier>(VisibilityType.class);
-      for (var visibilityType : VisibilityType.values()) {
+      var resultModifiers = new EnumMap<Constants.VisibilityType, DirectionModifier>(Constants.VisibilityType.class);
+      for (var visibilityType : Constants.VisibilityType.values()) {
         var thisMod = this.directionModifier(visibilityType);
         var otherMod = normalizedOther.directionModifier(visibilityType);
 
@@ -390,9 +390,9 @@ public final class Wall {
       return WallDataDto.newBuilder()
           .setDirection(direction.toDto())
           .setMovementDirectionModifier(movementModifier.toDto())
-          .setSightDirectionModifier(directionModifier(VisibilityType.Sight).toDto())
-          .setLightDirectionModifier(directionModifier(VisibilityType.Light).toDto())
-          .setAuraDirectionModifier(directionModifier(VisibilityType.Aura).toDto())
+          .setSightDirectionModifier(directionModifier(Constants.VisibilityType.Sight).toDto())
+          .setLightDirectionModifier(directionModifier(Constants.VisibilityType.Light).toDto())
+          .setAuraDirectionModifier(directionModifier(Constants.VisibilityType.Aura).toDto())
           .build();
     }
 
@@ -401,11 +401,11 @@ public final class Wall {
       var movementModifier = MovementDirectionModifier.fromDto(dto.getMovementDirectionModifier());
       var modifiers =
           Map.of(
-              VisibilityType.Sight,
+              Constants.VisibilityType.Sight,
               DirectionModifier.fromDto(dto.getSightDirectionModifier()),
-              VisibilityType.Light,
+              Constants.VisibilityType.Light,
               DirectionModifier.fromDto(dto.getLightDirectionModifier()),
-              VisibilityType.Aura,
+              Constants.VisibilityType.Aura,
               DirectionModifier.fromDto(dto.getAuraDirectionModifier()));
 
       return new Data(direction, movementModifier, modifiers);

@@ -38,10 +38,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import net.rptools.maptool.client.ui.zone.FogUtil;
-import net.rptools.maptool.client.ui.zone.vbl.NodedTopology;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.topology.Constants;
+import net.rptools.maptool.model.topology.vbl.NodedTopology;
 import net.rptools.maptool.model.topology.MaskTopology;
-import net.rptools.maptool.model.topology.VisibilityType;
 import net.rptools.maptool.model.topology.WallTopology;
 import net.rptools.maptool.util.GraphicsUtil;
 import org.apache.logging.log4j.LogManager;
@@ -51,18 +50,18 @@ public class VisibilityInspector extends JPanel {
   private static final Logger log = LogManager.getLogger(VisibilityInspector.class);
   private static final double VISION_RANGE_CHANGE_RATE = 15.;
 
-  private Map<Zone.TopologyType, Color> palette = new EnumMap<>(Zone.TopologyType.class);
-  private Map<Zone.TopologyType, Area> toplogyAreas = new EnumMap<>(Zone.TopologyType.class);
+  private Map<Constants.TopologyType, Color> palette = new EnumMap<>(Constants.TopologyType.class);
+  private Map<Constants.TopologyType, Area> toplogyAreas = new EnumMap<>(Constants.TopologyType.class);
   private List<MaskTopology> masks = new ArrayList<>();
   private AffineTransform affineTransform;
   private Point2D point;
   private double visionRange;
 
   {
-    palette.put(Zone.TopologyType.WALL_VBL, Color.blue);
-    palette.put(Zone.TopologyType.HILL_VBL, Color.cyan);
-    palette.put(Zone.TopologyType.PIT_VBL, Color.green);
-    palette.put(Zone.TopologyType.COVER_VBL, Color.red);
+    palette.put(Constants.TopologyType.WALL, Color.blue);
+    palette.put(Constants.TopologyType.HILL, Color.cyan);
+    palette.put(Constants.TopologyType.PIT, Color.green);
+    palette.put(Constants.TopologyType.COVER, Color.red);
   }
 
   public VisibilityInspector() {
@@ -99,16 +98,16 @@ public class VisibilityInspector extends JPanel {
 
   public void setTopology(Area wallVbl, Area hillVbl, Area pitVbl, Area coverVbl) {
     this.toplogyAreas.clear();
-    this.toplogyAreas.put(Zone.TopologyType.WALL_VBL, wallVbl);
-    this.toplogyAreas.put(Zone.TopologyType.HILL_VBL, hillVbl);
-    this.toplogyAreas.put(Zone.TopologyType.PIT_VBL, pitVbl);
-    this.toplogyAreas.put(Zone.TopologyType.COVER_VBL, coverVbl);
+    this.toplogyAreas.put(Constants.TopologyType.WALL, wallVbl);
+    this.toplogyAreas.put(Constants.TopologyType.HILL, hillVbl);
+    this.toplogyAreas.put(Constants.TopologyType.PIT, pitVbl);
+    this.toplogyAreas.put(Constants.TopologyType.COVER, coverVbl);
 
     this.masks = new ArrayList<>();
-    this.masks.addAll(MaskTopology.createFromLegacy(Zone.TopologyType.WALL_VBL, wallVbl));
-    this.masks.addAll(MaskTopology.createFromLegacy(Zone.TopologyType.HILL_VBL, hillVbl));
-    this.masks.addAll(MaskTopology.createFromLegacy(Zone.TopologyType.PIT_VBL, pitVbl));
-    this.masks.addAll(MaskTopology.createFromLegacy(Zone.TopologyType.COVER_VBL, coverVbl));
+    this.masks.addAll(MaskTopology.createFromLegacy(Constants.TopologyType.WALL, wallVbl));
+    this.masks.addAll(MaskTopology.createFromLegacy(Constants.TopologyType.HILL, hillVbl));
+    this.masks.addAll(MaskTopology.createFromLegacy(Constants.TopologyType.PIT, pitVbl));
+    this.masks.addAll(MaskTopology.createFromLegacy(Constants.TopologyType.COVER, coverVbl));
 
     var bounds = new Rectangle();
     for (final var area : this.toplogyAreas.values()) {
@@ -158,7 +157,7 @@ public class VisibilityInspector extends JPanel {
 
     Area vision =
         FogUtil.calculateVisibility(
-            VisibilityType.Light,
+            Constants.VisibilityType.Light,
             new Point((int) point.getX(), (int) point.getY()),
             unobstructedVision,
             NodedTopology.prepare(new WallTopology(), masks));

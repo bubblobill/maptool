@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import net.rptools.maptool.model.GUID;
 import net.rptools.maptool.model.topology.Vertex;
-import net.rptools.maptool.model.topology.VisibilityType;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.topology.Wall;
 import net.rptools.maptool.model.topology.WallTopology;
 import org.apache.logging.log4j.LogManager;
@@ -128,13 +128,13 @@ public class WallTopologyConverter extends AbstractCollectionConverter {
                 wallRepresentation.movementDirection, Wall.MovementDirectionModifier.ForceBoth);
         var directionModifiers =
             Map.of(
-                VisibilityType.Sight,
+                Constants.VisibilityType.Sight,
                 Objects.requireNonNullElse(
                     wallRepresentation.sightDirection, Wall.DirectionModifier.SameDirection),
-                VisibilityType.Light,
+                Constants.VisibilityType.Light,
                 Objects.requireNonNullElse(
                     wallRepresentation.lightDirection, Wall.DirectionModifier.SameDirection),
-                VisibilityType.Aura,
+                Constants.VisibilityType.Aura,
                 Objects.requireNonNullElse(
                     wallRepresentation.auraDirection, Wall.DirectionModifier.SameDirection));
 
@@ -189,9 +189,9 @@ public class WallTopologyConverter extends AbstractCollectionConverter {
       this.to = wall.to().toString();
       this.direction = wall.data().direction();
       this.movementDirection = wall.data().movementModifier();
-      this.sightDirection = wall.data().directionModifier(VisibilityType.Sight);
-      this.lightDirection = wall.data().directionModifier(VisibilityType.Light);
-      this.auraDirection = wall.data().directionModifier(VisibilityType.Aura);
+      this.sightDirection = wall.data().directionModifier(Constants.VisibilityType.Sight);
+      this.lightDirection = wall.data().directionModifier(Constants.VisibilityType.Light);
+      this.auraDirection = wall.data().directionModifier(Constants.VisibilityType.Aura);
     }
   }
 

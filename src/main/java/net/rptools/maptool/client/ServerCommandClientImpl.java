@@ -37,6 +37,7 @@ import net.rptools.maptool.model.gamedata.proto.GameDataDto;
 import net.rptools.maptool.model.gamedata.proto.GameDataValueDto;
 import net.rptools.maptool.model.library.addon.TransferableAddOnLibrary;
 import net.rptools.maptool.model.player.Player;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.topology.Wall;
 import net.rptools.maptool.model.topology.WallTopology;
 import net.rptools.maptool.server.Mapper;
@@ -435,7 +436,7 @@ public class ServerCommandClientImpl implements ServerCommand {
 
   @Override
   public void updateMaskTopology(
-      Zone zone, Area area, boolean erase, Zone.TopologyType topologyType) {
+      Zone zone, Area area, boolean erase, Constants.TopologyType topologyType) {
     var msg =
         UpdateMaskTopologyMsg.newBuilder()
             .setZoneGuid(zone.getId().toString())
@@ -687,7 +688,7 @@ public class ServerCommandClientImpl implements ServerCommand {
   }
 
   public void setTokenMaskTopology(
-      Token token, @Nullable Area area, Zone.TopologyType topologyType) {
+      Token token, @Nullable Area area, Constants.TopologyType topologyType) {
     if (area == null) {
       // Will be converted back to null on the other end.
       area = new Area();

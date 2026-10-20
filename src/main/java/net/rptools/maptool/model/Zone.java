@@ -50,6 +50,7 @@ import net.rptools.maptool.model.player.Player;
 import net.rptools.maptool.model.tokens.TokenMacroChanged;
 import net.rptools.maptool.model.tokens.TokenPanelChanged;
 import net.rptools.maptool.model.topology.MaskTopology;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.topology.Wall;
 import net.rptools.maptool.model.topology.WallTopology;
 import net.rptools.maptool.model.zones.BoardChanged;
@@ -304,14 +305,6 @@ public class Zone {
     }
   }
 
-  public enum TopologyType {
-    WALL_VBL,
-    HILL_VBL,
-    PIT_VBL,
-    COVER_VBL,
-    MBL;
-  }
-
   public static final int DEFAULT_TOKEN_VISION_DISTANCE = 250; // In units
   public static final int DEFAULT_PIXELS_CELL = 50;
   public static final int DEFAULT_UNITS_PER_CELL = 5;
@@ -370,10 +363,7 @@ public class Zone {
 
   // region Topology masks
 
-  /**
-   * The Wall VBL topology of the zone. Does not include token Wall VBL. Should really be called
-   * wallVbl.
-   */
+  /** The Wall VBL topology of the zone. Does not include token Wall VBL. Should be called wallVbl. */
   private Area topology = new Area();
 
   /** The Hill VBL topology of the zone. Does not include token Hill VBL. */
@@ -946,7 +936,7 @@ public class Zone {
    * Get all masks.
    *
    * <p>This is particularly used for the sake of pathfinding. The provided types will be usually
-   * include just {@link TopologyType#MBL}, but based on preferences may also include all VBL types.
+   * include just {@link Constants.TopologyType#MOVEMENT}, but based on preferences may also include all VBL types.
    * The {@code exclude} parameter exists so a moving token will not be blocked by its own topology.
    * All other tokens' topology will be included.
    *
@@ -955,7 +945,7 @@ public class Zone {
    *     consider its own MBL.
    * @return
    */
-  public List<MaskTopology> getMasks(Set<TopologyType> types, @Nullable GUID excluding) {
+  public List<MaskTopology> getMasks(Set<Constants.TopologyType> types, @Nullable GUID excluding) {
     var masks = new ArrayList<MaskTopology>();
     var tokenMasks = getTokenMaskTopologies(excluding);
 
@@ -994,13 +984,13 @@ public class Zone {
         });
   }
 
-  public Area getMaskTopology(TopologyType topologyType) {
+  public Area getMaskTopology(Constants.TopologyType topologyType) {
     return switch (topologyType) {
-      case WALL_VBL -> topology;
-      case HILL_VBL -> hillVbl;
-      case PIT_VBL -> pitVbl;
-      case COVER_VBL -> coverVbl;
-      case MBL -> topologyTerrain;
+      case WALL -> topology;
+      case HILL -> hillVbl;
+      case PIT -> pitVbl;
+      case COVER -> coverVbl;
+      case MOVEMENT -> topologyTerrain;
     };
   }
 
@@ -1010,14 +1000,14 @@ public class Zone {
    * @param area the area
    * @param topologyType the type of the topology
    */
-  public void updateMaskTopology(Area area, boolean erase, TopologyType topologyType) {
+  public void updateMaskTopology(Area area, boolean erase, Constants.TopologyType topologyType) {
     var topology =
         switch (topologyType) {
-          case WALL_VBL -> this.topology;
-          case HILL_VBL -> hillVbl;
-          case PIT_VBL -> pitVbl;
-          case COVER_VBL -> coverVbl;
-          case MBL -> topologyTerrain;
+          case WALL -> this.topology;
+          case HILL -> hillVbl;
+          case PIT -> pitVbl;
+          case COVER -> coverVbl;
+          case MOVEMENT -> topologyTerrain;
         };
 
     if (erase) {
@@ -1030,14 +1020,14 @@ public class Zone {
   }
 
   /** Fire the event {@link MaskTopologyChanged}. */
-  public void tokenMaskTopologyChanged(Collection<TopologyType> types) {
+  public void tokenMaskTopologyChanged(Collection<Constants.TopologyType> types) {
     new MapToolEventBus().getMainEventBus().post(new MaskTopologyChanged(this));
   }
 
-  public Map<TopologyType, List<Area>> getTokenMaskTopologies(@Nullable GUID excluding) {
-    var result = new EnumMap<TopologyType, List<Area>>(TopologyType.class);
+  public Map<Constants.TopologyType, List<Area>> getTokenMaskTopologies(@Nullable GUID excluding) {
+    var result = new EnumMap<Constants.TopologyType, List<Area>>(Constants.TopologyType.class);
 
-    for (var type : TopologyType.values()) {
+    for (var type : Constants.TopologyType.values()) {
       var topologies = new ArrayList<Area>();
       for (var token : getAllTokens()) {
         if (excluding != null && excluding.equals(token.getId())) {

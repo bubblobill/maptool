@@ -37,6 +37,7 @@ import net.rptools.maptool.model.Zone.VisionType;
 import net.rptools.maptool.model.drawing.Drawable;
 import net.rptools.maptool.model.drawing.DrawnElement;
 import net.rptools.maptool.model.drawing.Pen;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.topology.Wall;
 import net.rptools.maptool.model.topology.WallTopology;
 import net.rptools.maptool.model.zones.TokensAdded;
@@ -701,7 +702,7 @@ public class ServerMessageHandler implements MessageHandler {
           var zoneGUID = GUID.valueOf(updateTopologyMsg.getZoneGuid());
           var area = Mapper.map(updateTopologyMsg.getArea());
           var erase = updateTopologyMsg.getErase();
-          var topologyType = Zone.TopologyType.valueOf(updateTopologyMsg.getType().name());
+          var topologyType = Constants.TopologyType.valueOf(updateTopologyMsg.getType().name());
           Zone zone = server.getCampaign().getZone(zoneGUID);
           zone.updateMaskTopology(area, erase, topologyType);
         });

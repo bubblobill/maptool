@@ -56,7 +56,7 @@ import net.rptools.maptool.client.ui.zone.ZoneOverlay;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.topology.Vertex;
-import net.rptools.maptool.model.topology.VisibilityType;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.topology.Wall;
 import net.rptools.maptool.model.zones.WallTopologyChanged;
 import org.locationtech.jts.math.Vector2D;
@@ -225,7 +225,7 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
       var direction = firstData.direction();
       var movementModifier = firstData.movementModifier();
       var modifiers =
-          CollectionUtil.newFilledEnumMap(VisibilityType.class, firstData::directionModifier);
+          CollectionUtil.newFilledEnumMap(Constants.VisibilityType.class, firstData::directionModifier);
 
       for (var wall : this.selectedWalls) {
         var data = wall.getSource().data();
@@ -235,7 +235,7 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
         if (data.movementModifier() != movementModifier) {
           movementModifier = null;
         }
-        for (var type : VisibilityType.values()) {
+        for (var type : Constants.VisibilityType.values()) {
           if (data.directionModifier(type) != modifiers.get(type)) {
             modifiers.put(type, null);
           }

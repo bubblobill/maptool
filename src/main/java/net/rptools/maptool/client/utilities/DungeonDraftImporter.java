@@ -41,19 +41,10 @@ import net.rptools.maptool.client.ui.theme.Images;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.client.ui.uvtt.UvttLineOfSightPromptDialog;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.Asset;
-import net.rptools.maptool.model.AssetManager;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Grid;
-import net.rptools.maptool.model.Light;
-import net.rptools.maptool.model.LightSource;
-import net.rptools.maptool.model.ShapeType;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Zone.Layer;
-import net.rptools.maptool.model.ZoneFactory;
 import net.rptools.maptool.model.drawing.DrawableColorPaint;
-import net.rptools.maptool.model.topology.VisibilityType;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.topology.Wall;
 import net.rptools.maptool.model.topology.WallTopology;
 import org.apache.commons.io.FilenameUtils;
@@ -279,16 +270,16 @@ public class DungeonDraftImporter {
                     WALL_VBL_STROKE.createStrokedShape(
                         getVBLPath(v.getAsJsonArray(), pixelsPerCell)));
             vblArea.transform(at);
-            zone.updateMaskTopology(vblArea, false, Zone.TopologyType.WALL_VBL);
-            zone.updateMaskTopology(vblArea, false, Zone.TopologyType.MBL);
+            zone.updateMaskTopology(vblArea, false, Constants.TopologyType.WALL);
+            zone.updateMaskTopology(vblArea, false, Constants.TopologyType.MOVEMENT);
           });
 
       objectsLineOfSight.forEach(
           v -> {
             Area vblArea = new Area(getVBLPath(v.getAsJsonArray(), pixelsPerCell));
             vblArea.transform(at);
-            zone.updateMaskTopology(vblArea, false, Zone.TopologyType.HILL_VBL);
-            zone.updateMaskTopology(vblArea, false, Zone.TopologyType.PIT_VBL);
+            zone.updateMaskTopology(vblArea, false, Constants.TopologyType.HILL);
+            zone.updateMaskTopology(vblArea, false, Constants.TopologyType.PIT);
           });
 
       portals.forEach(
@@ -307,8 +298,8 @@ public class DungeonDraftImporter {
               Area vblArea =
                   new Area(DOOR_VBL_STROKE.createStrokedShape(getVBLPath(bounds, pixelsPerCell)));
               vblArea.transform(at);
-              zone.updateMaskTopology(vblArea, false, Zone.TopologyType.WALL_VBL);
-              zone.updateMaskTopology(vblArea, false, Zone.TopologyType.MBL);
+              zone.updateMaskTopology(vblArea, false, Constants.TopologyType.WALL);
+              zone.updateMaskTopology(vblArea, false, Constants.TopologyType.MOVEMENT);
             }
           });
     }
@@ -354,9 +345,9 @@ public class DungeonDraftImporter {
             lightingDirection,
             Wall.MovementDirectionModifier.ForceBoth,
             Map.of(
-                VisibilityType.Sight, lightingModifier,
-                VisibilityType.Light, lightingModifier,
-                VisibilityType.Aura, lightingModifier));
+                Constants.VisibilityType.Sight, lightingModifier,
+                Constants.VisibilityType.Light, lightingModifier,
+                Constants.VisibilityType.Aura, lightingModifier));
 
     var startPoint =
         transform.transform(vblPoint(vblArray.get(0).getAsJsonObject(), pixelsPerCell), null);

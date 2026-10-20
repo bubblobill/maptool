@@ -41,15 +41,11 @@ import javax.annotation.Nonnull;
 import net.rptools.lib.GeometryUtil;
 import net.rptools.maptool.client.DeveloperOptions;
 import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.ui.zone.vbl.MovementBlockingTopology;
+import net.rptools.maptool.model.topology.Constants;
+import net.rptools.maptool.model.topology.util.MovementBlockingTopology;
 import net.rptools.maptool.client.walker.AbstractZoneWalker;
 import net.rptools.maptool.events.MapToolEventBus;
-import net.rptools.maptool.model.CellPoint;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Label;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.TokenFootprint;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.zones.MaskTopologyChanged;
 import net.rptools.maptool.model.zones.WallTopologyChanged;
 import org.apache.logging.log4j.LogManager;
@@ -225,8 +221,8 @@ public abstract class AbstractAStarWalker extends AbstractZoneWalker {
 
         var topologyTypes =
             MapTool.getServerPolicy().getVblBlocksMove()
-                ? EnumSet.allOf(Zone.TopologyType.class)
-                : EnumSet.of(Zone.TopologyType.MBL);
+                ? EnumSet.allOf(Constants.TopologyType.class)
+                : EnumSet.of(Constants.TopologyType.MOVEMENT);
         this.preparedTopology =
             new MovementBlockingTopology(
                 zone.getWalls(),

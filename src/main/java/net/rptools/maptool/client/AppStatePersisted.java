@@ -23,7 +23,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
-import net.rptools.maptool.model.Zone;
+
+import net.rptools.maptool.model.topology.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -71,7 +72,7 @@ public class AppStatePersisted {
   private static final int DEFAULT_VBL_PEN_RADIUS = 3;
 
   /** Will be null until read from preferences. */
-  private static EnumSet<Zone.TopologyType> topologyTypes = null;
+  private static EnumSet<Constants.TopologyType> topologyTypes = null;
 
   public static void clearAssetRoots() {
     prefs.put(KEY_ASSET_ROOTS, "");
@@ -175,21 +176,21 @@ public class AppStatePersisted {
     return mruCampaigns;
   }
 
-  private static EnumSet<Zone.TopologyType> readTopologyTypes() {
+  private static EnumSet<Constants.TopologyType> readTopologyTypes() {
     try {
       String typeNames = prefs.get(KEY_TOPOLOGY_TYPES, "");
       if ("".equals(typeNames)) {
         // Fallback to the key used prior to the introduction of various VBL types.
         String oldDrawingMode = prefs.get(KEY_OLD_TOPOLOGY_DRAWING_MODE, DEFAULT_TOPOLOGY_TYPE);
         return switch (oldDrawingMode) {
-          case "VBL" -> EnumSet.of(Zone.TopologyType.WALL_VBL);
-          case "MBL" -> EnumSet.of(Zone.TopologyType.MBL);
-          case "COMBINED" -> EnumSet.of(Zone.TopologyType.WALL_VBL, Zone.TopologyType.MBL);
-          default -> EnumSet.of(Zone.TopologyType.WALL_VBL);
+          case "VBL" -> EnumSet.of(Constants.TopologyType.WALL);
+          case "MBL" -> EnumSet.of(Constants.TopologyType.MOVEMENT);
+          case "COMBINED" -> EnumSet.of(Constants.TopologyType.WALL, Constants.TopologyType.MOVEMENT);
+          default -> EnumSet.of(Constants.TopologyType.WALL);
         };
       } else {
-        var result = EnumSet.noneOf(Zone.TopologyType.class);
-        for (var topologyType : Zone.TopologyType.values()) {
+        var result = EnumSet.noneOf(Constants.TopologyType.class);
+        for (var topologyType : Constants.TopologyType.values()) {
           if (typeNames.contains(topologyType.name())) {
             result.add(topologyType);
           }
@@ -197,16 +198,16 @@ public class AppStatePersisted {
         return result;
       }
     } catch (Exception exc) {
-      return EnumSet.of(Zone.TopologyType.WALL_VBL);
+      return EnumSet.of(Constants.TopologyType.WALL);
     }
   }
 
-  private static void writeTopologyTypes(Set<Zone.TopologyType> types) {
+  private static void writeTopologyTypes(Set<Constants.TopologyType> types) {
     String joined = types.stream().map(Enum::name).collect(Collectors.joining(",", "[", "]"));
     prefs.put(KEY_TOPOLOGY_TYPES, joined);
   }
 
-  public static Set<Zone.TopologyType> getTopologyTypes() {
+  public static Set<Constants.TopologyType> getTopologyTypes() {
     if (topologyTypes == null) {
       topologyTypes = readTopologyTypes();
     }
@@ -218,9 +219,9 @@ public class AppStatePersisted {
    *
    * @param types the topology types.
    */
-  public static void setTopologyTypes(Set<Zone.TopologyType> types) {
+  public static void setTopologyTypes(Set<Constants.TopologyType> types) {
     if (topologyTypes == null) {
-      topologyTypes = EnumSet.noneOf(Zone.TopologyType.class);
+      topologyTypes = EnumSet.noneOf(Constants.TopologyType.class);
     }
     topologyTypes.clear();
     topologyTypes.addAll(types);

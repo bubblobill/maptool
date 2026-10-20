@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.JComboBox;
 import net.rptools.lib.CollectionUtil;
-import net.rptools.maptool.model.topology.VisibilityType;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.topology.Wall;
 
 public class WallConfigurationController {
@@ -36,15 +36,15 @@ public class WallConfigurationController {
     private final @Nullable Wall.Direction direction;
     private final @Nullable Wall.MovementDirectionModifier movementModifier;
     // DO NOT MODIFY `modifiers`!
-    private final EnumMap<VisibilityType, Wall.DirectionModifier> modifiers;
+    private final EnumMap<Constants.VisibilityType, Wall.DirectionModifier> modifiers;
 
     public WallData(
         @Nullable Wall.Direction direction,
         @Nullable Wall.MovementDirectionModifier movementModifier,
-        Map<VisibilityType, Wall.DirectionModifier> modifiers) {
+        Map<Constants.VisibilityType, Wall.DirectionModifier> modifiers) {
       this.direction = direction;
       this.movementModifier = movementModifier;
-      this.modifiers = new EnumMap<>(VisibilityType.class);
+      this.modifiers = new EnumMap<>(Constants.VisibilityType.class);
       this.modifiers.putAll(modifiers);
     }
 
@@ -56,7 +56,7 @@ public class WallConfigurationController {
       this(
           data.direction(),
           data.movementModifier(),
-          CollectionUtil.newFilledEnumMap(VisibilityType.class, data::directionModifier));
+          CollectionUtil.newFilledEnumMap(Constants.VisibilityType.class, data::directionModifier));
     }
 
     @Override
@@ -87,12 +87,12 @@ public class WallConfigurationController {
       return new WallData(this.direction, movementModifier, this.modifiers);
     }
 
-    public @Nullable Wall.DirectionModifier directionModifier(VisibilityType visibilityType) {
+    public @Nullable Wall.DirectionModifier directionModifier(Constants.VisibilityType visibilityType) {
       return this.modifiers.get(visibilityType);
     }
 
     public WallData withDirectionModifier(
-        VisibilityType visibilityType, @Nullable Wall.DirectionModifier modifier) {
+            Constants.VisibilityType visibilityType, @Nullable Wall.DirectionModifier modifier) {
       var newModifiers = new EnumMap<>(this.modifiers);
       if (modifier == null) {
         newModifiers.remove(visibilityType);
@@ -111,7 +111,7 @@ public class WallConfigurationController {
           Objects.requireNonNullElse(direction, original.direction()),
           Objects.requireNonNullElse(movementModifier, original.movementModifier()),
           CollectionUtil.newFilledEnumMap(
-              VisibilityType.class,
+              Constants.VisibilityType.class,
               type ->
                   Objects.requireNonNullElseGet(
                       modifiers.get(type), () -> original.directionModifier(type))));
@@ -145,7 +145,7 @@ public class WallConfigurationController {
           }
         });
 
-    for (var visibilityType : VisibilityType.values()) {
+    for (var visibilityType : Constants.VisibilityType.values()) {
       final var input = getModifierInput(visibilityType);
       input.addActionListener(
           e -> {
@@ -170,7 +170,7 @@ public class WallConfigurationController {
     return view;
   }
 
-  private JComboBox<Wall.DirectionModifier> getModifierInput(VisibilityType visibilityType) {
+  private JComboBox<Wall.DirectionModifier> getModifierInput(Constants.VisibilityType visibilityType) {
     return switch (visibilityType) {
       case Sight -> view.getSightModifier();
       case Light -> view.getLightModifier();
@@ -187,7 +187,7 @@ public class WallConfigurationController {
 
     this.view.getDirectionSelect().setSelectedItem(this.wallData.direction());
     this.view.getMovementModifier().setSelectedItem(this.wallData.movementModifier());
-    for (var visibilityType : VisibilityType.values()) {
+    for (var visibilityType : Constants.VisibilityType.values()) {
       getModifierInput(visibilityType)
           .setSelectedItem(this.wallData.directionModifier(visibilityType));
     }

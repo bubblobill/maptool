@@ -12,13 +12,14 @@
  * <https://www.gnu.org/licenses/> and specifically the Affero license
  * text at <https://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.client.ui.zone.vbl;
+package net.rptools.maptool.model.topology.util;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import javax.annotation.Nonnull;
 import net.rptools.lib.CodeTimer;
+import net.rptools.maptool.model.topology.vbl.VisibilitySweepEndpoint;
 import org.locationtech.jts.algorithm.Orientation;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;

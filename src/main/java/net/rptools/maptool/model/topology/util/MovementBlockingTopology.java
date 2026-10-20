@@ -12,7 +12,7 @@
  * <https://www.gnu.org/licenses/> and specifically the Affero license
  * text at <https://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.client.ui.zone.vbl;
+package net.rptools.maptool.model.topology.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +34,9 @@ import org.locationtech.jts.operation.union.UnaryUnionOp;
 /**
  * Collects a set of {@link Topology} into a form that is useful for pathfinding.
  *
- * @implNote The A* walker relies on the performance provided by {@link PreparedGeometry} in order
+ * @implNote A* walker relies on the performance provided by {@link PreparedGeometry}
  *     to be effective on larger maps with complicated movement blocking. But {@code
- *     PreparedGeometry} sensitive to the types of geometries involved and does especially poorly
+ *     PreparedGeometry} is sensitive to the types of geometries involved and does especially poorly
  *     with {@link GeometryCollection}. Since we know we have {@link Polygonal} masks and {@link
  *     Lineal} walls, we can prepare these separately so that the {@code PreparedGeometry} can work
  *     with a {@link MultiPolygon} and a {@link MultiLineString}.

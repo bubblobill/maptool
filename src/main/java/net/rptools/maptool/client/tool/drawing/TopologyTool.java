@@ -29,6 +29,7 @@ import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.swing.TopologyModeSelectionPanel;
 import net.rptools.maptool.client.ui.zone.ZoneOverlay;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.ZonePoint;
 
@@ -221,40 +222,40 @@ public final class TopologyTool<StateT> extends AbstractDrawingLikeTool {
 
       var tokenMasks = zone.getTokenMaskTopologies(null);
       g2.setColor(AppStyle.tokenMblColor);
-      for (var topology : tokenMasks.getOrDefault(Zone.TopologyType.MBL, List.of())) {
+      for (var topology : tokenMasks.getOrDefault(Constants.TopologyType.MOVEMENT, List.of())) {
         g2.fill(topology);
       }
       g2.setColor(AppStyle.tokenTopologyColor);
-      for (var topology : tokenMasks.getOrDefault(Zone.TopologyType.WALL_VBL, List.of())) {
+      for (var topology : tokenMasks.getOrDefault(Constants.TopologyType.WALL, List.of())) {
         g2.fill(topology);
       }
       g2.setColor(AppStyle.tokenHillVblColor);
-      for (var topology : tokenMasks.getOrDefault(Zone.TopologyType.HILL_VBL, List.of())) {
+      for (var topology : tokenMasks.getOrDefault(Constants.TopologyType.HILL, List.of())) {
         g2.fill(topology);
       }
       g2.setColor(AppStyle.tokenPitVblColor);
-      for (var topology : tokenMasks.getOrDefault(Zone.TopologyType.PIT_VBL, List.of())) {
+      for (var topology : tokenMasks.getOrDefault(Constants.TopologyType.PIT, List.of())) {
         g2.fill(topology);
       }
       g2.setColor(AppStyle.tokenCoverVblColor);
-      for (var topology : tokenMasks.getOrDefault(Zone.TopologyType.COVER_VBL, List.of())) {
+      for (var topology : tokenMasks.getOrDefault(Constants.TopologyType.COVER, List.of())) {
         g2.fill(topology);
       }
 
       g2.setColor(AppStyle.topologyTerrainColor);
-      g2.fill(zone.getMaskTopology(Zone.TopologyType.MBL));
+      g2.fill(zone.getMaskTopology(Constants.TopologyType.MOVEMENT));
 
       g2.setColor(AppStyle.topologyColor);
-      g2.fill(zone.getMaskTopology(Zone.TopologyType.WALL_VBL));
+      g2.fill(zone.getMaskTopology(Constants.TopologyType.WALL));
 
       g2.setColor(AppStyle.hillVblColor);
-      g2.fill(zone.getMaskTopology(Zone.TopologyType.HILL_VBL));
+      g2.fill(zone.getMaskTopology(Constants.TopologyType.HILL));
 
       g2.setColor(AppStyle.pitVblColor);
-      g2.fill(zone.getMaskTopology(Zone.TopologyType.PIT_VBL));
+      g2.fill(zone.getMaskTopology(Constants.TopologyType.PIT));
 
       g2.setColor(AppStyle.coverVblColor);
-      g2.fill(zone.getMaskTopology(Zone.TopologyType.COVER_VBL));
+      g2.fill(zone.getMaskTopology(Constants.TopologyType.COVER));
 
       g2.dispose();
     }

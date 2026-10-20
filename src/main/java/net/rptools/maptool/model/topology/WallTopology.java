@@ -466,8 +466,8 @@ public final class WallTopology implements Topology {
   }
 
   @Override
-  public VisionResult addSegments(
-      VisibilityType visibilityType,
+  public Constants.VisionResult addSegments(
+      Constants.VisibilityType visibilityType,
       Coordinate origin,
       Envelope bounds,
       Consumer<Coordinate[]> sink) {
@@ -505,7 +505,7 @@ public final class WallTopology implements Topology {
 
               sink.accept(new Coordinate[] {segment.p0, segment.p1});
             });
-    return VisionResult.Possible;
+    return Constants.VisionResult.Possible;
   }
 
   public WallTopologyDto toDto() {

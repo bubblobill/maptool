@@ -15,12 +15,13 @@
 package net.rptools.maptool.model.topology;
 
 import java.util.function.Consumer;
+
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
 
 public interface Topology {
-  VisionResult addSegments(
-      VisibilityType visibilityType,
+  Constants.VisionResult addSegments(
+      Constants.VisibilityType visibilityType,
       Coordinate origin,
       Envelope bounds,
       Consumer<Coordinate[]> sink);

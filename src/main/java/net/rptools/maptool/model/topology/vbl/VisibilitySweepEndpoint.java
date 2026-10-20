@@ -12,7 +12,7 @@
  * <https://www.gnu.org/licenses/> and specifically the Affero license
  * text at <https://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.client.ui.zone.vbl;
+package net.rptools.maptool.model.topology.vbl;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,7 +24,7 @@ import org.locationtech.jts.geom.Coordinate;
  * Represents a vertex used in the visibility sweep.
  *
  * <p>This class conveniently associates a point in space with the wall that are incident to it. The
- * walls are distinguished as starting or ending at this point, in agreement with the direction of
+ * walls are distinguished as starting or ending at this point in agreement with the direction of
  * the sweep.
  */
 public final class VisibilitySweepEndpoint {

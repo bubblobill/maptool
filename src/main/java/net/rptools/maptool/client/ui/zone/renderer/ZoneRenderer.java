@@ -67,6 +67,7 @@ import net.rptools.maptool.model.Label;
 import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.model.drawing.*;
 import net.rptools.maptool.model.player.Player;
+import net.rptools.maptool.model.topology.Constants;
 import net.rptools.maptool.model.zones.*;
 import net.rptools.maptool.util.GraphicsUtil;
 import net.rptools.maptool.util.ImageManager;
@@ -385,7 +386,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
             moveTimer.start("setup");
 
-            var changedMaskTopologyTypes = EnumSet.noneOf(Zone.TopologyType.class);
+            var changedMaskTopologyTypes = EnumSet.noneOf(Constants.TopologyType.class);
 
             Path<? extends AbstractPoint> path =
                 set.getWalker() != null ? set.getWalker().getPath() : set.getGridlessPath();
